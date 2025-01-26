@@ -6,7 +6,7 @@ interface User {
     role: string;
 }
 
-export default async function handler(req: NextRequest, res: NextResponse) {
+export default async function handler(req: NextRequest) {
   if (req.method === 'POST') {
     const { username } = await req.json();
 

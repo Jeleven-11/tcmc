@@ -1,6 +1,6 @@
 // pages/api/addReport.js
 import pool from '../../lib/db';  // Import the pool from db.js
-import { FieldPacket, ResultSetHeader } from 'mysql2';
+// import { FieldPacket, ResultSetHeader } from 'mysql2';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface ReportRequestBody {
@@ -12,7 +12,7 @@ interface ReportRequestBody {
     image_upload: string;
   }
 
-export default async function handler(req: NextRequest, res: NextResponse) {
+export default async function handler(req: NextRequest) {
   if (req.method === 'POST') {
     const { reported_by_user_id, vehicle_type, vehicle_color, plate_number, incurred_violations, image_upload } = await req.json();
 

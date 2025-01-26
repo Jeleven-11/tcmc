@@ -8,7 +8,7 @@ interface ReportReq {
     reported_by_user_id: string;
 }
 
-export default async function handler(req: NextRequest, res: NextResponse) {
+export default async function handler(req: NextRequest) {
   if (req.method === 'DELETE') {
     const { id, userId }: ReportReq = await req.json();
 

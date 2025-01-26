@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { FieldPacket, ResultSetHeader } from 'mysql2';
+import { FieldPacket } from 'mysql2';
 import pool from '../../lib/db';
 
 interface Report {
@@ -18,7 +18,7 @@ interface UpdateReportRequestBody {
     userId: number;
 }
 
-export default async function handler(req: NextRequest, res: NextResponse) {
+export default async function handler(req: NextRequest) {
   if (req.method === 'PUT') {
     // const { id } = req.json(); // `id` should be a string or undefined
     const {

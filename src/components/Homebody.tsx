@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const Homebody = () => {
@@ -29,7 +30,7 @@ const Homebody = () => {
 
         {/* Image */}
         <div className="relative w-full h-64 md:h-96">
-          <img
+          <Image
             src="assets/img/pnp.jpg"
             alt="logo"
             className="rounded-lg shadow-md"

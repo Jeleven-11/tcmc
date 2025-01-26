@@ -10,7 +10,7 @@ interface newUser {
     password: string;
 }
 
-const handler = async (req: NextRequest, res: NextResponse) => {
+const handler = async (req: NextRequest) => {
   if (req.method === 'POST') {
     const { username, name, role, contactNumber, password }: newUser = await req.json();
 

@@ -4,14 +4,33 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Nav from '@/components/Nav';
 
+interface Report {
+  report_id: number;
+  vehicle_type: string;
+  plate_number: string;
+  vehicle_color: string;
+  incurred_violations: string;
+  image_upload: string;
+  status: 'active' | 'solved';
+}
+
+interface NewReport {
+  vehicle_type: string;
+  plate_number: string;
+  vehicle_color: string;
+  incurred_violations: string;
+  img: string;
+}
+
+
 const Reports = () =>
   {
-  const [selectedReport, setSelectedReport] = useState(null);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [isImageEnlarged, setIsImageEnlarged] = useState(false);
   const [showAddReportModal, setShowAddReportModal] = useState(false);
 
-  const [newReport, setNewReport] = useState({
+  const [newReport, setNewReport] = useState<NewReport>({
     vehicle_type: '',
     plate_number: '',
     vehicle_color: '',
@@ -19,17 +38,17 @@ const Reports = () =>
     img: '', // This will now be base64 encoded
   });
 
-  const [imageFile, setImageFile] = useState(null); // To store the uploaded image file
-  const [reportsData, setReportsData] = useState([]);
-  const [loggedInUserId, setLoggedInUserId] = useState(1); // Simulating logged-in user, replace with actual user ID
-
+  const [imageFile, setImageFile] = useState<string | null>(null); // To store the uploaded image file
+  const [reportsData, setReportsData] = useState<Report[]>([]);
+  // const [loggedInUserId, setLoggedInUserId] = useState(1); // Simulating logged-in user, replace with actual user ID
+  const [loggedInUserId] = useState(1); // setLoggedInUserId was not used, encountered an error during build on Vercel
   // Fetch reports from the database when the component mounts
   useEffect(() => {
     const fetchReports = async () => {
       try {
         const response = await fetch('/api/getReports');
         if (response.ok) {
-          const data = await response.json();
+          const data: Report[] = await response.json();
           setReportsData(data); // Set the fetched reports
         } else {
           alert('Failed to fetch reports');
@@ -43,7 +62,7 @@ const Reports = () =>
     fetchReports();
   }, []);
 
-  const openModal = (report) => {
+  const openModal = (report: Report) => {
     setSelectedReport(report);
     setModalIsOpen(true);
     document.body.style.overflow = 'hidden'; // Disable background scrolling
@@ -60,7 +79,7 @@ const Reports = () =>
     setIsImageEnlarged((prev) => !prev); // Toggle image enlargement
   };
 
-  const handleAddReportChange = (e) => {
+  const handleAddReportChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewReport((prev) => ({
       ...prev,
@@ -68,22 +87,23 @@ const Reports = () =>
     }));
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImageFile(reader.result); // Set the base64 image as the file URL
+        const result = reader.result as string;
+        setImageFile(result); // Set the base64 image as the file URL
         setNewReport((prev) => ({
           ...prev,
-          img: reader.result.split(',')[1], // Remove data URL prefix
+          img: result.split(',')[1], // Remove data URL prefix
         }));
       };
       reader.readAsDataURL(file); // Convert the file to base64
     }
   };
 
-  const handleSubmitReport = async (e) => {
+  const handleSubmitReport = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
@@ -106,7 +126,7 @@ const Reports = () =>
         alert('Report added successfully!');
         setShowAddReportModal(false);
         // Add the new report to the reportsData state
-        const newReportData = await response.json();
+        const newReportData: Report = await response.json();
         setReportsData((prevReports) => [
           ...prevReports,
           { ...newReportData, report_id: prevReports.length + 1 }, // Add new report to the list
@@ -120,7 +140,7 @@ const Reports = () =>
     }
   };
 
-  const handleDeleteReport = async (reportId) => {
+  const handleDeleteReport = async (reportId: number) => {
     try {
       const response = await fetch(`/api/deleteReport/${reportId}`, {
         method: 'DELETE',
@@ -142,14 +162,14 @@ const Reports = () =>
     }
   };
 
-  const handleEditReport = async (report) => {
+  const handleEditReport = async (report: Report) => {
     // Assuming you have a form or modal to update the report
     const updatedReport = {
       vehicle_type: 'New Vehicle Type', // Use form data here
       vehicle_color: 'New Color',
       plate_number: 'New Plate',
       incurred_violations: 'New Violations',
-      image_upload: report.img, // Can also update the image
+      image_upload: report.image_upload, // Can also update the image
       userId: loggedInUserId, // Pass userId from session
     };
 
@@ -176,7 +196,7 @@ const Reports = () =>
     }
   };
 
-  const [activeTab, setActiveTab] = useState('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'solved'>('active');
 
   return (
     <>
@@ -357,7 +377,7 @@ const Reports = () =>
         {modalIsOpen && selectedReport && selectedReport.image_upload && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white p-6 rounded-lg w-1/3">
-              <img
+              <Image 
                 src={`data:image/jpeg;base64,${selectedReport.image_upload}`}
                 alt="Report Image"
                 className={isImageEnlarged ? 'w-full h-auto' : 'w-32 h-32 object-cover cursor-pointer'}
