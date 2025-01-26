@@ -12,7 +12,7 @@ interface ReportRequestBody {
     image_upload: string;
   }
 
-export default async function handler(req: NextRequest) {
+export default async function handler(req: NextRequest, res: NextResponse) {
   if (req.method === 'POST') {
     const { reported_by_user_id, vehicle_type, vehicle_color, plate_number, incurred_violations, image_upload }: ReportRequestBody = await req.json();
 
