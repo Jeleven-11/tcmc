@@ -24,7 +24,7 @@ export default async function handler(req: NextRequest) {
       }
     } catch (error) {
       console.error('Database error:', error);
-      return NextResponse.json({ error: 'Database error' }, { status: 500 });
+      return NextResponse.json({ error: `Database error: ${error}` }, { status: 500 });
     }
   } else {
     return new NextResponse('Method Not Allowed', { status: 405, headers: { 'Allow': 'POST' } });

@@ -9,7 +9,7 @@ interface UpdateUserRequestBody {
     role: string;
     contact_num: string; 
 }
-export default async function handler(req: NextRequest, res: NextResponse) {
+export default async function handler(req: NextRequest) {
   if (req.method === 'PUT') {
     // Destructure name from req.json()
     const { id, username, password, name, role, contact_num }: UpdateUserRequestBody = await req.json();

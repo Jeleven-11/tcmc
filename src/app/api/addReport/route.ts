@@ -14,7 +14,7 @@ interface ReportRequestBody {
 
 export default async function handler(req: NextRequest) {
   if (req.method === 'POST') {
-    const { reported_by_user_id, vehicle_type, vehicle_color, plate_number, incurred_violations, image_upload } = await req.json();
+    const { reported_by_user_id, vehicle_type, vehicle_color, plate_number, incurred_violations, image_upload }: ReportRequestBody = await req.json();
 
     // Validate if all fields are provided
     if (!reported_by_user_id || !vehicle_type || !vehicle_color || !plate_number || !incurred_violations || !image_upload) {

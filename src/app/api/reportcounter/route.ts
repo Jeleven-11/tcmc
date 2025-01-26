@@ -1,4 +1,4 @@
-import { FieldPacket, RowDataPacket } from 'mysql2';
+import { FieldPacket } from 'mysql2';
 import pool from '../../lib/db'; // Correct import for the pool
 import { NextApiRequest, NextApiResponse } from 'next';
 import { NextResponse } from 'next/server';
@@ -41,8 +41,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }, {
         status:200
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error in report counter API:', error);
-    NextResponse.json({ message: `Error fetching report counts: ${error.message}` }, {status: 500});
+    NextResponse.json({ message: `Error fetching report counts: ${error}` }, {status: 500});
   }
 }

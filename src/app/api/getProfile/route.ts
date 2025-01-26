@@ -8,7 +8,7 @@ interface User {
   contact_num: string;
 }
 
-export default async function handler(req: NextRequest, res: NextResponse) {
+export default async function handler(req: NextRequest) {
   // Only allow GET requests
   if (req.method !== 'GET') {
     return NextResponse.json({ message: 'Method Not Allowed' }, {status: 405});

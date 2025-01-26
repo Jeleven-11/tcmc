@@ -1,5 +1,6 @@
 import pool from '../../lib/db';
 import bcrypt from 'bcryptjs';
+import { FieldPacket, ResultSetHeader } from 'mysql2';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface newUser {
@@ -29,7 +30,7 @@ const handler = async (req: NextRequest) => {
       console.log('Hashed password:', hashedPassword);
 
       // Insert new user into the database
-      const [result]: any[] = await pool.query(
+      const [result]: [ResultSetHeader, FieldPacket[]] = await pool.query(
         'INSERT INTO users (username, name, role, contact_num, password) VALUES (?, ?, ?, ?, ?)',
         [username, name, role, contactNumber, hashedPassword]
       );

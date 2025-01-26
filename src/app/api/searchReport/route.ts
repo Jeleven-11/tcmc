@@ -24,12 +24,12 @@ export default async function handler(req: NextRequest) {
   }
 
   try {
-    const [results]: [RowDataPacket[], FieldPacket[]] = await pool.query(
+    const [results]: [Report[], FieldPacket[]] = await pool.query(
       `SELECT reportID, fullName, contactNumber, createdAt, vehicleType, platenumber, color, description, reason, status
       FROM reports
       WHERE reportID LIKE ? OR fullName LIKE ? OR contactNumber LIKE ? OR platenumber LIKE ?`,
       [`%${query}%`, `%${query}%`, `%${query}%`, `%${query}%`]
-    );
+    ) as [Report[], FieldPacket[]];
 
     if (results.length === 0) {
       return NextResponse.json({ error: 'No reports found' }, {status: 404});

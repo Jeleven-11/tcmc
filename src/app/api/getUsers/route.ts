@@ -1,7 +1,7 @@
 // pages/api/getUsers.js
 import db from '../../lib/db'; // Adjust this path as needed
 import { NextRequest, NextResponse } from 'next/server';
-export default async function handler(req: NextRequest, res: NextResponse) {
+export default async function handler(req: NextRequest) {
   if (req.method === 'GET') {
     try {
         const query: string = 
@@ -20,7 +20,7 @@ export default async function handler(req: NextRequest, res: NextResponse) {
       NextResponse.json(users, {status: 200});
     } catch (error) {
       console.error('Database error:', error);
-      NextResponse.json({ error: 'Database error' }, {status: 500});
+      NextResponse.json({ error: `Database error: ${error}` }, {status: 500});
     }
   } else {
     return new NextResponse('Method Not Allowed', { status: 405, headers: { 'Allow': 'GET' } });
