@@ -1,6 +1,6 @@
 // pages/api/addReport.js
-import pool from '../../lib/db';  // Import the pool from db.js
-// import { FieldPacket, ResultSetHeader } from 'mysql2';
+import { FieldPacket } from 'mysql2';
+import pool from '../../lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface ReportRequestBody {
@@ -23,10 +23,10 @@ export default async function handler(req: NextRequest) {
 
     try {
       // Insert the report into the database
-      const [result]: any = await pool.execute(
+      const [result]: [ReportRequestBody[], FieldPacket[]] = await pool.execute(
         'INSERT INTO watchlist (reported_by_user_id, vehicle_type, vehicle_color, plate_number, incurred_violations, image_upload) VALUES (?, ?, ?, ?, ?, ?)', 
         [reported_by_user_id, vehicle_type, vehicle_color, plate_number, incurred_violations, image_upload]
-      );
+      ) as [ReportRequestBody[], FieldPacket[]];
       NextResponse.json({ message: 'Report added successfully', data: result }, {status: 201});
     } catch (error) {
       console.error('Database Error:', error);
