@@ -2,7 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from 'next-auth/react';
 import { FieldPacket } from 'mysql2';
 import db from '../../lib/db';
+import { IncomingMessage } from 'http';
 
+async function getSessionWithNextRequest(req: NextRequest) {
+  // Create a compatible request object
+  const compatibleReq: Partial<IncomingMessage> = {
+    headers: Object.fromEntries(req.headers.entries()),
+    method: req.method,
+    url: req.url,
+  };
+
+  // Fetch the session using the compatible request object
+  const session = await getSession({ req: compatibleReq });
+
+  return session;
+}
 interface User {
   name: string;
   contact_num: string;
@@ -15,7 +29,7 @@ export default async function handler(req: NextRequest) {
   }
 
   // Fetch the session to identify the logged-in user
-  const session = await getSession({ req: req as any });
+  const session = await getSessionWithNextRequest(req);
 
   if (!session || !session.user || !session.user.name) {
     return NextResponse.json({ message: 'Unauthorized' }, {status: 401});

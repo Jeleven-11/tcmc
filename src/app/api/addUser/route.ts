@@ -30,18 +30,18 @@ const handler = async (req: NextRequest) => {
       console.log('Hashed password:', hashedPassword);
 
       // Insert new user into the database
-      const [result]: [ResultSetHeader, FieldPacket[]] = await pool.query(
+      const [result]: [newUser[], FieldPacket[]] = await pool.query(
         'INSERT INTO users (username, name, role, contact_num, password) VALUES (?, ?, ?, ?, ?)',
         [username, name, role, contactNumber, hashedPassword]
-      );
+      ) as [newUser[], FieldPacket[]];
 
       console.log('Database result:', result);
 
       // Return success response
-      return NextResponse.json({ message: 'User added successfully', userId: result.insertId }, {status: 200});
+      return NextResponse.json({ message: 'User added successfully'}, {status: 200});
     } catch (error) {
       console.error('Error adding user:', error);
-      return NextResponse.json({ error: 'Failed to add user' }, {status: 500});
+      return NextResponse.json({ error: `Failed to add user: ${error}` }, {status: 500});
     }
   } else {
     // Handle unsupported request methods

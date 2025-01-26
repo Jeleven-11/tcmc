@@ -1,5 +1,5 @@
 import pool from '../../lib/db';
-import { FieldPacket, RowDataPacket } from 'mysql2';
+import { FieldPacket } from 'mysql2';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Define a type for the report data
