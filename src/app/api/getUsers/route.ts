@@ -1,5 +1,5 @@
 // pages/api/getUsers.js
-import db from '../../lib/db'; // Adjust this path as needed
+import pool from '../../lib/db'; // Adjust this path as needed
 import { NextRequest, NextResponse } from 'next/server';
 export async function GET(req: NextRequest) {
   if (req.method === 'GET') {
@@ -14,12 +14,13 @@ export async function GET(req: NextRequest) {
             contact_num                  
                 FROM 
             users `;
+        // Get connection to the database pool
+        const connection = await pool.getConnection();
         // Fetch users and their associated profile information
-        const [users] = await db.query(query);
-        db.end();
+        const [users] = await connection.query(query);
+        connection.release();
       return NextResponse.json(users, {status: 200});
     } catch (error) {
-      db.end();
       console.error('Database error:', error);
       return NextResponse.json({ error: `Database error: ${error}` }, {status: 500});
     }

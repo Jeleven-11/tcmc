@@ -68,9 +68,10 @@ export async function POST(request: NextRequest)
       description,
       reportID,
     ]
-
-    const [result] = await pool.query(query, values);
-    pool.end();
+    // Get connection to the database pool
+    const connection = await pool.getConnection();
+    const [result] = await connection.query(query, values);
+    connection.release();
     console.log('Report submitted successfully:', result)
 
     return NextResponse.json({
@@ -79,7 +80,6 @@ export async function POST(request: NextRequest)
       result,
     })
   } catch (error) {
-    pool.end();
     console.error('Error submitting report:', error)
     return NextResponse.json({ error: 'Internal Server Error' })
   }

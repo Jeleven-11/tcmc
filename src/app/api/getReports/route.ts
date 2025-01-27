@@ -4,12 +4,13 @@ import pool from '../../lib/db'; // Adjust path if needed
 import { NextResponse } from 'next/server';
 export async function GET() {
   try {
-    const [rows] = await pool.query('SELECT * FROM reports');
-    pool.end();
+    // Get connection to the database pool
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query('SELECT * FROM reports');
+    connection.release();
     return NextResponse.json({ reports: rows }, {status: 200});
   } catch (error) {
     console.error('Error fetching reports: ', error);
-    pool.end();
     return NextResponse.json({ message: 'Error fetching reports' }, { status: 500});
   }
 }

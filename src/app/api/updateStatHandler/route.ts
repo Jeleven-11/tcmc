@@ -18,23 +18,20 @@ export async function PATCH(req: NextRequest) {
 
       const query = `UPDATE reports SET status = ? WHERE reportID = ?`;
       const values = [status, reportID];
-
-      const [result]: [ResultSetHeader, FieldPacket[]] = await pool.query(query, values);
-
+      // Get connection to the database pool
+      const connection = await pool.getConnection();
+      const [result]: [ResultSetHeader, FieldPacket[]] = await connection.query(query, values);
+      connection.release();
       if (result.affectedRows > 0) {
-        pool.end();
         return NextResponse.json({ message: 'Report status updated successfully' }, {status: 200});
       } else {
-        pool.end();
         return NextResponse.json({ error: 'Report not found' }, {status: 404});
       }
     } catch (error) {
-      pool.end();
       console.error('Error updating report status:', error);
       return NextResponse.json({ error: 'Internal Server Error' }, {status: 500});
     }
   } else {
-    pool.end();
     return NextResponse.json({ error: 'Method Not Allowed' }, {status: 405});
   }
 }

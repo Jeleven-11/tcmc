@@ -22,22 +22,22 @@ export async function GET(req: NextRequest) {
   if (typeof query !== 'string' || query.trim() === '') {
     return NextResponse.json({ error: 'Query parameter is required' }, {status: 400});
   }
-
   try {
-    const [results]: [Report[], FieldPacket[]] = await pool.query(
+    // Get connection to the database pool
+    const connection = await pool.getConnection();
+    const [results]: [Report[], FieldPacket[]] = await connection.query(
       `SELECT reportID, fullName, contactNumber, createdAt, vehicleType, platenumber, color, description, reason, status
       FROM reports
       WHERE reportID LIKE ? OR fullName LIKE ? OR contactNumber LIKE ? OR platenumber LIKE ?`,
       [`%${query}%`, `%${query}%`, `%${query}%`, `%${query}%`]
     ) as [Report[], FieldPacket[]];
-
+    connection.release();
     if (results.length === 0) {
       return NextResponse.json({ error: 'No reports found' }, {status: 404});
     }
-
-    NextResponse.json({ reports: results }, {status: 200});
+    return NextResponse.json({ reports: results }, {status: 200});
   } catch (error) {
     console.error('Database query error:', error);
-    NextResponse.json({ error: 'An error occurred while fetching the reports' }, {status: 500});
+    return NextResponse.json({ error: 'An error occurred while fetching the reports' }, {status: 500});
   }
 }

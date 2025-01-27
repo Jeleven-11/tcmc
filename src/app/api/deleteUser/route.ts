@@ -1,5 +1,5 @@
 import { FieldPacket, ResultSetHeader } from 'mysql2';
-import db from '../../lib/db'; // Adjust this path as needed
+import pool from '../../lib/db'; // Adjust this path as needed
 import { NextRequest, NextResponse } from 'next/server';
 import { ParsedUrlQuery } from 'querystring';
 // import { stat } from 'fs';
@@ -13,13 +13,14 @@ export async function DELETE(req: NextRequest) {
     }
 
     try {
+      // Get connection to the database pool
+      const connection = await pool.getConnection();
       // Get the result and metadata
-      const [result]: [ResultSetHeader, FieldPacket[]] = await db.query('DELETE FROM users WHERE user_id = ?', [id]);
-
+      const [result]: [ResultSetHeader, FieldPacket[]] = await connection.query('DELETE FROM users WHERE user_id = ?', [id]);
+      connection.release();
       if (result.affectedRows === 0) {
         return NextResponse.json({ error: 'User not found' }, {status: 404});
       }
-
       NextResponse.json({ message: 'User deleted successfully' }, {status: 200});
     } catch (error) {
       console.error('Database error:', error);

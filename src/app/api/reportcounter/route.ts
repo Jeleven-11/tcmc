@@ -21,16 +21,17 @@ export async function GET() {
         SUM(CASE WHEN status = 'solved' THEN 1 ELSE 0 END) AS solved_count
       FROM reports
     `;
-
+    // Get connection to the database pool
+    const connection = await pool.getConnection();
     // Run the query using the pool
-    const [rows]: [ReportCount[], FieldPacket[]] = await pool.query(query) as [ReportCount[], FieldPacket[]];
+    const [rows]: [ReportCount[], FieldPacket[]] = await connection.query(query) as [ReportCount[], FieldPacket[]];
    
     if (!rows || rows.length === 0) {
       return NextResponse.json({ message: 'No data returned from query' }, {status: 500});
     }
 
     const { total_count, pending_count, accepted_count, dropped_count, solved_count }: ReportCount = rows[0];
-    pool.end();
+    connection.release();
     return NextResponse.json({
         total: total_count,
         pending: pending_count,
@@ -41,7 +42,6 @@ export async function GET() {
         status:200
     });
   } catch (error) {
-    pool.end();
     console.error('Error in report counter API:', error);
     return NextResponse.json({ message: `Error fetching report counts: ${error}` }, {status: 500});
   }

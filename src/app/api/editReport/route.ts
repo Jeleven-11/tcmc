@@ -36,8 +36,12 @@ export async function PUT(req: NextRequest) {
     }
 
     try {
+      // Get connection to the database pool
+      const connection = await pool.getConnection();
+      // Use transaction for handling series of queries
+      await connection.beginTransaction();
       // Fetch the report from the database
-      const [rows]: [Report[], FieldPacket[]] = await pool.query('SELECT * FROM watchlist WHERE report_id = ?', [id]) as [Report[], FieldPacket[]];
+      const [rows]: [Report[], FieldPacket[]] = await connection.query('SELECT * FROM watchlist WHERE report_id = ?', [id]) as [Report[], FieldPacket[]];
 
       if (rows.length === 0) {
         return NextResponse.json({ message: 'Report not found' }, {status: 404});
@@ -46,24 +50,24 @@ export async function PUT(req: NextRequest) {
 
       // Ensure the logged-in user is the owner of the report
       if (report.reported_by_user_id !== userId) {
-        pool.end();
+        await connection.rollback();
+        connection.release();
         return NextResponse.json({ message: 'You are not authorized to edit this report' }, {status: 403});
       }
 
       // Update the report in the database
-      await pool.query(
+      await connection.query(
         'UPDATE watchlist SET vehicle_type = ?, vehicle_color = ?, plate_number = ?, incurred_violations = ?, image_upload = ? WHERE report_id = ?',
         [vehicle_type, vehicle_color, plate_number, incurred_violations, image_upload, id]
       );
-      pool.end();
-      NextResponse.json({ message: 'Report updated successfully' }, {status: 200});
+      connection.commit();
+      connection.release();
+      return NextResponse.json({ message: 'Report updated successfully' }, {status: 200});
     } catch (error) {
       console.error('Error updating report:', error);
-      pool.end();
-      NextResponse.json({ message: 'An error occurred while updating the report' }, {status: 500});
+      return NextResponse.json({ message: 'An error occurred while updating the report' }, {status: 500});
     }
   } else {
-    pool.end();
-    NextResponse.json({ message: 'Method Not Allowed' }, {status: 405});
+    return NextResponse.json({ message: 'Method Not Allowed' }, {status: 405});
   }
 }

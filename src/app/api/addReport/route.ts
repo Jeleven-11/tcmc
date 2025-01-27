@@ -22,20 +22,22 @@ interface ReportRequestBody {
     }
 
     try {
+      // Get connection to the database pool
+      const connection = await pool.getConnection();
       // Insert the report into the database
-      const [result]: [ReportRequestBody[], FieldPacket[]] = await pool.execute(
+      const [result]: [ReportRequestBody[], FieldPacket[]] = await connection.execute(
         'INSERT INTO watchlist (reported_by_user_id, vehicle_type, vehicle_color, plate_number, incurred_violations, image_upload) VALUES (?, ?, ?, ?, ?, ?)', 
         [reported_by_user_id, vehicle_type, vehicle_color, plate_number, incurred_violations, image_upload]
       ) as [ReportRequestBody[], FieldPacket[]];
-      pool.end();
+      connection.release();
       NextResponse.json({ message: 'Report added successfully', data: result }, {status: 201});
     } catch (error) {
       console.error('Database Error:', error);
-      pool.end();
+      
       NextResponse.json({ error: 'Failed to add report' }, {status: 500});
     }
   } else {
-    pool.end();
+    
     NextResponse.json({ error: 'Method Not Allowed' }, {status: 405});
   }
 }

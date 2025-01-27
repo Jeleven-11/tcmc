@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from 'next-auth/react';
 import { FieldPacket } from 'mysql2';
-import db from '../../lib/db';
+import pool from '../../lib/db';
 import { IncomingMessage } from 'http';
 
 async function getSessionWithNextRequest(req: NextRequest) {
@@ -38,20 +38,19 @@ export async function GET(req: NextRequest) {
   const { name: username } = session.user;
 
   try {
-    const [user]: [User[], FieldPacket[]] = await db.query(
+    // Get connection to the database pool
+    const connection = await pool.getConnection();
+    const [user]: [User[], FieldPacket[]] = await connection.query(
       `SELECT name, contact_num FROM users WHERE username = ?`,
       [username]
     ) as [User[], FieldPacket[]];
-
+    connection.release();
     if (!user) {
-      db.end();
       return NextResponse.json({ message: 'User not found' }, {status: 404});
     }
-    db.end();
     return NextResponse.json(user, {status: 200});
   } catch (error) {
     console.error('Error fetching profile:', error);
-    db.end();
     return NextResponse.json({ message: 'Internal Server Error' }, {status: 500});
   }
 }
