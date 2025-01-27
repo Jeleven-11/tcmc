@@ -17,11 +17,11 @@ export async function GET(req: NextRequest) {
         // Fetch users and their associated profile information
         const [users] = await db.query(query);
         db.end();
-      NextResponse.json(users, {status: 200});
+      return NextResponse.json(users, {status: 200});
     } catch (error) {
       db.end();
       console.error('Database error:', error);
-      NextResponse.json({ error: `Database error: ${error}` }, {status: 500});
+      return NextResponse.json({ error: `Database error: ${error}` }, {status: 500});
     }
   } else {
     return new NextResponse('Method Not Allowed', { status: 405, headers: { 'Allow': 'GET' } });

@@ -31,7 +31,7 @@ export async function GET() {
 
     const { total_count, pending_count, accepted_count, dropped_count, solved_count }: ReportCount = rows[0];
     pool.end();
-    NextResponse.json({
+    return NextResponse.json({
         total: total_count,
         pending: pending_count,
         accepted: accepted_count,
@@ -43,6 +43,6 @@ export async function GET() {
   } catch (error) {
     pool.end();
     console.error('Error in report counter API:', error);
-    NextResponse.json({ message: `Error fetching report counts: ${error}` }, {status: 500});
+    return NextResponse.json({ message: `Error fetching report counts: ${error}` }, {status: 500});
   }
 }

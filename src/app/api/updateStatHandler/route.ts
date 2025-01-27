@@ -7,7 +7,7 @@ interface UpdateStatusRequestBody {
   status: string;
 }
 
-export default async function handler(req: NextRequest) {
+export async function PATCH(req: NextRequest) {
   if (req.method === 'PATCH') {
     try {
       const { reportID, status }: UpdateStatusRequestBody = await req.json();

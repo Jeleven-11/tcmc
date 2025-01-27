@@ -6,10 +6,10 @@ export async function GET() {
   try {
     const [rows] = await pool.query('SELECT * FROM reports');
     pool.end();
-    NextResponse.json({ reports: rows }, {status: 200});
+    return NextResponse.json({ reports: rows }, {status: 200});
   } catch (error) {
     console.error('Error fetching reports: ', error);
     pool.end();
-    NextResponse.json({ message: 'Error fetching reports' }, { status: 500});
+    return NextResponse.json({ message: 'Error fetching reports' }, { status: 500});
   }
 }
