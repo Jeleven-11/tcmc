@@ -68,28 +68,24 @@ const ReportForm = () =>
     const generatedReportID = `REP-${uuidv4().slice(0, 8).toUpperCase()}` // Generate unique report ID
     setReportID(generatedReportID) // Set the generated report ID
 
-    const formDataToSend = new FormData()
-    Object.keys(formData).forEach((key) =>
-    {
-      if (key !== 'driversLicense' && key !== 'vehicleRegistration' && key !== 'orCr')
-        formDataToSend.append(key, formData[key as keyof FormData])
-    })
-    formDataToSend.append('reportID', generatedReportID)
-    if (formData.isOwner === 'Yes')
-    {
+    const formDataToSend = {
+      ...formData,
+      reportID: generatedReportID
+    }
+    if (formData.isOwner === 'Yes') {
       if (dvrLicenseVal === "" || vRegistrationVal === "" || orCrVal === "")
-        return alert('Please upload all required files for verification purposes!')
-
-      formDataToSend.append('driversLicense', dvrLicenseVal)
-      formDataToSend.append('vehicleRegistration', vRegistrationVal)
-      formDataToSend.append('orCr', orCrVal)
+        return alert('Please upload all required files for verification purposes!');
+  
+      formDataToSend.driversLicense = dvrLicenseVal;
+      formDataToSend.vehicleRegistration = vRegistrationVal;
+      formDataToSend.orCr = orCrVal;
     }
 
     try
     {
       const response = await fetch('/api/reporthandler', {
         method: 'POST',
-        body: formDataToSend,
+        body: JSON.stringify(formDataToSend),
       })
 
       if (response.ok)
