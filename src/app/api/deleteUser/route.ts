@@ -1,14 +1,15 @@
 import { FieldPacket, ResultSetHeader } from 'mysql2';
 import db from '../../lib/db'; // Adjust this path as needed
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import { ParsedUrlQuery } from 'querystring';
+// import { stat } from 'fs';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+export async function DELETE(req: NextRequest) {
   if (req.method === 'DELETE') {
-    const { id } = req.query as ParsedUrlQuery; // Type cast for query params
+    const { id } : ParsedUrlQuery= await req.json(); // Type cast for query params
 
     if (!id || typeof id !== 'string') {  // Ensure `id` is a string
-      return res.status(400).json({ error: 'User ID is required' });
+      return NextResponse.json({ error: 'User ID is required' }, {status: 400});
     }
 
     try {
@@ -16,16 +17,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const [result]: [ResultSetHeader, FieldPacket[]] = await db.query('DELETE FROM users WHERE user_id = ?', [id]);
 
       if (result.affectedRows === 0) {
-        return res.status(404).json({ error: 'User not found' });
+        return NextResponse.json({ error: 'User not found' }, {status: 404});
       }
 
-      res.status(200).json({ message: 'User deleted successfully' });
+      NextResponse.json({ message: 'User deleted successfully' }, {status: 200});
     } catch (error) {
       console.error('Database error:', error);
-      res.status(500).json({ error: 'Database error' });
+      NextResponse.json({ error: 'Database error' }, {status: 500});
     }
   } else {
-    res.setHeader('Allow', ['DELETE']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    return new NextResponse('Method Not Allowed', { status: 405, headers: { 'Allow': 'DELETE' } });
   }
 }

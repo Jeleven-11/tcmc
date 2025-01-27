@@ -22,7 +22,7 @@ interface User {
   contact_num: string;
 }
 
-export default async function handler(req: NextRequest) {
+export async function GET(req: NextRequest) {
   // Only allow GET requests
   if (req.method !== 'GET') {
     return NextResponse.json({ message: 'Method Not Allowed' }, {status: 405});
@@ -44,12 +44,14 @@ export default async function handler(req: NextRequest) {
     ) as [User[], FieldPacket[]];
 
     if (!user) {
+      db.end();
       return NextResponse.json({ message: 'User not found' }, {status: 404});
     }
-
-    NextResponse.json(user, {status: 200});
+    db.end();
+    return NextResponse.json(user, {status: 200});
   } catch (error) {
     console.error('Error fetching profile:', error);
-    NextResponse.json({ message: 'Internal Server Error' }, {status: 500});
+    db.end();
+    return NextResponse.json({ message: 'Internal Server Error' }, {status: 500});
   }
 }

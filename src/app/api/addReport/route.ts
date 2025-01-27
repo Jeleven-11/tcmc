@@ -12,7 +12,7 @@ interface ReportRequestBody {
     image_upload: string;
   }
 
-export default async function handler(req: NextRequest, res: NextResponse) {
+  export async function POST(req: NextRequest){
   if (req.method === 'POST') {
     const { reported_by_user_id, vehicle_type, vehicle_color, plate_number, incurred_violations, image_upload }: ReportRequestBody = await req.json();
 
@@ -27,12 +27,15 @@ export default async function handler(req: NextRequest, res: NextResponse) {
         'INSERT INTO watchlist (reported_by_user_id, vehicle_type, vehicle_color, plate_number, incurred_violations, image_upload) VALUES (?, ?, ?, ?, ?, ?)', 
         [reported_by_user_id, vehicle_type, vehicle_color, plate_number, incurred_violations, image_upload]
       ) as [ReportRequestBody[], FieldPacket[]];
+      pool.end();
       NextResponse.json({ message: 'Report added successfully', data: result }, {status: 201});
     } catch (error) {
       console.error('Database Error:', error);
+      pool.end();
       NextResponse.json({ error: 'Failed to add report' }, {status: 500});
     }
   } else {
+    pool.end();
     NextResponse.json({ error: 'Method Not Allowed' }, {status: 405});
   }
 }

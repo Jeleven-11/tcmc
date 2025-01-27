@@ -7,7 +7,7 @@ interface Report {
   reportID: number;
   fullName: string;
   contactNumber: string;
-  createdAt: Date;
+  createdAt: string;
   vehicleType: string;
   platenumber: string;
   color: string;
@@ -16,7 +16,7 @@ interface Report {
   status: string;
 }
 
-export default async function handler(req: NextRequest) {
+export async function GET(req: NextRequest) {
   const { query } = await req.json();
 
   if (typeof query !== 'string' || query.trim() === '') {

@@ -1,7 +1,26 @@
 import pool from '../../lib/db';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(request: Request)
+interface Report {
+  fullName: string;
+  age: number;
+  sex: string;
+  address: string;
+  contactNumber: string;
+  isOwner: string;
+  driversLicense: string;
+  vehicleRegistration: string;
+  orCr: string;
+  reason: string;
+  vehicleType: string;
+  platenumber: string;
+  color: string;
+  description: string;
+  reportID: string;
+  status: string;
+  createdAt: string;
+}
+export async function POST(request: NextRequest)
 {
   const records = await request.json();
   try
@@ -22,7 +41,7 @@ export async function POST(request: Request)
       color,
       description,
       reportID,
-    } = records;
+    }: Report = records;
 
     const query = `
       INSERT INTO reports (
@@ -50,7 +69,8 @@ export async function POST(request: Request)
       reportID,
     ]
 
-    const [result] = await pool.query(query, values)
+    const [result] = await pool.query(query, values);
+    pool.end();
     console.log('Report submitted successfully:', result)
 
     return NextResponse.json({
@@ -59,6 +79,7 @@ export async function POST(request: Request)
       result,
     })
   } catch (error) {
+    pool.end();
     console.error('Error submitting report:', error)
     return NextResponse.json({ error: 'Internal Server Error' })
   }

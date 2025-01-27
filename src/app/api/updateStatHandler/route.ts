@@ -22,15 +22,19 @@ export default async function handler(req: NextRequest) {
       const [result]: [ResultSetHeader, FieldPacket[]] = await pool.query(query, values);
 
       if (result.affectedRows > 0) {
-        NextResponse.json({ message: 'Report status updated successfully' }, {status: 200});
+        pool.end();
+        return NextResponse.json({ message: 'Report status updated successfully' }, {status: 200});
       } else {
-        NextResponse.json({ error: 'Report not found' }, {status: 404});
+        pool.end();
+        return NextResponse.json({ error: 'Report not found' }, {status: 404});
       }
     } catch (error) {
+      pool.end();
       console.error('Error updating report status:', error);
-      NextResponse.json({ error: 'Internal Server Error' }, {status: 500});
+      return NextResponse.json({ error: 'Internal Server Error' }, {status: 500});
     }
   } else {
-    NextResponse.json({ error: 'Method Not Allowed' }, {status: 405});
+    pool.end();
+    return NextResponse.json({ error: 'Method Not Allowed' }, {status: 405});
   }
 }

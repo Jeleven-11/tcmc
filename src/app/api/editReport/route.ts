@@ -18,7 +18,7 @@ interface UpdateReportRequestBody {
     userId: number;
 }
 
-export default async function handler(req: NextRequest) {
+export async function PUT(req: NextRequest) {
   if (req.method === 'PUT') {
     // const { id } = req.json(); // `id` should be a string or undefined
     const {
@@ -46,6 +46,7 @@ export default async function handler(req: NextRequest) {
 
       // Ensure the logged-in user is the owner of the report
       if (report.reported_by_user_id !== userId) {
+        pool.end();
         return NextResponse.json({ message: 'You are not authorized to edit this report' }, {status: 403});
       }
 
@@ -54,13 +55,15 @@ export default async function handler(req: NextRequest) {
         'UPDATE watchlist SET vehicle_type = ?, vehicle_color = ?, plate_number = ?, incurred_violations = ?, image_upload = ? WHERE report_id = ?',
         [vehicle_type, vehicle_color, plate_number, incurred_violations, image_upload, id]
       );
-
+      pool.end();
       NextResponse.json({ message: 'Report updated successfully' }, {status: 200});
     } catch (error) {
       console.error('Error updating report:', error);
+      pool.end();
       NextResponse.json({ message: 'An error occurred while updating the report' }, {status: 500});
     }
   } else {
+    pool.end();
     NextResponse.json({ message: 'Method Not Allowed' }, {status: 405});
   }
 }

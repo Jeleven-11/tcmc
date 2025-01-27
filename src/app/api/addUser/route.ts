@@ -11,7 +11,7 @@ interface newUser {
     password: string;
 }
 
-const handler = async (req: NextRequest) => {
+export async function POST(req: NextRequest) {
   if (req.method === 'POST') {
     const { username, name, role, contactNumber, password }: newUser = await req.json();
 
@@ -36,17 +36,17 @@ const handler = async (req: NextRequest) => {
       ) as [newUser[], FieldPacket[]];
 
       console.log('Database result:', result);
-
+      pool.end();
       // Return success response
       return NextResponse.json({ message: 'User added successfully'}, {status: 200});
     } catch (error) {
       console.error('Error adding user:', error);
+      pool.end();
       return NextResponse.json({ error: `Failed to add user: ${error}` }, {status: 500});
     }
   } else {
+    pool.end();
     // Handle unsupported request methods
     return NextResponse.json({ error: 'Method not allowed' }, {status: 405});
   }
 };
-
-export default handler;

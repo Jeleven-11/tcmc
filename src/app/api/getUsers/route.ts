@@ -1,7 +1,7 @@
 // pages/api/getUsers.js
 import db from '../../lib/db'; // Adjust this path as needed
 import { NextRequest, NextResponse } from 'next/server';
-export default async function handler(req: NextRequest) {
+export async function GET(req: NextRequest) {
   if (req.method === 'GET') {
     try {
         const query: string = 
@@ -16,9 +16,10 @@ export default async function handler(req: NextRequest) {
             users `;
         // Fetch users and their associated profile information
         const [users] = await db.query(query);
-
+        db.end();
       NextResponse.json(users, {status: 200});
     } catch (error) {
+      db.end();
       console.error('Database error:', error);
       NextResponse.json({ error: `Database error: ${error}` }, {status: 500});
     }

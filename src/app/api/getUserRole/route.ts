@@ -6,7 +6,7 @@ interface User {
     role: string;
 }
 
-export default async function handler(req: NextRequest) {
+export async function POST(req: NextRequest) {
   if (req.method === 'POST') {
     const { username } = await req.json();
 
@@ -18,11 +18,14 @@ export default async function handler(req: NextRequest) {
       const [rows]: [User[], FieldPacket[]] = await db.query('SELECT role FROM users WHERE username = ?', [username]) as [User[], FieldPacket[]];
 
       if (rows.length === 0) {
+        db.end();
         return NextResponse.json({ error: 'User not found' }, { status: 404 });
       } else {
+        db.end();
         return NextResponse.json({ role: rows[0].role }, { status: 200 });
       }
     } catch (error) {
+      db.end();
       console.error('Database error:', error);
       return NextResponse.json({ error: `Database error: ${error}` }, { status: 500 });
     }
