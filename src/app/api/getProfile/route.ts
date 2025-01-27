@@ -19,7 +19,7 @@ async function getSessionWithNextRequest(req: NextRequest) {
 }
 interface User {
   name: string;
-  contact_num: string;
+  contactNum: string;
 }
 
 export async function GET(req: NextRequest) {

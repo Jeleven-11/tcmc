@@ -19,7 +19,11 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
-
+.logo-image {
+  width: 100%; /* or a fixed width, e.g. 500px */
+  height: auto; /* or a fixed height, e.g. 500px */
+  object-fit: cover; /* or object-fit: contain */
+}
 @layer utilities {
   .text-balance {
     text-wrap: balance;

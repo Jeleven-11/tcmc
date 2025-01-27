@@ -5,7 +5,7 @@ import React from 'react';
 
 interface User {
   name: string;
-  contact_num: string;
+  contactNum: string;
   role: string;
 }
 
@@ -25,7 +25,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onEdit, onDelete }) => 
       </div>
       <h1 className="text-3xl font-bold text-blue-700 mb-4">{user.name}</h1>
       <div className="space-y-2">
-        <p className="text-lg text-gray-700">Contact No: {user.contact_num}</p>
+        <p className="text-lg text-gray-700">Contact No: {user.contactNum}</p>
         <p className="text-lg text-gray-700">Role: {user.role}</p>
       </div>
       <div className="mt-4 space-x-4">

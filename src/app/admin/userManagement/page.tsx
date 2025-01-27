@@ -11,7 +11,7 @@ interface User {
   username: string;
   name: string;
   role: string;
-  contact_num?: string;
+  contactNum?: string;
   password?: string;
   user_id?: string;
 }
@@ -92,7 +92,9 @@ export default function UserManagement()
       if (response.ok)
       {
         const addedUser = await response.json()
-        setUsers([...users, addedUser])
+        console.log('Added user:', addedUser.user);
+
+        setUsers([...users, addedUser.user])
         setIsAdding(false)
       } else throw new Error('Failed to add user')
     } catch (error) {

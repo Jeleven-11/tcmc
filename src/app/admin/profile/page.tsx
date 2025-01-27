@@ -9,7 +9,7 @@ type User = {
   name?: string | null;
   email?: string | null;
   image?: string | null;
-  contact_num?: string | null;
+  contactNum?: string | null;
   role?: string | null;
 };
 
@@ -36,7 +36,7 @@ export default function Profile()
             <>
               <h1 className="text-3xl font-bold text-blue-700 mb-4">{user.name}</h1>
               <div className="space-y-2">
-                <p className="text-lg text-gray-700">Contact No: {user.contact_num}</p>
+                <p className="text-lg text-gray-700">Contact No: {user.contactNum}</p>
                 <p className="text-lg text-gray-700">Role: {user.role}</p>
               </div>
             </>

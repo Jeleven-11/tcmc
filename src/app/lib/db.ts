@@ -1,6 +1,6 @@
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
-
+import { promisify } from 'util';
 dotenv.config();
 
 // Create a pool with proper configuration
@@ -13,6 +13,8 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
 });
+
+export const getConnection = promisify(pool.getConnection).bind(pool);
 
 // Simple check to ensure connection (optional)
 (async () => {

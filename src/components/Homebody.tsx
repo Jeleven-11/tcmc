@@ -31,9 +31,10 @@ const Homebody = () => {
         {/* Image */}
         <div className="relative w-full h-64 md:h-96">
           <Image
-            src="assets/img/pnp.jpg"
+            src="/pnp.jpg"
             alt="logo"
-            className="rounded-lg shadow-md"
+            layout="fill"
+            className="rounded-lg shadow-md logo-image"
           />
         </div>
       </div>

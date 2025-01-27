@@ -7,24 +7,24 @@ interface UpdateUserRequestBody {
     password: string;
     name: string;
     role: string;
-    contact_num: string; 
+    contactNum: string; 
 }
 export async function PUT(req: NextRequest) {
   if (req.method === 'PUT') {
     // Destructure name from req.json()
-    const { id, username, password, name, role, contact_num }: UpdateUserRequestBody = await req.json();
+    const { id, username, password, name, role, contactNum }: UpdateUserRequestBody = await req.json();
     try {
         const [result]: [ResultSetHeader, FieldPacket[]] = await db.query(`
             UPDATE users
             SET username = ?, name = ?, password = ?, role = ?, contact_num = ?
             WHERE user_id = ?
-        `, [username, name, password, role, contact_num, id]);
+        `, [username, name, password, role, contactNum, id]);
 
         if (result.affectedRows === 0) {
             db.end();
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
-        return NextResponse.json({ id, username, name, role, contact_num }, {status: 200});
+        return NextResponse.json({ id, username, name, role, contactNum }, {status: 200});
     } catch (error) {
         db.end();
         console.error('Database error:', error);

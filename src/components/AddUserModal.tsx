@@ -4,23 +4,21 @@ import React, { useState } from 'react';
 interface AddUserModalProps {
   onClose: () => void;
   onAddUser: (user: { 
-    username: string; 
-    name: string; 
-    role: string; 
-    contactNumber: string; 
-    password: string;
-    id?: string;
-    contact_num?: string;
+    id?: string
+    username: string;
+    name: string;
+    role: string;
+    contactNum?: string;
+    password?: string;
     user_id?: string;
   }) => void;
 }
-
 const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onAddUser }) => {
   const [newUser, setNewUser] = useState({
     username: '',
     name: '',
     role: '',
-    contactNumber: '',
+    contactNum: '',
     password: '',
   });
 
@@ -73,8 +71,8 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onAddUser }) => {
           </select>
           <input
             type="text"
-            name="contactNumber"
-            value={newUser.contactNumber}
+            name="contactNum"
+            value={newUser.contactNum}
             onChange={handleChange}
             placeholder="Contact Number"
             className="w-full p-2 mb-2 border border-gray-300 rounded"

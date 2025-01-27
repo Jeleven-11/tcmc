@@ -9,7 +9,7 @@ interface User {
   name: string;
   password?: string;
   role: string;
-  contact_num?: string;
+  contactNum?: string;
 }
 
 interface EditUserModalProps {
@@ -24,19 +24,19 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUpdate }
   const [name, setName] = useState(user.name); // Include name field
   const [password, setPassword] = useState(user.password);
   const [role, setRole] = useState(user.role);
-  const [contactNumber, setContactNumber] = useState(user.contact_num);
+  const [contactNumber, setContactNumber] = useState(user.contactNum);
 
   useEffect(() => {
     setUsername(user.username);
     setName(user.name); // Initialize name
     setPassword(user.password);
     setRole(user.role);
-    setContactNumber(user.contact_num);
+    setContactNumber(user.contactNum);
   }, [user]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const updatedUser = { id: user.id, user_id: user.user_id, username, password, name, role, contact_num: contactNumber }; // Include id and name
+    const updatedUser = { id: user.id, user_id: user.user_id, username, password, name, role, contactNum: contactNumber }; // Include id and name
     try {
       const response = await fetch(`/api/updateUser`, {
         method: 'PUT', // Ensure this is PUT
