@@ -4,6 +4,7 @@ import { MdFileDownloadDone } from "react-icons/md";
 import Navbar from '@/components/adminNav';
 import Footer from '@/components/Footer';
 
+
 // Make this a Server Component by fetching data directly in the component
 const AdminDashboard = async () =>
 {
@@ -15,7 +16,7 @@ const AdminDashboard = async () =>
     const date = new Date();
     const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     const currentDate = date.toLocaleDateString(undefined, options);
-
+    
     return (
       <>
         <Navbar />

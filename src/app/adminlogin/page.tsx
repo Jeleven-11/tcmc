@@ -1,6 +1,6 @@
 'use client'
 
-import { signIn } from 'next-auth/react';
+// import { signIn } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -39,59 +39,77 @@ export default function Adminlogin()
   if (!isClient)
     return null // Prevent server-client mismatch by not rendering until the client-side check is complete
 
-  interface SignInResult
-  {
-    error?: string | null
-    ok?: boolean
-  }
+  // interface SignInResult
+  // {
+  //   error?: string | null
+  //   ok?: boolean
+  // }
 
-  interface UserRoleResponse
-  {
-    role: string
-    error?: string
-  }
+  // interface UserRoleResponse
+  // {
+  //   role: string
+  //   error?: string
+  // }
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) =>
+  const handleSubmit = async (e: React.FormEvent) =>
   {
     e.preventDefault()
-
-    const result: SignInResult | undefined = await signIn('credentials',
-    {
-      redirect: false,
-      username,
-      password,
-      id: '1',
-    })
-
-    if (result && result.error)
-      setError(result.error); // Set error message from NextAuth
-    else if (result && result.ok)
-    {
-      // Fetch the user role from the server after login
-      const response = await fetch('/api/getUserRole',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username }),
-      });
-
-      if (!response.ok)
-      {
-        const errorData: UserRoleResponse = await response.json()
-        setError(errorData.error || 'Failed to fetch user role')
-        return // Stop further actions if the API call fails
-      }
-
-      const data: UserRoleResponse = await response.json()
-      // Check if the user role is "admin"
-      if (data.role !== 'admin')
-      {
-        setError('Account must be admin') // Set an error message for non-admin accounts
-        return // Prevent further actions
-      }
-
-      router.push('/admin') // Redirect to admin dashboard on successful login and admin role
+    try{
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      })
+      const result = await response.json(); // Parse response JSON if successful
+      console.log(result); // Log the result to the console
+      console.log(result.token)
+      document.cookie = `token=${result.token}; path=/admin`
+      router.push('/admin')
+    } catch (error){
+      console.log(error)
+      setError("An error occurred. Please try again.");
     }
+    // const data = { username, password }
+    // console.log(data);
+    // const result: SignInResult | undefined = await signIn('credentials',
+    // {
+    //   redirect: false,
+    //   username,
+    //   password,
+    //   id: '1',
+    // })
+
+    // if (result && result.error)
+    //   setError(result.error); // Set error message from NextAuth
+    // else if (result && result.ok)
+    // {
+    //   // Fetch the user role from the server after login
+    //   const response = await fetch('/api/getUserRole',
+    //   {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ username }),
+    //   });
+
+    //   if (!response.ok)
+    //   {
+    //     const errorData: UserRoleResponse = await response.json()
+    //     setError(errorData.error || 'Failed to fetch user role')
+    //     return // Stop further actions if the API call fails
+    //   }
+
+    //   const data: UserRoleResponse = await response.json()
+    //   // Check if the user role is "admin"
+    //   if (data.role !== 'admin')
+    //   {
+    //     setError('Account must be admin') // Set an error message for non-admin accounts
+    //     return // Prevent further actions
+    //   }
+
+    //   router.push('/admin') // Redirect to admin dashboard on successful login and admin role
+    // }
   }
 
   return (

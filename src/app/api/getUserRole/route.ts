@@ -1,4 +1,4 @@
-import pool from '../../lib/db'; // Adjust this path to your actual database connection
+import { query } from '../../lib/db'; // Adjust this path to your actual database connection
 import { FieldPacket } from 'mysql2';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -16,9 +16,8 @@ export async function POST(req: NextRequest) {
 
     try {
       // Get connection to the database pool
-      const connection = await pool.getConnection();
-      const [rows]: [User[], FieldPacket[]] = await connection.query('SELECT role FROM users WHERE username = ?', [username]) as [User[], FieldPacket[]];
-      connection.release();
+      
+      const [rows]: [User[], FieldPacket[]] = await query('SELECT role FROM users WHERE username = ?', [username]) as [User[], FieldPacket[]];
       if (rows.length === 0) {
         return NextResponse.json({ error: 'User not found' }, { status: 404 });
       } else {

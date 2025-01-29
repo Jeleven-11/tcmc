@@ -16,6 +16,26 @@ const pool = mysql.createPool({
 
 export const getConnection = promisify(pool.getConnection).bind(pool);
 
+// Function to query the database
+
+export const query = async (sql: string, params: unknown) =>
+  {
+    let conn
+    try
+    {
+      conn = await pool.getConnection()
+      const [rows] = await conn.query(sql, params)
+  
+      return rows
+    } catch (error) {
+      console.error('Database query error:', error)
+    } finally {
+  
+      if (conn)
+        conn.release()
+    }
+  }
+
 // Simple check to ensure connection (optional)
 (async () => {
   try {
