@@ -47,8 +47,14 @@ const CheckUpdates = () => {
         const data = await response.json();
 
         if (response.ok) {
-          setAllReports(data.reports);
-          setFilteredReports(data.reports); // Initially, display all reports
+          const modifiedReports:Report[] = data.reports.map((report: Report) => {
+            const formattedTimestamp = report.createdAt.replace('T', ' ').replace('.000Z', '');
+            console.log("Replaced datetime:", formattedTimestamp);
+            return { ...report, createdAt: formattedTimestamp };
+          })
+          setAllReports(modifiedReports);
+          // setAllReports(data.reports);
+          setFilteredReports(modifiedReports); // Initially, display all reports
 
           // Calculate status counts
           const counts = data.reports.reduce(
@@ -82,7 +88,13 @@ const CheckUpdates = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setSearchResults(data.reports);
+        const modifiedReports:Report[] = data.reports.map((report: Report) => {
+          const formattedTimestamp = report.createdAt.replace('T', ' ').replace('.000Z', '');
+          console.log("Replaced datetime:", formattedTimestamp);
+          return { ...report, createdAt: formattedTimestamp };
+        })
+        setSearchResults(modifiedReports);
+        // setSearchResults(data.reports);
       } else {
         setSearchResults([]);
         setError('No reports found matching your search.');
@@ -181,6 +193,7 @@ const CheckUpdates = () => {
         <div className="space-y-4 mb-4">
           <h2 className="text-xl font-bold">Search Results:</h2>
           {searchResults.map((report) => (
+            
             <div key={report.reportID} className="bg-white p-4 rounded shadow-md">
               <h3 className="text-lg font-bold">Report ID: {report.reportID}</h3>
               <p><strong>Reported By:</strong> {report.fullName}</p>

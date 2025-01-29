@@ -10,6 +10,7 @@ export interface User {
   contactNum?: string;
   password?: string;
   user_id?: string;
+  emailVerified?: boolean;
 }
 
 interface UserCardProps {

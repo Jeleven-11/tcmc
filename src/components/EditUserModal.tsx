@@ -10,6 +10,7 @@ interface User {
   password?: string;
   role: string;
   contactNum?: string;
+  emailVerified?: boolean;
 }
 
 interface EditUserModalProps {

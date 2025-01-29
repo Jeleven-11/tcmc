@@ -60,6 +60,7 @@ export default function Adminlogin()
       redirect: false,
       username,
       password,
+      id: '1',
     })
 
     if (result && result.error)

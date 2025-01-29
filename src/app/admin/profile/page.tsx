@@ -11,6 +11,11 @@ type User = {
   image?: string | null;
   contactNum?: string | null;
   role?: string | null;
+  id: string
+  username: string;
+  password: string;
+  user_id?: string;
+  emailVerified?: boolean
 };
 
 export default function Profile()
