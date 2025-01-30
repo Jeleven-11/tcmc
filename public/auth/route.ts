@@ -2,7 +2,7 @@
 // import NextAuth from 'next-auth';
 // import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-import { query } from '../../lib/db';
+import { query } from '../../src/app/lib/db';
 import { FieldPacket } from 'mysql2'; 
 import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
@@ -12,14 +12,15 @@ import { NextRequest, NextResponse } from 'next/server';
 // import { AdapterUser } from 'next-auth/adapters';
 
 interface User {
-    id: string
-    username: string;
-    name?: string;
-    role?: string;
-    contactNum?: string;
-    password: string;
-    user_id?: string;
-    emailVerified?: boolean
+  id?: string
+  username: string;
+  name: string;
+  role: string;
+  contact_num?: string;
+  password: string;
+  user_id?: string;
+  email?: string;
+  emailVerified?: boolean;
 }
 
 function generateAuthToken(userData:User, remember:boolean=false) {
@@ -31,7 +32,7 @@ function generateAuthToken(userData:User, remember:boolean=false) {
   }
   
   // Extract relevant user data to include in the JWT payload
-  const { id, username, name, role, contactNum, password, user_id }: User = userData;
+  const { id, username, name, role, contact_num, password, user_id }: User = userData;
 
   // Define the payload to be included in the token
   const payload = {
@@ -39,7 +40,7 @@ function generateAuthToken(userData:User, remember:boolean=false) {
     username,
     name,
     role,
-    contactNum,
+    contact_num,
     password,
     user_id
   };
@@ -113,7 +114,7 @@ export async function POST(req: NextRequest)
         username: data.username,
         name: data.name,
         role: data.role,
-        contactNum: data.contactNum,
+        contactNum: data.contact_num,
         password: '',//do not include the password
         user_id: data.user_id
       }

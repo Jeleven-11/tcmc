@@ -1,6 +1,7 @@
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 import { promisify } from 'util';
+import { FieldPacket } from 'mysql2';
 dotenv.config();
 
 // Create a pool with proper configuration
@@ -18,13 +19,12 @@ export const getConnection = promisify(pool.getConnection).bind(pool);
 
 // Function to query the database
 
-export const query = async (sql: string, params: unknown) =>
-  {
+export const query = async (sql: string, params: unknown[]) =>{
     let conn
     try
     {
       conn = await pool.getConnection()
-      const [rows] = await conn.query(sql, params)
+      const [rows]: [unknown[], FieldPacket[]] = await conn.query(sql, params) as [unknown[], FieldPacket[]]
   
       return rows
     } catch (error) {
@@ -34,18 +34,7 @@ export const query = async (sql: string, params: unknown) =>
       if (conn)
         conn.release()
     }
-  }
-
-// Simple check to ensure connection (optional)
-(async () => {
-  try {
-    const connection = await pool.getConnection();
-    console.log('Database connected successfully');
-    connection.release();
-  } catch (err) {
-    console.error('Database connection failed:', err);
-  }
-})();
+}
 
 // Export the pool to be used in other modules
 export default pool;

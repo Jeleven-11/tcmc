@@ -3,13 +3,14 @@
 import React, { useEffect, useState } from 'react';
 
 interface User {
-  id?: string;
-  user_id?: string;
+  id?: string
   username: string;
   name: string;
-  password?: string;
   role: string;
-  contactNum?: string;
+  contact_num?: string;
+  password?: string;
+  user_id?: string;
+  email?: string;
   emailVerified?: boolean;
 }
 
@@ -25,19 +26,21 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUpdate }
   const [name, setName] = useState(user.name); // Include name field
   const [password, setPassword] = useState(user.password);
   const [role, setRole] = useState(user.role);
-  const [contactNumber, setContactNumber] = useState(user.contactNum);
+  const [contactNumber, setContactNumber] = useState(user.contact_num);
+  const [email, setEmail] = useState(user.email);
 
   useEffect(() => {
     setUsername(user.username);
     setName(user.name); // Initialize name
     setPassword(user.password);
     setRole(user.role);
-    setContactNumber(user.contactNum);
+    setContactNumber(user.contact_num);
+    setEmail(user.email);
   }, [user]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const updatedUser = { id: user.id, user_id: user.user_id, username, password, name, role, contactNum: contactNumber }; // Include id and name
+    const updatedUser = { id: user.id, user_id: user.user_id, username, password, name, role, contact_num: contactNumber, email }; // Include id and name
     try {
       const response = await fetch(`/api/updateUser`, {
         method: 'PUT', // Ensure this is PUT
@@ -57,7 +60,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUpdate }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded p-4 w-1/3">
+      <div className="bg-white rounded p-4 w-1/3 min-w-[350px]">
         <h2 className="text-lg font-semibold">Edit User</h2>
         <form onSubmit={handleSubmit}>
           <label className="block mb-2">
@@ -68,6 +71,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUpdate }
               onChange={(e) => setUsername(e.target.value)}
               className="border p-2 w-full"
               required
+              disabled
             />
           </label>
           <label className="block mb-2">
@@ -107,6 +111,16 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUpdate }
               type="text"
               value={contactNumber}
               onChange={(e) => setContactNumber(e.target.value)}
+              className="border p-2 w-full"
+              required
+            />
+          </label>
+          <label className="block mb-2">
+            Email:
+            <input
+              type="text"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="border p-2 w-full"
               required
             />

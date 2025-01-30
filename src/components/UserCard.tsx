@@ -10,6 +10,7 @@ export interface User {
   contact_num?: string;
   password?: string;
   user_id?: string;
+  email?: string;
   emailVerified?: boolean;
 }
 
@@ -27,6 +28,7 @@ export default function UserCard({ user, onEdit, onDelete }: UserCardProps)
       <p className="text-gray-600">Name: {user.name}</p> {/* Display the name */}
       <p className="text-gray-600">Role: {user.role}</p>
       <p className="text-gray-600">Contact: {user.contact_num}</p>
+      <p className="text-gray-600">Email: {user.email}</p>
       <button className="text-blue-500" onClick={() => onEdit(user)}>Edit</button>
       <button className="text-red-500 ml-2" onClick={() => user.user_id && onDelete(user.user_id)}>Delete</button>
     </div>

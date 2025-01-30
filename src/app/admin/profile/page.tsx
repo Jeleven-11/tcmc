@@ -1,30 +1,51 @@
-
 'use client'
 
-import { useSession } from 'next-auth/react';
+// import { useSession } from 'next-auth/react';
 import Nav from '@/components/adminNav';
 import { UserCircleIcon } from '@heroicons/react/24/outline';
+import { getSession } from '@/app/lib/actions';
+import { useState, useEffect } from 'react';
 
-type User = {
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
-  contactNum?: string | null;
-  role?: string | null;
-  id: string
-  username: string;
-  password: string;
-  user_id?: string;
-  emailVerified?: boolean
-};
+// type User = {
+//   name?: string;
+//   email?: string;
+//   image?: string;
+//   contactNum?: string;
+//   role?: string;
+//   id: string;
+//   username: string;
+//   password: string;
+//   user_id?: string;
+//   emailVerified?: boolean
+// };
+type SessionData = {
+  isLoggedIn: boolean;
+  name?: string;
+  contact_num?: string;
+  role?: string;
+  email?: string;
+} | null;
+export default function Profile() {
+  const [sessionData, setSessionData] = useState<SessionData>(null);
+  useEffect(() => {
+    getSession().then((session) => {
+      if (session?.isLoggedIn) {
+        setSessionData({
+          isLoggedIn: session.isLoggedIn,
+          name: session.name,
+          contact_num: session.contact_num,
+          role: session.role,
+          email: session.email,
+        });
+      } else {
+        setSessionData({ isLoggedIn: session.isLoggedIn });
+      }
+    });
+  }, []);
+  // const user = session?.user as User; // Direct access to session.user
 
-export default function Profile()
-{
-  const { data: session, status } = useSession();
-  const user = session?.user as User; // Direct access to session.user
-
-  if (status === 'loading') return <p>Loading...</p>;
-  if (!session) return <p>Please log in to view your profile.</p>;
+  if (!sessionData) return <p>Loading...</p>;
+  if (!sessionData.isLoggedIn) return <p>Please log in to view your profile.</p>;
 
   return (
     <>
@@ -37,12 +58,13 @@ export default function Profile()
           <div className="mb-6 flex justify-center">
             <UserCircleIcon className="w-20 h-20 text-gray-300" />
           </div>
-          {user && (
+          {sessionData && (
             <>
-              <h1 className="text-3xl font-bold text-blue-700 mb-4">{user.name}</h1>
+              <h1 className="text-3xl font-bold text-blue-700 mb-4">{sessionData.name}</h1>
               <div className="space-y-2">
-                <p className="text-lg text-gray-700">Contact No: {user.contactNum}</p>
-                <p className="text-lg text-gray-700">Role: {user.role}</p>
+                <p className="text-lg text-gray-700">Contact No: {sessionData.contact_num}</p>
+                <p className="text-lg text-gray-700">Role: {sessionData.role}</p>
+                <p className="text-lg text-gray-700">Email: {sessionData.email}</p>
               </div>
             </>
           )}

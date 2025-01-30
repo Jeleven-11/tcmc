@@ -12,6 +12,8 @@ type Report =
   fullName: string;
   reason: string;
   status: string;
+  reportID: string,
+  createdAt: string
 }
 
 export default function AdminReportManagement()
@@ -27,6 +29,8 @@ export default function AdminReportManagement()
     try
     {
       const response = await axios.get("/api/reports")
+      console.log("response.data:", response.data);
+      console.log(typeof response.data)//object
       setReports(response.data)
 
       const statusCounts: Record<string, number> = response.data.reduce((acc: Record<string, number>, report: Report) =>
@@ -69,8 +73,8 @@ export default function AdminReportManagement()
     "on investigation",
     "dropped",
     "solved",
-  ]
-
+  ] 
+  
   return (
     <>
       <Navbar />
@@ -88,10 +92,9 @@ export default function AdminReportManagement()
               </button>
             ))}
           </div>
-
+            
           <div className="report-list">
-            {reports
-              .filter((report) => report.status === activeTab)
+            {reports.filter((report) => report.status === activeTab)
               .map((report) => (
                 <div key={report.id} className="report-item">
                   <h3><strong>Reported by: {report.fullName}</strong></h3>
@@ -100,7 +103,7 @@ export default function AdminReportManagement()
                   <div className="actions">
                     <select
                       value={report.status}
-                      onChange={(e) => updateStatus(report.id, e.target.value)}
+                      onChange={(e) => updateStatus(report.reportID, e.target.value)}
                     >
                       {statuses.map((status) => (
                         <option key={status} value={status}>

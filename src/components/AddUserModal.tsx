@@ -8,9 +8,11 @@ interface AddUserModalProps {
     username: string;
     name: string;
     role: string;
-    contactNum?: string;
+    contact_num?: string;
     password?: string;
     user_id?: string;
+    email?: string;
+    emailVerified?: boolean;
   }) => void;
 }
 const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onAddUser }) => {
@@ -18,8 +20,9 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onAddUser }) => {
     username: '',
     name: '',
     role: '',
-    contactNum: '',
+    contact_num: '',
     password: '',
+    email: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -71,8 +74,8 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onAddUser }) => {
           </select>
           <input
             type="text"
-            name="contactNum"
-            value={newUser.contactNum}
+            name="contact_num"
+            value={newUser.contact_num}
             onChange={handleChange}
             placeholder="Contact Number"
             className="w-full p-2 mb-2 border border-gray-300 rounded"
@@ -85,6 +88,15 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onAddUser }) => {
             value={newUser.password}
             onChange={handleChange}
             placeholder="Password"
+            className="w-full p-2 mb-4 border border-gray-300 rounded"
+            autoComplete="new-password" // Auto-fill suggestion for password
+          />
+          <input
+            type="text"
+            name="email"
+            value={newUser.email}
+            onChange={handleChange}
+            placeholder="Email"
             className="w-full p-2 mb-4 border border-gray-300 rounded"
             autoComplete="new-password" // Auto-fill suggestion for password
           />

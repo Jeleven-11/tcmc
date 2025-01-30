@@ -96,7 +96,7 @@ export async function POST(req: Request){
     
         // set Kokey
         // const response = NextResponse.json({ message: "Login successful"}, { status: 200 })
-        response.cookies.set("currentUser", JSON.stringify(data),{
+        response.cookies.set("currentUser", JSON.stringify(authToken),{
             httpOnly: true, // true ni kay para di ma access or ma read through console, or ma manipulate ang kokeyy sa client side
             secure: process.env.NODE_ENV === "production", // HTTPS only in production
             maxAge: 60 * 60 * 24 * 7, // 1 week expiration (sec, min, hr, day)

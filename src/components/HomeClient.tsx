@@ -1,6 +1,6 @@
 "use client";
 import Nav from './Nav';
-import { useSession } from 'next-auth/react';
+// import { useSession } from 'next-auth/react';
 import { TruckIcon, CalendarIcon } from '@heroicons/react/24/outline'; // Importing correct icons from Heroicons
 import { useState, useEffect } from 'react';
 import Footer from './Footer';
@@ -9,7 +9,7 @@ import { GoReport } from "react-icons/go";
 import { MdFileDownloadDone } from "react-icons/md";
 
 const HomeClient = () => {
-  const { status } = useSession();
+  // const { status } = useSession();
   const [currentDate, setCurrentDate] = useState('');
   const [reportCount, setReportCount] = useState(0);
   const [pendingCount, setPendingCount] = useState(0);
@@ -52,9 +52,9 @@ const HomeClient = () => {
     fetchReportCounts();
   }, []);
 
-  if (status === 'loading') {
-    return <p className='text-center'>Loading...</p>; // Optionally, show a loading state
-  }
+  // if (status === 'loading') {
+  //   return <p className='text-center'>Loading...</p>; // Optionally, show a loading state
+  // }
 
   return (
     <>

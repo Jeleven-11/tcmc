@@ -8,23 +8,25 @@ interface newUser {
   username: string;
   name: string;
   role: string;
-  contactNum?: string;
+  contact_num?: string;
   password?: string;
   user_id?: string;
+  email?: string;
+  emailVerified?: boolean;
 }
 
 export async function POST(req: NextRequest) {
   if (req.method === 'POST') {
-    const { username, name, role, contactNum, password }: newUser = await req.json();
+    const { username, name, role, contact_num, password, email }: newUser = await req.json();
 
     // Validate input data
-    if (!username || !name || !role || !contactNum || !password) {
+    if (!username || !name || !role || !contact_num || !password || !email) {
       return NextResponse.json({ error: 'All fields are required' }, {status:400});
     }
 
     try {
       // Log the incoming data for debugging
-      console.log('Received data:', { username, name, role, contactNum, password });
+      console.log('Received data:', { username, name, role, contact_num, password, email });
 
       // Hash the password before saving it
       const hashedPassword: string = await bcrypt.hash(password, 10);
@@ -33,14 +35,14 @@ export async function POST(req: NextRequest) {
       const connection = await pool.getConnection();
       // Insert new user into the database
       const [result]: [newUser[], FieldPacket[]] = await connection.query(
-        'INSERT INTO users (username, name, role, contact_num, password) VALUES (?, ?, ?, ?, ?)',
-        [username, name, role, contactNum, hashedPassword]
+        'INSERT INTO users (username, name, role, contact_num, password, email) VALUES (?, ?, ?, ?, ?)',
+        [username, name, role, contact_num, hashedPassword, email]
       ) as [newUser[], FieldPacket[]];
 
       console.log('Database result:', result);
       connection.release();
       // Return success response
-      return NextResponse.json({ message: 'User added successfully', user: { username, name, role, contactNum, password }
+      return NextResponse.json({ message: 'User added successfully', user: { username, name, role, contact_num, password, email }
       }, {status: 200});
     } catch (error) {
       console.error('Error adding user:', error);

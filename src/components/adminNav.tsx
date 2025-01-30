@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FaSignOutAlt } from "react-icons/fa";
-import { signOut } from "next-auth/react";
-
+// import { signOut } from "next-auth/react";
+import { logout } from "@/app/lib/actions";
 function NavButton({
     onClick = () => {},
     children,
@@ -104,7 +104,7 @@ export default function Navbar() {
             : "text-gray-800 hover:text-blue-600"; // Default style
 
     const handleSignOut = async () => {
-        await signOut({ redirect: true, callbackUrl: "/" }); // Prevent automatic redirect from signOut
+        await logout(); // Prevent automatic redirect from signOut
     };
 
     return (

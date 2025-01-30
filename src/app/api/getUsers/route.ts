@@ -10,7 +10,8 @@ export async function GET(req: NextRequest) {
             username,
             password,
             name,
-            role,
+            role, 
+            email,
             contact_num                  
                 FROM 
             users `;

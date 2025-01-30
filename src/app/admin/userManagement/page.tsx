@@ -11,10 +11,11 @@ interface User {
   username: string;
   name: string;
   role: string;
-  contactNum?: string;
+  contact_num?: string;
   password?: string;
   user_id?: string;
-  emailVerified?: boolean
+  email?: string;
+  emailVerified?: boolean;
 }
 
 export default function UserManagement()
@@ -69,7 +70,7 @@ export default function UserManagement()
     setIsEditing(true)
   }
 
-  const handleUpdate = (updatedUser: User) => setUsers((prevUsers) => prevUsers.map((user) => (user.id === updatedUser.id ? updatedUser : user)))
+  const handleUpdate = (updatedUser: User) => setUsers((prevUsers) => prevUsers.map((user) => (user.username === updatedUser.username ? updatedUser : user)))
 
   const closeModal = () =>
   {

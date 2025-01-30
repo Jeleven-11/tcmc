@@ -1,7 +1,7 @@
 // app/layout.js (or app/layout.tsx if using TypeScript)
 'use client'
 
-import { SessionProvider } from 'next-auth/react';
+// import { SessionProvider } from 'next-auth/react';
 import './globals.css'; // Adjust path if needed
 
 export default function RootLayout({
@@ -13,11 +13,11 @@ export default function RootLayout({
   return (
     <html>
       <body>
-        <SessionProvider>
+        {/* <SessionProvider> */}
           <main>
             {children}
           </main>
-        </SessionProvider>
+        {/* </SessionProvider> */}
       </body>
     </html>
   )
