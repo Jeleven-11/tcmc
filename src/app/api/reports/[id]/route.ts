@@ -33,7 +33,7 @@ export async function PUT(req:NextRequest, {params}: {params: {id: string}}) {
   // const { id } = await req.json(); // how do i get the id i have in the url api/reports/[id]
   const { id } = params
   const body = await req.json()
-  const { newStatus } = body
+  const newStatus = body.status
   console.log(`newStatus: ${newStatus}`)
   console.log(`id: ${id}`)
   const connection = await pool.getConnection();
@@ -47,6 +47,7 @@ export async function PUT(req:NextRequest, {params}: {params: {id: string}}) {
       if (result.affectedRows === 0) {
         return NextResponse.json({ error: 'Report not found' }, { status: 404 } );
       }
+      console.log('Report status updated successfully');
       return NextResponse.json({ message: 'Report status updated successfully' } ,{ status: 200 });
     } catch (error) {
       connection.release();
