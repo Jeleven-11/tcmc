@@ -6,7 +6,7 @@ export async function GET() {
   try {
     // Get connection to the database pool
     const connection = await pool.getConnection();
-    const [rows] = await connection.query('SELECT * FROM reports');
+    const [rows] = await connection.query('SELECT * FROM reports ORDER BY createdAt DESC');
     connection.release();
     return NextResponse.json({ reports: rows }, {status: 200});
   } catch (error) {

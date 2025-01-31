@@ -63,8 +63,7 @@ export default function Adminlogin()
         body: JSON.stringify({ username, password }),
       })
       const result = await response.json(); // Parse response JSON if successful
-      console.log(result); // Log the result to the console
-      console.log(result.token)
+      setError(result.message)
       document.cookie = `token=${result.token}; path=/admin`
       router.push('/admin')
     } catch (error){
@@ -119,6 +118,7 @@ export default function Adminlogin()
           <MdArrowBack size={16} />
         </Link>
         <h2 className="text-2xl font-heading text-blue-700 mb-4">Admin Login</h2>
+        <span className="text-red-800">{error}</span>
         <form onSubmit={handleSubmit} className="relative">
           <label className="block mb-2 text-blue-800 font-body">
             Username

@@ -29,16 +29,17 @@ export default function Profile() {
   const [sessionData, setSessionData] = useState<SessionData>(null);
   useEffect(() => {
     getSession().then((session) => {
-      if (session?.isLoggedIn) {
+      const currentSession = JSON.parse(JSON.stringify(session));
+      if (currentSession.isLoggedIn) {
         setSessionData({
-          isLoggedIn: session.isLoggedIn,
-          name: session.name,
-          contact_num: session.contact_num,
-          role: session.role,
-          email: session.email,
+          isLoggedIn: currentSession  .isLoggedIn,
+          name: currentSession.name,
+          contact_num: currentSession.contact_num,
+          role: currentSession.role,
+          email: currentSession.email,
         });
       } else {
-        setSessionData({ isLoggedIn: session.isLoggedIn });
+        setSessionData({ isLoggedIn: currentSession.isLoggedIn });
       }
     });
   }, []);

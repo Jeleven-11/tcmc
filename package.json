@@ -2,10 +2,11 @@
   "name": "tcmc",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "concurrently \"node src/app/lib/websocketServer.mjs\" \"next start\"",
     "lint": "next lint"
   },
   "dependencies": {
@@ -16,6 +17,7 @@
     "autoprefixer": "^10.4.20",
     "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
+    "concurrently": "^9.1.2",
     "dotenv": "^16.4.7",
     "formidable": "^3.5.2",
     "iron-session": "^8.0.4",
@@ -28,6 +30,7 @@
     "react-modal": "^3.16.3",
     "sharp": "^0.33.5",
     "uuid": "^11.0.5",
+    "ws": "^8.18.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -38,6 +41,7 @@
     "@types/prop-types": "^15.7.14",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/ws": "^8.5.14",
     "eslint": "^8",
     "eslint-config-next": "14.2.23",
     "postcss": "^8",

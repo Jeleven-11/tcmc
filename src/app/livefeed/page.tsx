@@ -6,7 +6,7 @@ import { useState } from 'react';
 const Livefeed = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 12;
 
   const [captures, ] = useState([
     { no: 1, vehicleType: 'Car', color: 'Red', plateNumber: 'ABC123', capturedImages: 'Image1.jpg, Image2.jpg', timestamp: '2024-09-11 10:00:00' },
@@ -66,8 +66,8 @@ const Livefeed = () => {
                 className="border ml-3 border-gray-300 rounded p-2 w-50% lg:w-1/2"
               />
               <button
-                onClick={() => console.log('Search initiated for:', searchTerm)}
-                className="ml-4 lg:ml-2 bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-600 w-5 lg:w-1/2"
+                onClick={() => console.log('Search initiated for:', searchTerm)}//Change to actual search implementation
+                className="ml-4 lg:ml-2 bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-600 w-90 lg:w-1/4"
               >
                 Search
               </button>
