@@ -99,7 +99,7 @@ export default function Livefeed () {
                 style={{ objectFit: 'contain' }}
                 controls
               >
-                <source src="/assets/videos/sample.mp4" type="video/mp4" />
+                <source src={videoSrc} type="video/webm" />
                 Your browser does not support the video tag.
               </video>
             </div>
