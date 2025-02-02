@@ -33,6 +33,15 @@ export async function POST(req: NextRequest) {
 
       console.log('Hashed password:', hashedPassword);
       const connection = await pool.getConnection();
+      const checker: [newUser[], FieldPacket[]] = await connection.query(
+        'SELECT * FROM users WHERE username = ?',
+        [username]
+      ) as [newUser[], FieldPacket[]];
+
+      if (checker[0].length > 0) {
+        connection.release();
+        return NextResponse.json({ error: 'Username already exists' }, {status: 400});
+      }
       // Insert new user into the database
       const [result]: [newUser[], FieldPacket[]] = await connection.query(
         'INSERT INTO users (username, name, role, contact_num, password, email) VALUES (?, ?, ?, ?, ?)',

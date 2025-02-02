@@ -63,8 +63,12 @@ export default function Adminlogin()
         body: JSON.stringify({ username, password }),
       })
       const result = await response.json(); // Parse response JSON if successful
-      setError(result.message)
-      document.cookie = `token=${result.token}; path=/admin`
+      if(!response.ok){
+        setError(result.message || "Login failed");
+      }
+      
+      // setError(result.message)
+      // document.cookie = `token=${result.token}; path=/admin`
       router.push('/admin')
     } catch (error){
       console.log(error)
@@ -120,8 +124,8 @@ export default function Adminlogin()
         <h2 className="text-2xl font-heading text-blue-700 mb-4">Admin Login</h2>
         <span className="text-red-800">{error}</span>
         <form onSubmit={handleSubmit} className="relative">
-          <label className="block mb-2 text-blue-800 font-body">
-            Username
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Username or Phone Number</label>
             <input
               type="text"
               value={username}
@@ -129,11 +133,11 @@ export default function Adminlogin()
               className="border bg-gray-100 rounded px-3 py-2 w-full"
               required
             />
-          </label>
-          <label className="block mb-4 text-blue-800 font-body relative">
-            Password
+          </div>
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">Password</label>
             <input
-              // type={showPassword ? 'text' : 'password'}
+                // type={showPassword ? 'text' : 'password'}
               type='password'
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -141,7 +145,7 @@ export default function Adminlogin()
               required
             />
             {/* <EyeIcon isVisible={showPassword} onClick={() => setShowPassword(!showPassword)} /> */}
-          </label>
+          </div>
           {error && <p className="text-red-500 mb-4">{error}</p>}
           <button
             type="submit"

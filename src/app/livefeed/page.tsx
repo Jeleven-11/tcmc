@@ -1,12 +1,68 @@
 'use client';
 
 import Nav from '../../components/Nav';
-import { useState } from 'react';
-
-const Livefeed = () => {
+import { useEffect, useRef, useState } from 'react';
+export default function Livefeed () {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
+  const [videoSrc, setVideoSrc] = useState('');
+  const ws = useRef<WebSocket | null>(null);
+  const pc = useRef<RTCPeerConnection | null>(null);
+
+  useEffect(() => {
+    ws.current = new WebSocket('ws://localhost:3306');
+    ws.current.onopen = () => {
+      console.log('WebSocket connection opened');
+    };
+    ws.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'offer') {
+        pc.current = new RTCPeerConnection({
+          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+        });
+        pc.current.onicecandidate = (event) => {
+          if (event.candidate) {
+            ws.current?.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
+          }
+        };
+        pc.current.ontrack = (event) => {
+          if(event.track.kind === 'video'){
+            const mediaRecorder = new MediaRecorder(event.streams[0]);
+            const chunks: Blob[] = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+              chunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = () => {
+              const blob = new Blob(chunks, { type: 'video/webm' });
+              setVideoSrc(URL.createObjectURL(blob));
+            };
+
+            mediaRecorder.start();
+            setTimeout(() => {
+              mediaRecorder.stop();
+            }, 1000); // Stop recording after 1 second
+          }
+          
+        };
+        pc.current.setRemoteDescription(new RTCSessionDescription(data.offer));
+        pc.current.createAnswer().then((answer) => {
+          pc.current?.setLocalDescription(answer);
+          ws.current?.send(JSON.stringify({ type: 'answer', answer }));
+        });
+      } else if (data.type === 'candidate') {
+        pc.current?.addIceCandidate(new RTCIceCandidate(data.candidate));
+      }
+    };
+    ws.current.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+    return () => {
+      ws.current?.close();
+    };
+  }, []);
 
   const [captures, ] = useState([
     { no: 1, vehicleType: 'Car', color: 'Red', plateNumber: 'ABC123', capturedImages: 'Image1.jpg, Image2.jpg', timestamp: '2024-09-11 10:00:00' },
@@ -136,4 +192,4 @@ const Livefeed = () => {
   );
 };
 
-export default Livefeed;
+
