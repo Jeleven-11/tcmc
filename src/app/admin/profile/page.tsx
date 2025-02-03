@@ -32,7 +32,7 @@ export default function Profile() {
       const currentSession = JSON.parse(JSON.stringify(session));
       if (currentSession.isLoggedIn) {
         setSessionData({
-          isLoggedIn: currentSession.isLoggedIn,
+          isLoggedIn: currentSession  .isLoggedIn,
           name: currentSession.name,
           contact_num: currentSession.contact_num,
           role: currentSession.role,

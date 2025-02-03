@@ -3,7 +3,8 @@ import { GoReport } from "react-icons/go";
 import { MdFileDownloadDone } from "react-icons/md";
 import Navbar from '@/components/adminNav';
 import Footer from '@/components/Footer';
-import RequestNotificationPermission from '@/components/RequestNotificationPermission';
+
+
 // Make this a Server Component by fetching data directly in the component
 const AdminDashboard = async () =>
 {
@@ -18,7 +19,6 @@ const AdminDashboard = async () =>
     
     return (
       <>
-        <RequestNotificationPermission />
         <Navbar />
         <div className="bg-gray-100 min-h-screen p-6">
           <header className="bg-blue-600 text-white p-4 rounded mb-6">

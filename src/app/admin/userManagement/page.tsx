@@ -82,13 +82,11 @@ export default function UserManagement()
   {
     try
     {
-      // authToken = //get a verified authToken from middleware
       const response = await fetch('/api/addUser',
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // 'Authorization': `Bearer ${authToken}`,
         },
         body: JSON.stringify(newUser),
       })

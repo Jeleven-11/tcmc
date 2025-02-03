@@ -11,10 +11,7 @@ export async function getSession() {
     if (!session.isLoggedIn) {
       session.isLoggedIn = defaultSession.isLoggedIn;
     }
-    if (!session.authToken) {
-      session.authToken = defaultSession.authToken;
-    }
-    
+  
     return session;
 }
 

@@ -3,6 +3,7 @@
 
 // import { SessionProvider } from 'next-auth/react';
 import './globals.css'; // Adjust path if needed
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -13,7 +14,6 @@ export default function RootLayout({
     <html>
       <body>
         {/* <SessionProvider> */}
-
           <main>
             {children}
           </main>

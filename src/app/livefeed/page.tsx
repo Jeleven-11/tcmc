@@ -11,7 +11,7 @@ export default function Livefeed () {
   const pc = useRef<RTCPeerConnection | null>(null);
 
   useEffect(() => {
-    ws.current = new WebSocket(`ws://${window.location.hostname}:3306`);
+    ws.current = new WebSocket('ws://localhost:3306');
     ws.current.onopen = () => {
       console.log('WebSocket connection opened');
     };
