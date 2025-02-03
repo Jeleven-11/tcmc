@@ -70,6 +70,7 @@ export default function Adminlogin()
       // setError(result.message)
       // document.cookie = `token=${result.token}; path=/admin`
       router.push('/admin')
+      console.log(result)
     } catch (error){
       console.log(error)
       setError("An error occurred. Please try again.");
