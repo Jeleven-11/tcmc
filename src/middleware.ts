@@ -1,16 +1,16 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
-import { getSession } from "./app/lib/actions";
+// import { getSession } from "./app/lib/actions";
 
-import jsrsasign from 'jsrsasign';
+// import jsrsasign from 'jsrsasign';
 
 export async function middleware(request: NextRequest)
 {
-  const session = await getSession()
+//   const session = await getSession()
   const { pathname } = request.nextUrl
-
-  if (pathname.startsWith("/admin") && session.authToken !== "")
-  {
+  console.log("path:", pathname)
+  // if (pathname.startsWith("/admin") && session.authToken !== "")
+  // {
     /*interface Token {
       id: number
       username: string
@@ -27,13 +27,13 @@ export async function middleware(request: NextRequest)
     //const asdasd = jsrsasign.KJUR.jws.JWS.parse(session.authToken).payloadObj as Token
     //console.log("WHATASD:", asd?.username)
 
-    const isVerified = jsrsasign.KJUR.jws.JWS.verifyJWT(session.authToken, process.env.AUTH_SECRETKEY!, { alg: ['HS256'] })
-    if (!isVerified)
-    {
-      session.destroy()
-      return NextResponse.redirect(new URL("/adminlogin", request.url))
-    }
-  }
+    // const isVerified = jsrsasign.KJUR.jws.JWS.verifyJWT(session.authToken, process.env.AUTH_SECRETKEY!, { alg: ['HS256'] })
+    // if (!isVerified)
+    // {
+    //   session.destroy()
+    //   return NextResponse.redirect(new URL("/adminlogin", request.url))
+    // }
+  // }
 
   // continue requests
   return NextResponse.next()
