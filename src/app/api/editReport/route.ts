@@ -41,7 +41,7 @@ export async function PUT(req: NextRequest) {
       // Use transaction for handling series of queries
       await connection.beginTransaction();
       // Fetch the report from the database
-      const [rows]: [Report[], FieldPacket[]] = await connection.query('SELECT * FROM watchlist WHERE report_id = ?', [id]) as [Report[], FieldPacket[]];
+      const [rows]: [Report[], FieldPacket[]] = await connection.query('SELECT * FROM reports WHERE reportID = ?', [id]) as [Report[], FieldPacket[]];
 
       if (rows.length === 0) {
         return NextResponse.json({ message: 'Report not found' }, {status: 404});

@@ -80,14 +80,14 @@ export async function POST(req: NextRequest){
   {
     try
     {
-      const { username_number, password } = await req.json();
-      if (!username_number || !password)
+      const { username, password } = await req.json();
+      if (!username || !password)
         return NextResponse.json({ message: 'Invalid credentials' }, { status: 400 })
 
-      const column = (username_number.length > 0) && username_number.startsWith('0') ? 'contact_num' : 'username'
+      const column = (username.length > 0) && username.startsWith('0') ? 'contact_num' : 'username'
       const sqlQuery = `SELECT * FROM users WHERE ${column} = ? LIMIT 1`
 
-      const queryValues = [username_number || "", password || ""].filter(Boolean)
+      const queryValues = [username || "", password || ""].filter(Boolean)
       const rows: [User, FieldPacket[]] = await query(sqlQuery, queryValues) as [User, FieldPacket[]]
       if (!rows || !rows[0])
         return NextResponse.json({ message: 'User not found or invalid credentials' }, { status: 400 })
@@ -109,6 +109,7 @@ export async function POST(req: NextRequest){
           user_id: data.user_id,
           email: data.email
         }
+        const authToken = generateAuthToken(userData, true)
         session.isLoggedIn = true
         session.id = data.id
         session.username = data.username
@@ -119,7 +120,7 @@ export async function POST(req: NextRequest){
         session.email = data.email
         session.emailVerified = data.emailVerified
         await session.save()
-        const authToken = generateAuthToken(userData, true)
+        
         return NextResponse.json({ message: "Login successful", token: authToken }, { status: 200 })
 
       }
