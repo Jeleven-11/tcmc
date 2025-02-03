@@ -22,18 +22,7 @@ const AdminDashboard = async () =>
     return (
       <>
         <Navbar />
-        <div className="bg-gray-100 min-h-screen p-6">
-          <header className="bg-blue-600 text-white p-4 rounded mb-6">
-            <h1 className="text-2xl font-bold">DASHBOARD</h1>
-          </header>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-            <div className="bg-white p-4 rounded shadow-md flex items-center">
-              <DocumentTextIcon className="h-8 w-8 text-blue-600 mr-4" />
-              <div>
-                <h2 className="text-xl font-semibold mb-2">Total Reports</h2>
-                <p className="text-gray-700">{data.total || 0}</p>
-                  <Navbar />
+        
                   <div className="bg-gray-100 min-h-screen p-6">
                     <header className="bg-blue-600 text-white p-4 rounded mb-6">
                       <h1 className="text-2xl font-bold">DASHBOARD</h1>
@@ -116,10 +105,6 @@ const AdminDashboard = async () =>
                     </div>
                   </div>
                   <Footer />
-                </div>
-            </div>
-          </div>
-        </div>
       </>
     );
   } catch (error) {
