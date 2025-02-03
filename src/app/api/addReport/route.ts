@@ -21,20 +21,22 @@ interface ReportRequestBody {
       return NextResponse.json({ error: 'All fields are required' }, {status: 400});
     }
 
-    try {
-      // Get connection to the database pool
-      const connection = await pool.getConnection();
-      // Insert the report into the database
-      const [result]: [ReportRequestBody[], FieldPacket[]] = await connection.execute(
+    let conn
+    try
+    {
+      conn = await pool.getConnection()
+      const [result]: [ReportRequestBody[], FieldPacket[]] = await conn.execute(
         'INSERT INTO watchlist (reported_by_user_id, vehicle_type, vehicle_color, plate_number, incurred_violations, image_upload) VALUES (?, ?, ?, ?, ?, ?)', 
         [reported_by_user_id, vehicle_type, vehicle_color, plate_number, incurred_violations, image_upload]
       ) as [ReportRequestBody[], FieldPacket[]];
-      connection.release();
       NextResponse.json({ message: 'Report added successfully', data: result }, {status: 201});
     } catch (error) {
       console.error('Database Error:', error);
-      
       NextResponse.json({ error: 'Failed to add report' }, {status: 500});
+    } finally {
+
+      if (conn)
+        conn.release()
     }
   } else {
     

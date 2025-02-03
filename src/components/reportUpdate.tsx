@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 interface Report
 {
@@ -13,6 +14,7 @@ interface Report
   description: string;
   reason: string;
   status: string;
+  driversLicense: string;
 }
 
 
@@ -21,7 +23,6 @@ interface Report
 const CheckUpdates = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Report[]>([]); // Results from search
-  
 
   const [allReports, setAllReports] = useState<Report[]>([]); // All reports from database (to browse)
   const [statusCounts, setStatusCounts] = useState<{ [key: string]: number }>({
@@ -34,6 +35,23 @@ const CheckUpdates = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | undefined | null>(null);
   const [activeTab, setActiveTab] = useState('all');
+  
+    const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({});
+    const [imageVisibility, setImageVisibility] = useState<Record<string, boolean>>({});
+  
+    const handleImageLoad = (reportID: string) => {
+      setLoadingImages((prevState) => ({
+        ...prevState,
+        [reportID]: true,
+      }));
+    };
+  
+    const toggleImage = (reportID: string) => {
+      setImageVisibility((prevState) => ({
+        ...prevState,
+        [reportID]: !prevState[reportID],
+      }));
+    };
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -193,16 +211,15 @@ const CheckUpdates = () => {
         <div className="space-y-4 mb-4">
           <h2 className="text-xl font-bold">Search Results:</h2>
           {searchResults.map((report) => (
-            
             <div key={report.reportID} className="bg-white p-4 rounded shadow-md">
-              <h3 className="text-lg font-bold">Report ID: {report.reportID}</h3>
-              <p><strong>Reported By:</strong> {report.fullName}</p>
-              <p><strong>Contact Number:</strong> {report.contactNumber}</p>
-              <p><strong>Submitted On:</strong> {report.createdAt}</p>
+              {/* <h3 className="text-lg font-bold">Report ID: {report.reportID}</h3> */}
+              {/* <p><strong>Reported By:</strong> {report.fullName}</p> */}
+              {/* <p><strong>Contact Number:</strong> {report.contactNumber}</p> */}
+              <p><strong>Submitted On:</strong> {new Date(report.createdAt).toLocaleDateString("en-US", {month: "short", day: "numeric", year: "numeric"})} {new Date(report.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true})}</p>
               <p><strong>Vehicle Type:</strong> {report.vehicleType}</p>
-              <p><strong>Plate Number:</strong> {report.platenumber || 'N/A'}</p>
+              {/* <p><strong>Plate Number:</strong> {report.platenumber || 'N/A'}</p> */}
               <p><strong>Color:</strong> {report.color}</p>
-              <p><strong>Description:</strong> {report.description}</p>
+              {/* <p><strong>Description:</strong> {report.description}</p> */}
               <p><strong>Reason:</strong> {report.reason}</p>
             </div>
           ))}
@@ -243,22 +260,54 @@ const CheckUpdates = () => {
 
         {/* Display All Reports (if no search query or after filtering by status) */}
         {currentReports.length > 0 && (
-          <div className="space-y-4">
-            {currentReports.map((report) => (
-              <div key={report.reportID} className="bg-white p-4 rounded shadow-md">
-                <h3 className="text-lg font-bold">Report ID: {report.reportID}</h3>
-                <p><strong>Reported By:</strong> {report.fullName}</p>
-                <p><strong>Contact Number:</strong> {report.contactNumber}</p>
-                <p><strong>Submitted On:</strong> {report.createdAt}</p>
-                <p><strong>Vehicle Type:</strong> {report.vehicleType}</p>
-                <p><strong>Plate Number:</strong> {report.platenumber || 'N/A'}</p>
-                <p><strong>Color:</strong> {report.color}</p>
-                <p><strong>Description:</strong> {report.description}</p>
-                <p><strong>Reason:</strong> {report.reason}</p>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="space-y-4">
+          {currentReports.map((report) => (
+            <div key={report.reportID} className="bg-white p-4 rounded shadow-md">
+              <p><strong>Submitted On:</strong> {new Date(report.createdAt).toLocaleDateString("en-US", {month: "short", day: "numeric", year: "numeric"})} {new Date(report.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true})}</p>
+              <p><strong>Vehicle Type:</strong> {report.vehicleType}</p>
+              <p><strong>Color:</strong> {report.color}</p>
+              <p><strong>Reason:</strong> {report.reason}</p>
+              <p><strong>Test:</strong> {report.driversLicense}</p>
+
+              {/* Lazy Loaded Image with Toggle Functionality */}
+              {report.driversLicense && (
+                <div className="mt-4">
+                  <button
+                    onClick={() => toggleImage(report.reportID)}
+                    className="bg-blue-500 text-white py-2 px-4 rounded"
+                  >
+                    {imageVisibility[report.reportID] ? 'Hide Image' : 'Load Image'}
+                  </button>
+
+                  {imageVisibility[report.reportID] && !loadingImages[report.reportID] && (
+                    <div className="mt-4">
+                      <button
+                        onClick={() => handleImageLoad(report.reportID)}
+                        className="bg-blue-500 text-white py-2 px-4 rounded"
+                      >
+                        Load Image
+                      </button>
+                    </div>
+                  )}
+
+                  {imageVisibility[report.reportID] && loadingImages[report.reportID] && (
+                    <Image
+                      src={report.driversLicense}
+                      alt="Report Image"
+                      width={300}
+                      height={200}
+                      className="rounded-lg mt-2"
+                      priority={false}
+                      onError={(e) => console.error('Error loading image:', e)}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
 
         {/* No Reports Found */}
         {!loading && !error && searchQuery && searchResults.length === 0 && (

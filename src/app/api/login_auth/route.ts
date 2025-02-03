@@ -118,8 +118,12 @@ export async function POST(req: NextRequest){
         session.user_id = data.user_id
         session.email = data.email
         session.emailVerified = data.emailVerified
+        
+        const authToken = generateAuthToken(userData, true)
+        session.authToken = authToken
         await session.save()
         const authToken = generateAuthToken(userData, true)
+
         return NextResponse.json({ message: "Login successful", token: authToken }, { status: 200 })
 
       }
