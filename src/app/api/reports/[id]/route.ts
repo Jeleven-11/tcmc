@@ -33,7 +33,7 @@ export async function PUT(req:NextRequest, {params}: {params: {id: string}}) {
   // const { id } = await req.json(); // how do i get the id i have in the url api/reports/[id]
   const { id } = params
   const body = await req.json()
-  const newStatus = body.status
+  const newStatus =  body.status
   console.log(`newStatus: ${newStatus}`)
   console.log(`id: ${id}`)
   const connection = await pool.getConnection();
@@ -54,7 +54,12 @@ export async function PUT(req:NextRequest, {params}: {params: {id: string}}) {
       console.error('Error updating report status:', error);
       return NextResponse.json({ error: 'Failed to update report status' } , { status: 500 });
     }
-  } else if (req.method === 'DELETE') {
+  }
+} 
+export async function DELETE(req:NextRequest, {params}: {params: {id: string}}) 
+{if (req.method === 'DELETE') {
+  const { id } = params
+  const connection = await pool.getConnection();
     try {
       const [result]: [ResultSetHeader, FieldPacket[]] = await connection.query('DELETE FROM reports WHERE id = ?', [id]) as [ResultSetHeader, FieldPacket[]];
       connection.release();

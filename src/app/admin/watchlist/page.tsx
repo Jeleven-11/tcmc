@@ -49,8 +49,13 @@ export default function AdminReportManagement()
   {
     try
     {
-      await axios.put(`/api/reports/${id}`, { status: newStatus })
+      const res = await axios.put(`/api/reports/${id}`, { status: newStatus })
+      console.log("res update status:", res);
       fetchReports()
+      // if (res.status === 200){
+      //   // fetchReports()
+      // }
+      // fetchReports()
     } catch (error) {
       console.error("Error updating status:", error)
     }
@@ -60,8 +65,12 @@ export default function AdminReportManagement()
   {
     try
     {
-      await axios.delete(`/api/reports/${id}`)
+      const res = await axios.delete(`/api/reports/${id}`)
+      console.log("res delete report:", res);
       fetchReports()
+      // if (res.status === 200){
+      //   // fetchReports()
+      // }
     } catch (error) {
       console.error("Error deleting report:", error)
     }
