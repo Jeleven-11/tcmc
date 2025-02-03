@@ -109,6 +109,7 @@ export async function POST(req: NextRequest){
           user_id: data.user_id,
           email: data.email
         }
+        const authToken = generateAuthToken(userData, true)
         session.isLoggedIn = true
         session.id = data.id
         session.username = data.username
@@ -118,14 +119,10 @@ export async function POST(req: NextRequest){
         session.user_id = data.user_id
         session.email = data.email
         session.emailVerified = data.emailVerified
-        
-        const authToken = generateAuthToken(userData, true)
         session.authToken = authToken
         await session.save()
-        const authToken = generateAuthToken(userData, true)
 
         return NextResponse.json({ message: "Login successful", token: authToken }, { status: 200 })
-
       }
     } catch (error) {
       console.error('Database Error:', error)

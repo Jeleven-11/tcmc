@@ -69,8 +69,6 @@ export default function Adminlogin()
       
       // setError(result.message)
       // document.cookie = `token=${result.token}; path=/admin`
-      router.push('/admin')
-      return
       console.log(result); // Log the result to the console
       console.log(result.token)
       //document.cookie = `token=${result.token}; path=/admin`
