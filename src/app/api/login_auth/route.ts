@@ -119,6 +119,7 @@ export async function POST(req: NextRequest){
         session.email = data.email
         session.emailVerified = data.emailVerified
         
+        const authToken = generateAuthToken(userData, true)
         session.authToken = authToken
         await session.save()
 
