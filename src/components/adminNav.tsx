@@ -43,6 +43,12 @@ function MobileNav({
             ? "text-blue-600 border-b-4 border-blue-600" // Active style
             : "text-gray-800 hover:text-blue-600"; // Default style
 
+            {/* added signout handler */}
+            const handleSignOut = async () => {
+                await logout(); // Prevent automatic redirect from signOut
+            };
+        
+
     return (
         <div
             className={`absolute top-0 left-0 h-screen w-screen bg-white transform ${
@@ -84,6 +90,25 @@ function MobileNav({
                 >
                     Report Management
                 </Link>
+
+{/* added logged user's profile for mobile*/}
+                <Link
+                    href="/admin/profile"
+                    className={`text-xl font-medium my-4 ${getActiveClass({
+                        path: "/admin/profile"
+                    })}`}
+                    onClick={() => setTimeout(() => setOpen(!open), 100)}
+                >
+                    My Profile
+                </Link>
+
+                {/* added signout button for mobile*/}
+                <button
+                                onClick={handleSignOut}
+                                className="block px-4 py-2 text-gray-800 hover:bg-gray-200 w-full text-left"
+                            >
+                              <FaSignOutAlt size={20} />  Sign Out
+                            </button>
             </div>
         </div>
     );
