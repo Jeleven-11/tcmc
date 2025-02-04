@@ -160,7 +160,7 @@ const ReportForm = () =>
       <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         {/* Renamed from complainant to Informant/Reporting Party */}
         {/* Complainant Details */}
-        <h2 className="text-2xl font-bold mb-4">Informant / Reporting Party's Details</h2>
+        <h2 className="text-2xl font-bold mb-4">"Informant / Reporting Partys Details"</h2>
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Full Name</label>
           <input
