@@ -9,29 +9,26 @@ import { FiLogIn } from "react-icons/fi";
 function MobileNav({ open, setOpen, pathname }: { open: boolean; setOpen: (open: boolean) => void; pathname: string }) {
     const getActiveClass = (path: string) =>
         pathname === path
-            ? 'text-lime-700 border-b-4 border-lime-700 font-semibold'  // Darker lime for contrast
-            : 'text-gray-800 hover:text-lime-500'; // Readable and soft hover effect
+            ? 'text-lime-700 border-b-4 border-lime-700 font-semibold'  
+            : 'text-gray-800 hover:text-lime-500';  
 
     return (
-        <div className={`fixed top-0 left-0 h-auto max-h-screen w-[80%] max-w-sm bg-green-50 shadow-lg transform ${open ? "translate-x-0" : "-translate-x-full"} transition-transform duration-300 ease-in-out`}>
-            <div className="flex items-center justify-between px-6 py-4 bg-green-800">
-                <Link href="/" className="text-xl font-semibold text-white">
-                    TCMC
-                </Link>
-                {/* Close button */}
+        <div className={`fixed top-0 right-0 h-auto max-h-screen w-[80%] max-w-sm bg-green-50 shadow-lg transform ${open ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
+            <div className="flex items-center justify-end px-6 py-4 bg-green-800">
                 <button onClick={() => setOpen(false)} className="text-white text-2xl">&times;</button>
             </div>
             <div className="flex flex-col px-6 py-4">
                 <Link href="/" className={`text-lg font-medium py-2 ${getActiveClass('/')}`} onClick={() => setOpen(false)}>Home</Link>
                 <Link href="/file-report" className={`text-lg font-medium py-2 ${getActiveClass('/file-report')}`} onClick={() => setOpen(false)}>File a Report</Link>
                 <Link href="/report-updates" className={`text-lg font-medium py-2 ${getActiveClass('/report-updates')}`} onClick={() => setOpen(false)}>Check Report Update</Link>
-                <Link href="/adminlogin" className="text-lg font-medium py-2 flex items-center hover:text-lime-500" onClick={() => setOpen(false)}>
+                <Link href="/adminlogin" className="text-lg font-medium py-2 flex items-center text-gray-800 hover:text-lime-600" onClick={() => setOpen(false)}>
                     <FiLogIn className="mr-2" /> Login
                 </Link>
             </div>
         </div>
     );
 }
+
 
 export default function Navbar() {
     const [open, setOpen] = useState(false);
