@@ -37,6 +37,7 @@
     "react-modal": "^3.16.3",
     "sharp": "^0.33.5",
     "uuid": "^11.0.5",
+    "web-push": "^3.6.7",
     "ws": "^8.18.0",
     "zod": "^3.24.1"
   },
@@ -49,6 +50,7 @@
     "@types/prop-types": "^15.7.14",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/web-push": "^3.6.4",
     "@types/ws": "^8.5.14",
     "chartjs-adapter-date-fns": "^3.0.0",
     "eslint": "^8",
