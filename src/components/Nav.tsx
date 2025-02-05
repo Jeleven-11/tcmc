@@ -15,7 +15,7 @@ function MobileNav({ open, setOpen, pathname }: { open: boolean; setOpen: (open:
     return (
         <div className={`fixed top-0 right-0 h-auto max-h-screen w-[80%] max-w-sm bg-green-50 shadow-lg transform ${open ? "translate-x-0" : "translate-x-full"} transition-transform duration-300 ease-in-out`}>
             <div className="flex items-center justify-end px-6 py-4 bg-green-800">
-                
+            <button onClick={() => setOpen(false)} className="text-white text-2xl"></button>  
             </div>
             <div className="flex flex-col px-6 py-4">
                 <Link href="/" className={`text-lg font-medium py-2 ${getActiveClass('/')}`} onClick={() => setOpen(false)}>Home</Link>
