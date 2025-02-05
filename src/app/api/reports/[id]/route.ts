@@ -77,3 +77,5 @@ export async function DELETE(req:NextRequest, {params}: {params: {id: string}})
   }
 }
 
+export const dynamic = 'force-dynamic'
+

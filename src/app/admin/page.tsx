@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import LineTinapa from '@/components/LineTinapa';
 import LineWeeklyTinapa from '@/components/LineWeeklyTinapa';
 
+export const dynamic = 'force-dynamic'
 // Make this a Server Component by fetching data directly in the component
 const AdminDashboard = async () =>
 {

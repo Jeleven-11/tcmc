@@ -37,4 +37,5 @@ export async function GET(req: NextRequest) {
     } else {
         return NextResponse.json({ error: 'Method not allowed' }, {status: 405}); // Only allow GET
     }
-  }
+}
+export const dynamic = 'force-dynamic'

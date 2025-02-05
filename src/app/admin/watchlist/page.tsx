@@ -22,7 +22,6 @@ export default function AdminReportManagement()
   const [activeTab, setActiveTab] = useState("pending")
   const [counts, setCounts] = useState<Record<string, number>>({})
 
-  useEffect(() => { fetchReports(); }, []);
 
   const fetchReports = async () =>
   {
@@ -83,6 +82,9 @@ export default function AdminReportManagement()
     "dropped",
     "solved",
   ] 
+
+  useEffect(() => { fetchReports(); }, [reports]);
+  
   
   return (
     <>
