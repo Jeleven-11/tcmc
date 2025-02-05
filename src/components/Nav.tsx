@@ -4,7 +4,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FiLogIn } from "react-icons/fi";
 
-function MobileNav({ open, setOpen, pathname }) {
+type MobileNavProps = {
+    open: boolean;
+    setOpen: (open: boolean) => void;
+    pathname: string;
+};
+
+function MobileNav({ open, setOpen, pathname }: MobileNavProps) {
     useEffect(() => {
         if (open) {
             document.body.classList.add("overflow-hidden");
@@ -13,7 +19,7 @@ function MobileNav({ open, setOpen, pathname }) {
         }
     }, [open]);
 
-    const getActiveClass = (path) =>
+    const getActiveClass = (path: string) =>
         pathname === path ? 'text-lime-700 border-b-4 border-lime-700 font-semibold' : 'text-gray-800 hover:text-lime-500';
 
     return (
@@ -34,7 +40,7 @@ export default function Navbar() {
     const [open, setOpen] = useState(false);
     const pathname = usePathname();
 
-    const getActiveClass = (path) =>
+    const getActiveClass = (path: string) =>
         pathname === path ? 'text-lime-400 border-b-4 border-white font-semibold' : 'text-white hover:text-lime-300';
 
     return (
