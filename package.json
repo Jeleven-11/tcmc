@@ -31,6 +31,8 @@
     "jsrsasign": "^11.1.0",
     "jwt-decode": "^4.0.0",
     "luxon": "^3.5.0",
+    "lucide-react": "^0.474.0",
+    "motion": "^12.1.0",
     "mysql2": "^3.12.0",
     "next": "14.2.23",
     "react": "^18.3.1",
