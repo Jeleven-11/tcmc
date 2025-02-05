@@ -12,6 +12,6 @@ export async function GET()
         GROUP BY time
         ORDER BY time ASC`
     , [])
-
+    
     return NextResponse.json(rows)
 }

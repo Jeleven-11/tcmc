@@ -42,6 +42,6 @@ export async function GET(req: NextRequest)
   } finally {
 
     if (conn)
-      conn.end()
+      conn.release()
   }
 }

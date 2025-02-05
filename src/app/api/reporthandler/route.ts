@@ -1,6 +1,6 @@
 import pool from '../../lib/db';
 import { NextRequest, NextResponse } from 'next/server';
-
+import { DateTime } from 'luxon';
 interface Report {
   fullName: string;
   age: number;
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest)
         driversLicense, vehicleRegistration, orCr, reason, vehicleType, platenumber, color,
         description, reportID, status, createdAt
       ) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
     `
     const values = [
       fullName,
@@ -67,6 +67,7 @@ export async function POST(request: NextRequest)
       color,
       description,
       reportID,
+      DateTime.now().setZone('Asia/Manila').toSQL(),
     ]
     // Get connection to the database pool
     const connection = await pool.getConnection();

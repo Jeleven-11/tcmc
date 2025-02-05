@@ -12,6 +12,7 @@ import {
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 import { Line } from "react-chartjs-2";
+import { DateTime } from "luxon";
 
 ChartJS.register(CategoryScale, LinearScale, TimeScale, PointElement, LineElement, Tooltip)
 
@@ -29,8 +30,11 @@ interface HourlyData
 
 const formatTime = (isoString: string) =>
 {
-    const date = new Date(isoString)
-    return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+    // const date = new Date(isoString)
+    const currentDate = DateTime.fromISO(isoString).toFormat('HH:mm a');//.setZone('Asia/Manila')
+    return currentDate;
+    // return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+    
 }
 
 const DailyReports = () =>

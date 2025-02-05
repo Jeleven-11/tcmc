@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 // import RequestNotificationPermission from '@/components/RequestNotificationPermission';
 import LineTinapa from '@/components/LineTinapa';
 import LineWeeklyTinapa from '@/components/LineWeeklyTinapa';
-
+import DateTimeComponent from '@/components/DateTimeComponent';
 export const dynamic = 'force-dynamic'
 // Make this a Server Component by fetching data directly in the component
 const AdminDashboard = async () =>
@@ -23,7 +23,7 @@ const AdminDashboard = async () =>
     return (
       <>
         <Navbar />
-        
+        <DateTimeComponent />
                   <div className="bg-gray-100 min-h-screen p-6">
                     <header className="bg-blue-600 text-white p-4 rounded mb-6">
                       <h1 className="text-2xl font-bold">DASHBOARD</h1>

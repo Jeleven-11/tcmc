@@ -83,7 +83,7 @@ export default function AdminReportManagement()
     "solved",
   ] 
 
-  useEffect(() => { fetchReports(); }, [reports]);
+  useEffect(() => { fetchReports(); }, []);
   
   
   return (

@@ -30,5 +30,13 @@
       "p256dh": "BDrKrVrxuhRNi1Kasbf4UIpTwxaHIfVRgViNUDFkMYcaA7Zh5CuN6i4DOZuRjgL-_v58amIU_gSOvrMui14jRSs",
       "auth": "Uyjw3TKSQQ5FrEJHRckeIg"
     }
+  },
+  {
+    "endpoint": "https://wns2-bl2p.notify.windows.com/w/?token=BQYAAABC2GBrQqsEfno7lHxJi7uL%2bLDLq8urrc2mMLBUJcz%2fyeMML83%2fh%2bfvEiv1me6WHzCW%2bH9zl7%2bVk%2bZYA%2foz8BVJWkU3kyiVhvwPh1iJ%2ftzCrdHc5knaEDzlnSTe1B74FXKG1tTzSHo3V2JfOcQWoag%2bpOiIdn3lxrMTFI6qOnAkEqSkpp0dovoATLetkU%2bTq%2bUO3D2PzUjgTviLON08KlG3tt%2bsmYFabsRaG54KZU3v2d5zEm3%2f4955pelV2wq2xcplJtFJybGkAEHTIIqIAshDGY6QMA7HrUH5t%2brsuY6UXQLj5FGFv6Spy8p5vAlMs2k%3d",
+    "expirationTime": null,
+    "keys": {
+      "p256dh": "BG25mIw2ct7rHqjzeogxOA-K12L7Rw-yDzSaoRYHJXfpWIRljprFvmb-agVKy-Yi3iAN5QLgEgjPd7zOXLASXQg",
+      "auth": "KAGTuIQIbMsCuxigBt026A"
+    }
   }
 ]

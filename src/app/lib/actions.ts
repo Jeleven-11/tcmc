@@ -4,6 +4,11 @@ import { sessionOptions, defaultSession } from '@/app/lib/session';
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+// import { DateTime } from "luxon"
+
+// export async function getServerTime(){
+//     return DateTime.now().setZone('Asia/Manila').;
+// }
 
 export async function getSession() {
     const session = await getIronSession<SessionData>(cookies(), sessionOptions);
