@@ -3,6 +3,9 @@ import webpush from "web-push";
 import pool from "@/app/lib/db";
 import { FieldPacket } from "mysql2";
 
+export const dynamic = 'force-dynamic'
+
+
 // const FILE_PATH = path.join(process.cwd(), "data", "subscriptions.json");
 
 const PUBLIC_VAPID_KEY = "BIK1qzjrQRCZMsOzO6GH4HeXKOBivuy0npF21_eJONISLMFHPjxwDbcuZNs7bWH-P62GPHjcywsqdoiMJ6O87A8";
@@ -17,6 +20,7 @@ webpush.setVapidDetails(
 interface Subscribers {
     data: string;
 }
+
 
 export async function GET()
 {
