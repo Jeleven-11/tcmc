@@ -28,13 +28,9 @@ interface HourlyData
     }[],
 }
 
-const formatTime = (isoString: string) =>
+const formatTime = (isoString: string) => 
 {
-    // const date = new Date(isoString)
-    const currentDate = DateTime.fromISO(isoString).toFormat('HH:mm a');//.setZone('Asia/Manila')
-    return currentDate;
-    // return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
-    
+    return DateTime.fromISO(isoString).toFormat('HH:mm');;
 }
 
 const DailyReports = () =>
