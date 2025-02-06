@@ -70,7 +70,7 @@ export default function Adminlogin() {
   return (
     <div className="relative flex items-center justify-center h-screen">
       <Image 
-      src="tangubpnplogo.jpeg"
+      src="/tangubpnplogo.jpeg"
        alt="Background" 
        layout="fill" 
        objectFit="cover" 

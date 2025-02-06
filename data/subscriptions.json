@@ -1,34 +1,10 @@
 [
   {
-    "endpoint": "https://fcm.googleapis.com/fcm/send/cqtQFQ9pKLY:APA91bF5nsfbsyO91a60rbF08w8kYmdEqAQ2ydYbRjzHH-u9SHpj2y1GNBpPekH_m2QV6E506hE7kmxZQl-7ZuX627mFCxA4UDiNEBABl7b8KfKnNDS9_NwLjABEdCfEv10HesaSMSjI",
+    "endpoint": "https://fcm.googleapis.com/fcm/send/cSho_XXN6AQ:APA91bGmuuTewh-ZvkEeZqRVDCDjaDpaL_saYhzivAgle4mHtPbaKFwGpdbsKOC6Bc03j1-B2NpoqaMhivuKHqk4XlSnU4g-xMBvIbfhnBlxralBT8xCfQWgo4XtQ9Xmo6ty5KCtzcg4",
     "expirationTime": null,
     "keys": {
-      "p256dh": "BAMtHnQQIPJsDE1X7CTSbuR1uZKxrW1RJVl72DeJLXWS-S5EdjUAJ7XhAUmIpRawdfFpN77lpEcrgg9TnxsuoKs",
-      "auth": "eYZvZEPgrPHHFkdNLuH3uw"
-    }
-  },
-  {
-    "endpoint": "https://fcm.googleapis.com/fcm/send/dftG2uuEeUE:APA91bFgHrpJ2O4YoJ19OKgpRAvxMFPPLwQK4Eh2jM3ZaJqr14SXTPdV5CHAu0x3eycC04WPgsrKSTsMQuxlKJ_t1387zRGjHHooR9kBiMDvIhupZxrR5FkKBoOqmtGlePcw1_EXXpkD",
-    "expirationTime": null,
-    "keys": {
-      "p256dh": "BGQii7g7b0aCDi4cwlfE45bgZuRmveuhzWYphqP4McSBm18dVx5rE1m9Q6PYdTNx-p5WfyBAw0sIW_rY3oaXPf0",
-      "auth": "NzyZ9n8I17gCWtp_-6rgzQ"
-    }
-  },
-  {
-    "endpoint": "https://fcm.googleapis.com/fcm/send/fYbNtsFEYok:APA91bGUdAJguk0SLhXkeALe9lBxZ0LZwgm8YI474KKrusOY_t0dc1Xm7nwp8X7a-poC9L-gnilJwWNXRBBOeZ_V6yLDOtw16wYehbubZonxep4oo_atkRUdVuXH96NxHMKA-a7taXUC",
-    "expirationTime": null,
-    "keys": {
-      "p256dh": "BL5z0lyqJRBxFAaE6NHSsHggEBMT4bMGmvpxX4sn9FnWvKT9ymplrZExwDSQKnB9byONBPiMYAVQ0tAkUqrPXhQ",
-      "auth": "L2ey5E9iuxhYnrjlshEoEw"
-    }
-  },
-  {
-    "endpoint": "https://fcm.googleapis.com/fcm/send/fY9YQ25pVoE:APA91bGGrX-Pf6mztpWEZV26xCE8TExmJIe02hDO2f44RnA1l-Vzr3Wt56aC6C1ZZAekU_pKDYrmSJOTn-ZEU7lfOWYTEYmvMCLa_seYSU8RPY-XTuUDwjuDcaXaEnBdQ-KMPgGpIRnY",
-    "expirationTime": null,
-    "keys": {
-      "p256dh": "BDrKrVrxuhRNi1Kasbf4UIpTwxaHIfVRgViNUDFkMYcaA7Zh5CuN6i4DOZuRjgL-_v58amIU_gSOvrMui14jRSs",
-      "auth": "Uyjw3TKSQQ5FrEJHRckeIg"
+      "p256dh": "BGy6YoYmS-_6pmsVOQesmcx4gQQnCw9YKN_x1QB-s62-UxD_ql035LwTuBunyRzM1aMOVIXiuV2Q1sfUfd1fRnI",
+      "auth": "qrNbT64fCBtJp_B1xMOS3g"
     }
   },
   {

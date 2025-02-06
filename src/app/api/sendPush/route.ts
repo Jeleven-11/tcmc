@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { promises as fs } from "fs";
 import path from "path";
+import pool from "@/app/lib/db";
+import { FieldPacket } from "mysql2";
 
 const FILE_PATH = path.join(process.cwd(), "data", "subscriptions.json");
 
@@ -14,29 +16,50 @@ webpush.setVapidDetails(
   PRIVATE_VAPID_KEY
 );
 
+interface Subscribers {
+    data: string;
+}
+
 export async function GET()
 {
+    let conn
     try
     {
-        const fileData = await fs.readFile(FILE_PATH, "utf8");
-        const subscriptions = JSON.parse(fileData) as webpush.PushSubscription[];
+        // const fileData = await fs.readFile(FILE_PATH, "utf8");
+        // const subscriptions = JSON.parse(fileData) as webpush.PushSubscription[];
+        conn = await pool.getConnection()
+        const [results]: [Subscribers[], FieldPacket[]] = await conn.query('SELECT * FROM subscriptions', []) as [Subscribers[], FieldPacket[]]
+        if (!results)
+            return NextResponse.json({ message: "No subscribers available" }, { status: 400 })
 
-        if (subscriptions.length === 0)
-            return NextResponse.json({ message: "No subscribers available", subscriptions });
+        const subscribers = [] as webpush.PushSubscription[]
+        for (const result of results)
+        {
+            const data_string = JSON.stringify(result.data)
+            const subscriptions = JSON.parse(data_string)
+            subscribers.push(subscriptions)
+        }
 
-        const notificationPayload = JSON.stringify({
+        const notificationPayload = JSON.stringify(
+        {
             title: "🔔 Persistent Push Notification",
             body: "This is a push notification stored in a JSON file!",
-        });
+        })
+        subscribers.forEach(async (sub) => {
+            try {
+                return await webpush.sendNotification(sub, notificationPayload);
+            } catch (err) {
+                return console.error(err);
+            }
+        })
 
-        subscriptions.forEach((sub) => {
-            return webpush.sendNotification(sub, notificationPayload).catch((err) => console.error(err));
-        });
-
-        return NextResponse.json({ message: "Notification sent!", subscriptions });
+        return NextResponse.json(subscribers)
     } catch (error) {
         console.error(error);
         return NextResponse.json({ error: "Failed to send notification" }, { status: 500 });
+    } finally {
+
+        if (conn)
+            conn.release()
     }
-  }
-  
+}
