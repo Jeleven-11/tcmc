@@ -7,7 +7,7 @@ export async function GET()
 {
     const rows = await query(
         `SELECT 
-            DATE_FORMAT(createdAt, '%Y-%m-%dT%h:%i:%s') AS time,
+            DATE_FORMAT(createdAt, '%Y-%m-%dT%H:%i:00') AS time,
             COUNT(*) AS count
         FROM reports
         WHERE DATE(createdAt) = CURDATE()

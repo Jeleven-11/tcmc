@@ -30,7 +30,7 @@ interface HourlyData
 
 const formatTime = (isoString: string) => 
 {
-    return DateTime.fromISO(isoString).toFormat('HH:mm:ss');;
+    return DateTime.fromISO(isoString).toFormat('hh:mm a')
 }
 
 const DailyReports = () =>
