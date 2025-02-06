@@ -15,36 +15,35 @@ const DateTimeComponent: React.FC = () => {
   }, []);
   useEffect(() => {
     const timeContainer = timeContainerRef.current;
+    const initial =  80;
     const handleScroll = () => {
       const scrollTop = window.scrollY;
-      console.log(`Scroll: ${scrollTop}`);
+      // console.log(`Scroll: ${scrollTop}`);
       if(timeContainer) {
-        const elementTop = timeContainer.offsetTop;
-        console.log(`Element top: ${elementTop}`);
-        if (scrollTop >= elementTop) {
+        // const elementTop = timeContainer.offsetTop - 8;
+        // console.log(`Element top: ${elementTop}`);
+        if (!isStuck && scrollTop >= initial) {
           setIsStuck(true);
-        } else {
+        } else if (isStuck && scrollTop <= initial) {
           setIsStuck(false);
         }
       }
 
       
     };
-
     window.addEventListener('scroll', handleScroll);
-
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [isStuck, timeContainerRef]);
 
   return (
-    // <div>
-    //   <p>Server Time: {stringTime}</p>
-    // </div>
-    <div ref={timeContainerRef} className={`${styles.timeContainer} ${isStuck ? 'sticky' : ''}`}>
-    <p className={styles.time}>Philippine Standard Time: {stringTime}</p>
+    <div>
+    {isStuck ? <div style={{ height: 32 }} /> : null}
+    <div ref={timeContainerRef} className={`${styles.timeContainer} ${isStuck ? styles.sticky : ''}`}>
+      <p className={styles.time}>Philippine Standard Time: {stringTime}</p>
     </div>
+  </div>
   );
 };
 

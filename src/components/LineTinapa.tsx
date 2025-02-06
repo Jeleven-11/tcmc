@@ -46,7 +46,12 @@ const DailyReports = () =>
             {
                 const labels = data.map((entry: { time: string }) => formatTime(entry.time))
                 const counts = data.map((entry: { count: number }) => entry.count)
-
+                // (OPTIONAL)
+                // To make the chart display from 00:00 to 23:59 // TODO: add some validation that data doesn't contain 0:00 and 23:59 from data.time
+                // labels.unshift('00:00');
+                // labels.push('23:59');
+                // counts.unshift(0);
+                // counts.push(0);
                 setChartData({
                     labels,
                     datasets: [
