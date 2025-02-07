@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import pool, { query } from "@/app/lib/db";
-import { FieldPacket, QueryResult } from "mysql2";
+import pool from "@/app/lib/db";
+import { FieldPacket } from "mysql2";
 
 //const FILE_PATH = path.join(process.cwd(), "data", "subscriptions.json");
 

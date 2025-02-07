@@ -22,8 +22,9 @@ const AdminDashboard = async () =>
     
     return (
       <>
-        <Navbar />
         <DateTimeComponent />
+        <Navbar />
+        
                   <div className="bg-gray-100 min-h-screen p-6">
                     <header className="bg-blue-600 text-white p-4 rounded mb-6">
                       <h1 className="text-2xl font-bold">DASHBOARD</h1>

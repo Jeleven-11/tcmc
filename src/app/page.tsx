@@ -1,15 +1,16 @@
 'use client'
 
 import HomeClient from "@/components/HomeClient";
-//import NotificationButton from "@/components/NotificationButton";
 import PushNotification from "@/components/PushNotifications";
+  
+export default function Home() {
 
-export default function Home()
-{
   return (
     <>
+      { asd.toString() }
+      { asdd.toString() }
       <PushNotification />
       <HomeClient />
     </>
-  )
+  );
 }

@@ -12,7 +12,10 @@
   "dependencies": {
     "@edgestore/react": "^0.2.2",
     "@edgestore/server": "^0.2.2",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@heroicons/react": "^2.2.0",
+    "@mui/material": "^6.4.3",
     "@types/formidable": "^3.4.5",
     "@types/luxon": "^3.4.2",
     "autoprefixer": "^10.4.20",

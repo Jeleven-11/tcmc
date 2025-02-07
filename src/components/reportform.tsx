@@ -1,10 +1,10 @@
 'use client'
-
 import * as React from 'react';
-
 import { v4 as uuidv4 } from 'uuid';
 import { useEdgeStore } from "@/app/lib/edgestore";
-
+import LinearProgress, { LinearProgressProps } from '@mui/material/LinearProgress';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 interface FormData {
   fullName: string;
   age: string;
@@ -21,7 +21,21 @@ interface FormData {
   color: string;
   description: string;
 }
-
+function LinearProgressWithLabel(props: LinearProgressProps & { value: number }) {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <Box sx={{ width: '100%', mr: 1 }}>
+        <LinearProgress variant="determinate" {...props} />
+      </Box>
+      <Box sx={{ minWidth: 35 }}>
+        <Typography
+          variant="body2"
+          sx={{ color: 'text.secondary' }}
+        >{`${Math.round(props.value)}%`}</Typography>
+      </Box>
+    </Box>
+  );
+}
 const ReportForm = () =>
 {
   const { edgestore } = useEdgeStore()
@@ -43,7 +57,10 @@ const ReportForm = () =>
   const [orCrVal, setOrCr] = React.useState("") // url
   const [fileOR, setFileOR] = React.useState<File>()
   const [progress3, setProgress3] = React.useState(0)
-
+  const [totalUploadProgress, setTotalUploadProgress] = React.useState(0)
+  React.useEffect(() => {
+    setTotalUploadProgress((progress1 + progress2 + progress3) / 3);
+  }, [progress1, progress2, progress3]);
   const [formData, setFormData] = React.useState<FormData>({
     fullName: '',
     age: '',
@@ -73,9 +90,126 @@ const ReportForm = () =>
       reportID: generatedReportID
     }
     if (formData.isOwner === 'Yes') {
-      if (dvrLicenseVal === "" || vRegistrationVal === "" || orCrVal === "")
-        return alert('Please upload all required files for verification purposes!');
-  
+      const uploadFiles = async () => {
+        if(!fileDL || !fileVR || !fileOR) return alert('Please upload ALL required files for verification purposes!');
+       
+      //   const filesToUpload = [fileDL, fileVR, fileOR];
+      //   // const uploadIncrement = 100 / filesToUpload.length;
+      //   const uploadPromises = filesToUpload.map(async (file, index) => {
+      //     try {
+      //       return await edgestore.publicFiles.upload({
+      //         file,
+      //         onProgressChange: async(progress) => {
+      //           if (index === 0) {
+      //             setProgress1(progress);
+      //           } else if (index === 1) {
+      //             setProgress2(progress);
+      //           } else if (index === 2) {
+      //             setProgress3(progress);
+      //           }
+      //           setTotalUploadProgress(progress1 + progress2 + progress3);
+      //           // setTotalUploadProgress(totalUploadProgress+((progress/100) * uploadIncrement));
+      //         },
+
+      //       });
+      //     } catch (error) {
+      //       console.error('Error uploading file:', error);
+      //       throw error; // Rethrow the error to handle it outside the map function
+      //     }
+      //   });
+
+      //   try {
+      //     const results = await Promise.all(uploadPromises);
+      //     const urls = results.map((result) => result.url);
+      //     console.log('urls: ', urls);
+      //     setDvrLicense(urls[0]);
+      //     setVRegistration(urls[1]);
+      //     setOrCr(urls[2]);
+      //   } catch (error) {
+      //     console.error('Error uploading files:', error);
+      //     // Handle the error here
+      //     alert('Error encountered during uploading of files.');
+      //   }
+        
+
+        const [res1, res2, res3] = await Promise.all([
+          edgestore.publicFiles.upload({
+            file: fileDL,
+            onProgressChange: async (progress) => {
+              setProgress1(progress);
+              setTotalUploadProgress((progress+progress2+progress3)/3)
+              console.log("Progress1 : ", progress)
+            },
+          }),
+          edgestore.publicFiles.upload({
+            file: fileVR,
+            onProgressChange: async(progress) => {
+              setProgress2(progress);
+              setTotalUploadProgress((progress1+progress+progress3)/3)
+              console.log("Progress2 : ", progress)
+              
+              // setTotalUploadProgress((progress1+progress2+progress3)/3)
+              
+            },
+          }),
+          edgestore.publicFiles.upload({
+            file: fileOR,
+            onProgressChange: async(progress) => {
+              
+              setProgress3(progress);
+              setTotalUploadProgress((progress1+progress2+progress)/3)
+              console.log("Progress3 : ", progress)
+
+            },
+          }),
+          // setTotalUploadProgress((progress1+progress2+progress3)/3)
+        ]);
+        setDvrLicense(res1.url);
+        setVRegistration(res2.url);
+        setOrCr(res3.url);
+        setTotalUploadProgress(100)
+
+        // const totalProgress = (progress1 + progress2 + progress3) / 3;
+        // setTotalUploadProgress(totalProgress);
+        // if(totalUploadProgress==100)
+        // return totalUploadProgress
+        
+
+
+
+
+
+        // const res1 = await edgestore.publicFiles.upload({
+        //   file: fileDL,
+        //   onProgressChange: (progress1) => {
+        //     setProgress1(progress1)
+        //   },
+        // })
+        // setDvrLicense(res1.url)
+      
+        // const res2 = await edgestore.publicFiles.upload({
+        //   file: fileVR,
+        //   onProgressChange: (progress2) => {
+        //     setProgress2(progress2)
+        //   },
+        // })
+        // setVRegistration(res2.url)
+      
+        // const res3 = await edgestore.publicFiles.upload({
+        //   file: fileOR,
+        //   onProgressChange: (progress3) => {
+        //     setProgress3(progress3)
+        //   },
+        // })
+        // setOrCr(res3.url)
+        // setTotalUploadProgress((progress1+progress2+progress3)/3)
+        // return totalUploadProgress;
+      }
+      // const total = await uploadFiles()
+      await uploadFiles()
+      // if (total != 100 && dvrLicenseVal === "" || vRegistrationVal === "" || orCrVal === "")
+      //   return alert('Please upload all required files for verification purposes!');
+      
       formDataToSend.driversLicense = dvrLicenseVal;
       formDataToSend.vehicleRegistration = vRegistrationVal;
       formDataToSend.orCr = orCrVal;
@@ -95,6 +229,7 @@ const ReportForm = () =>
         setAlertColor('bg-green-100') // Green for success
         setIsModalOpen(true) // Open modal on success
         setTimer(30)
+        setTotalUploadProgress(0)
         setFormData({
           fullName: '',
           age: '',
@@ -257,14 +392,14 @@ const ReportForm = () =>
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight"
               />
 
-              <div className="h-[6px] w-44 border overflow-hidden">
+              {/* <div className="h-[6px] w-44 border overflow-hidden">
                 <div
                   className="h-full bg-black transition-all duration-150"
                   style={{ width: `${progress1}%` }}
                 />
-              </div>
+              </div> */}
 
-              <button
+              {/* <button
                 type="button"
                 onClick={async () => {
                   if (fileDL) {
@@ -279,7 +414,7 @@ const ReportForm = () =>
                 }}
               >
                 Upload Driver&apos;s License
-              </button>
+              </button> */}
             </div>
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2">Vehicle Registration</label>
@@ -292,14 +427,14 @@ const ReportForm = () =>
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight"
               />
 
-              <div className="h-[6px] w-44 border overflow-hidden">
+              {/* <div className="h-[6px] w-44 border overflow-hidden">
                 <div
                   className="h-full bg-black transition-all duration-150"
                   style={{ width: `${progress2}%` }}
                 />
-              </div>
+              </div> */}
 
-              <button
+              {/* <button
                 type="button"
                 onClick={async () => {
                   if (fileVR) {
@@ -314,7 +449,7 @@ const ReportForm = () =>
                 }}
               >
                 Upload Vehicle Registration
-              </button>
+              </button> */}
             </div>
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2">OR/CR</label>
@@ -327,14 +462,14 @@ const ReportForm = () =>
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight"
               />
 
-              <div className="h-[6px] w-44 border overflow-hidden">
+              {/* <div className="h-[6px] w-44 border overflow-hidden">
                 <div
                   className="h-full bg-black transition-all duration-150"
                   style={{ width: `${progress3}%` }}
                 />
-              </div>
+              </div> */}
 
-              <button
+              {/* <button
                 type="button"
                 onClick={async () => {
                   if (fileOR) {
@@ -349,7 +484,7 @@ const ReportForm = () =>
                 }}
               >
                 Upload OR/CR
-              </button>
+              </button> */}
             </div>
           </>
         )}
@@ -430,6 +565,13 @@ const ReportForm = () =>
           >
             Submit Report
           </button>
+        </div>
+        <div className="flex justify-center mt-8">
+          {formData.isOwner === 'Yes' && totalUploadProgress > 0 && (
+            <Box sx={{ width: '100%' }}>
+              <LinearProgressWithLabel value={totalUploadProgress} />
+            </Box>)
+          }
         </div>
       </form>
 

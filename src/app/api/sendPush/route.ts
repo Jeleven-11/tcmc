@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import webpush from "web-push";
-import { promises as fs } from "fs";
-import path from "path";
 import pool from "@/app/lib/db";
 import { FieldPacket } from "mysql2";
 
-const FILE_PATH = path.join(process.cwd(), "data", "subscriptions.json");
+export const dynamic = 'force-dynamic'
+
+
+// const FILE_PATH = path.join(process.cwd(), "data", "subscriptions.json");
 
 const PUBLIC_VAPID_KEY = "BIK1qzjrQRCZMsOzO6GH4HeXKOBivuy0npF21_eJONISLMFHPjxwDbcuZNs7bWH-P62GPHjcywsqdoiMJ6O87A8";
 const PRIVATE_VAPID_KEY = "cylMrhbw_OdJSgOSDGs6GNe16c31jUE3Z_evaZV452w";
@@ -19,6 +20,7 @@ webpush.setVapidDetails(
 interface Subscribers {
     data: string;
 }
+
 
 export async function GET()
 {

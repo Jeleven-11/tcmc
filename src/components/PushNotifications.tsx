@@ -33,7 +33,7 @@ const PushNotification = () =>
                 const newSubscription = await registration.pushManager.subscribe({
                     userVisibleOnly: true,
                     applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY),
-                });
+                })
 
                 await fetch("/api/subscribe",
                 {
@@ -42,10 +42,14 @@ const PushNotification = () =>
                     headers: {
                         "Content-Type": "application/json",
                     },
-                })
-
-                console.log("Subscribed to push notifications!")
-                setSubscribed(true)
+                }).then((res) =>
+                {
+                    if (res.ok)
+                    {
+                        console.log("Subscribed to push notifications!")
+                        setSubscribed(true)
+                    }
+                }).catch((err) => console.error(err))
             } else {
                 console.log("Already subscribed to push notifications!")
                 setSubscribed(true)
