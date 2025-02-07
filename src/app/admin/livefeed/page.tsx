@@ -3,6 +3,7 @@
 import Nav from '@/components/Nav';
 import { useEffect, useRef, useState } from 'react';
 import { getSession } from '@/app/lib/actions';
+export const dynamic = 'force-dynamic';
 type SessionData = {
   isLoggedIn: boolean;
   name?: string;
