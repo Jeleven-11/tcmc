@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
       try {
         const connection =  await pool.getConnection()
         const [results]: [Report[], FieldPacket[]] = await connection.query('SELECT * FROM reports', []) as [Report[], FieldPacket[]];
-        console.log('Database result:', results);
+        //console.log('Database result:', results);
         connection.release();
         return NextResponse.json(results, {status: 200});
       } catch (error) {

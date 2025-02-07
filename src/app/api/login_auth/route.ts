@@ -7,6 +7,7 @@ import { query } from '../../lib/db';
 import { FieldPacket } from 'mysql2'; 
 import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
+import { v4 as uuidv4 } from 'uuid';
 // import { SessionData } from '../../lib/session';
 // import { cookies } from 'next/headers';
 // import { sessionOptions, defaultSession } from '../../lib/session';
@@ -120,6 +121,7 @@ export async function POST(req: NextRequest){
         session.email = data.email
         session.emailVerified = data.emailVerified
         session.authToken = authToken
+        session.sessionID = uuidv4().slice(0, 16).toUpperCase()
         await session.save()
 
         return NextResponse.json({ message: "Login successful", token: authToken }, { status: 200 })

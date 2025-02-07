@@ -5,7 +5,7 @@ import UserCard from '@/components/UserCard';
 import EditUserModal from '@/components/EditUserModal';
 import AddUserModal from '@/components/AddUserModal';
 import Navbar from '@/components/adminNav';
-
+import DateTimeComponent from '@/components/DateTimeComponent';
 interface User {
   id?: string
   username: string;
@@ -108,6 +108,7 @@ export default function UserManagement()
 
   return (
     <>
+      <DateTimeComponent />
       <Navbar />
       <div className="bg-blue-50 p-6 min-h-screen">
         <header className="bg-blue-600 text-white p-4 rounded">

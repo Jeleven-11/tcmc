@@ -7,8 +7,6 @@ export default function Home() {
 
   return (
     <>
-      { asd.toString() }
-      { asdd.toString() }
       <PushNotification />
       <HomeClient />
     </>

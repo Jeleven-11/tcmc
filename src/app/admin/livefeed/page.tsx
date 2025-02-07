@@ -1,7 +1,17 @@
 'use client';
 
-import Nav from '../../components/Nav';
+import Nav from '@/components/Nav';
 import { useEffect, useRef, useState } from 'react';
+import { getSession } from '@/app/lib/actions';
+type SessionData = {
+  isLoggedIn: boolean;
+  name?: string;
+  contact_num?: string;
+  role?: string;
+  email?: string;
+  authToken: string
+  sessionID: string
+} | null;
 export default function Livefeed () {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -9,61 +19,92 @@ export default function Livefeed () {
   const [videoSrc, setVideoSrc] = useState('');
   const ws = useRef<WebSocket | null>(null);
   const pc = useRef<RTCPeerConnection | null>(null);
-
+  const [sessionData, setSessionData] = useState<SessionData>(null);
   useEffect(() => {
-    ws.current = new WebSocket('ws://localhost:3306');
-    ws.current.onopen = () => {
-      console.log('WebSocket connection opened');
-    };
-    ws.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'offer') {
-        pc.current = new RTCPeerConnection({
-          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+    getSession().then(async (session) => {
+      const currentSession = JSON.parse(JSON.stringify(session));
+      if (currentSession.isLoggedIn) {
+        setSessionData({
+          isLoggedIn: currentSession.isLoggedIn,
+          name: currentSession.name,
+          contact_num: currentSession.contact_num,
+          role: currentSession.role,
+          email: currentSession.email,
+          authToken: currentSession.authToken,
+          sessionID: currentSession.sessionID
         });
-        pc.current.onicecandidate = (event) => {
-          if (event.candidate) {
-            ws.current?.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
+        // const wsUrl = `ws://localhost:3306?token=${currentSession.authToken}`;
+        const wsUrl = `wss://tcmc.vercel.app:3306?token=${currentSession.authToken}`;
+        console.log(`Creating a new websocket connection to ${wsUrl}`);
+        ws.current = new WebSocket(wsUrl);
+        ws.current.onopen = () => {
+          console.log('WebSocket connection opened');
+          const registrationMessage = {
+            type: 'register',
+            role: currentSession.role,
+            id: currentSession.sessionID
+          }
+          ws.current!.send(JSON.stringify(registrationMessage));
+          console.log('Sent registration message:', registrationMessage);
+        };
+        ws.current.onerror = (event) => {
+          console.log('WebSocket error:', event);
+        };
+        ws.current.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          if (data.type === 'offer') {
+            pc.current = new RTCPeerConnection({
+              iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+            });
+            pc.current.onicecandidate = (event) => {
+              if (event.candidate) {
+                ws.current?.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
+              }
+            };
+            pc.current.ontrack = (event) => {
+              if(event.track.kind === 'video'){
+                const mediaRecorder = new MediaRecorder(event.streams[0]);
+                const chunks: Blob[] = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                  chunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                  const blob = new Blob(chunks, { type: 'video/webm' });
+                  setVideoSrc(URL.createObjectURL(blob));
+                };
+
+                mediaRecorder.start();
+                setTimeout(() => {
+                  mediaRecorder.stop();
+                }, 1000); // Stop recording after 1 second
+              }
+              
+            };
+            pc.current.setRemoteDescription(new RTCSessionDescription(data.offer));
+            pc.current.createAnswer().then((answer) => {
+              pc.current?.setLocalDescription(answer);
+              ws.current?.send(JSON.stringify({ type: 'answer', answer }));
+            });
+          } else if (data.type === 'candidate') {
+            pc.current?.addIceCandidate(new RTCIceCandidate(data.candidate));
           }
         };
-        pc.current.ontrack = (event) => {
-          if(event.track.kind === 'video'){
-            const mediaRecorder = new MediaRecorder(event.streams[0]);
-            const chunks: Blob[] = [];
-
-            mediaRecorder.ondataavailable = (event) => {
-              chunks.push(event.data);
-            };
-
-            mediaRecorder.onstop = () => {
-              const blob = new Blob(chunks, { type: 'video/webm' });
-              setVideoSrc(URL.createObjectURL(blob));
-            };
-
-            mediaRecorder.start();
-            setTimeout(() => {
-              mediaRecorder.stop();
-            }, 1000); // Stop recording after 1 second
-          }
-          
+        ws.current.onclose = () => {
+          console.log('WebSocket connection closed');
         };
-        pc.current.setRemoteDescription(new RTCSessionDescription(data.offer));
-        pc.current.createAnswer().then((answer) => {
-          pc.current?.setLocalDescription(answer);
-          ws.current?.send(JSON.stringify({ type: 'answer', answer }));
-        });
-      } else if (data.type === 'candidate') {
-        pc.current?.addIceCandidate(new RTCIceCandidate(data.candidate));
+        return () => {
+          ws.current?.close();
+        };
+      } else {
+        // setSessionData({ isLoggedIn: currentSession.isLoggedIn });
+        alert("Please login again.")
       }
-    };
-    ws.current.onclose = () => {
-      console.log('WebSocket connection closed');
-    };
-    return () => {
-      ws.current?.close();
-    };
+    });
   }, []);
-
+  
+  console.log('Retrieved session: ', sessionData);
   const [captures, ] = useState([
     { no: 1, vehicleType: 'Car', color: 'Red', plateNumber: 'ABC123', capturedImages: 'Image1.jpg, Image2.jpg', timestamp: '2024-09-11 10:00:00' },
     { no: 2, vehicleType: 'Truck', color: 'Blue', plateNumber: 'XYZ456', capturedImages: 'Image3.jpg, Image4.jpg', timestamp: '2024-09-11 10:15:00' },

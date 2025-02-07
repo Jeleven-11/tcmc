@@ -5,7 +5,7 @@ import Nav from '@/components/adminNav';
 import { UserCircleIcon } from '@heroicons/react/24/outline';
 import { getSession } from '@/app/lib/actions';
 import { useState, useEffect } from 'react';
-
+import DateTimeComponent from '@/components/DateTimeComponent';
 // type User = {
 //   name?: string;
 //   email?: string;
@@ -32,7 +32,7 @@ export default function Profile() {
       const currentSession = JSON.parse(JSON.stringify(session));
       if (currentSession.isLoggedIn) {
         setSessionData({
-          isLoggedIn: currentSession  .isLoggedIn,
+          isLoggedIn: currentSession.isLoggedIn,
           name: currentSession.name,
           contact_num: currentSession.contact_num,
           role: currentSession.role,
@@ -50,6 +50,7 @@ export default function Profile() {
 
   return (
     <>
+    <DateTimeComponent/>
     <Nav>
 
     </Nav>
