@@ -14,7 +14,7 @@ const webRTCClients = new Map();
 
 wss.on('connection', async (ws, req) => {
     const serverHostname = req.headers.host; // Get the hostname from the HTTP request headers
-    const url = new URL(req.url, `wss://${serverHostname}`);
+    const url = new URL(req.url, `ws://${serverHostname}`);
     const authToken = url.searchParams.get('token');
     console.log('authToken from url: ', authToken);
     if (!authToken) {

@@ -34,7 +34,7 @@ export default function Livefeed () {
           sessionID: currentSession.sessionID
         });
         // const wsUrl = `ws://localhost:3306?token=${currentSession.authToken}`;
-        const wsUrl = `wss://tcmc.vercel.app:3306?token=${currentSession.authToken}`;
+        const wsUrl = `ws://tcmc.vercel.app:3306?token=${currentSession.authToken}`;
         console.log(`Creating a new websocket connection to ${wsUrl}`);
         ws.current = new WebSocket(wsUrl);
         ws.current.onopen = () => {
