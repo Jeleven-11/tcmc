@@ -36,67 +36,70 @@ export default function Livefeed () {
         // const wsUrl = `ws://localhost:3306?token=${currentSession.authToken}`;
         const wsUrl = `wss://tcmc.vercel.app:3306?token=${currentSession.authToken}`;
         console.log(`Creating a new websocket connection to ${wsUrl}`);
-        ws.current = new WebSocket(wsUrl);
-        ws.current.onopen = () => {
-          console.log('WebSocket connection opened');
-          const registrationMessage = {
-            type: 'register',
-            role: currentSession.role,
-            id: currentSession.sessionID
-          }
-          ws.current!.send(JSON.stringify(registrationMessage));
-          console.log('Sent registration message:', registrationMessage);
-        };
-        ws.current.onerror = (event) => {
-          console.log('WebSocket error:', event);
-        };
-        ws.current.onmessage = (event) => {
-          const data = JSON.parse(event.data);
-          if (data.type === 'offer') {
-            pc.current = new RTCPeerConnection({
-              iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-            });
-            pc.current.onicecandidate = (event) => {
-              if (event.candidate) {
-                ws.current?.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
-              }
-            };
-            pc.current.ontrack = (event) => {
-              if(event.track.kind === 'video'){
-                const mediaRecorder = new MediaRecorder(event.streams[0]);
-                const chunks: Blob[] = [];
-
-                mediaRecorder.ondataavailable = (event) => {
-                  chunks.push(event.data);
-                };
-
-                mediaRecorder.onstop = () => {
-                  const blob = new Blob(chunks, { type: 'video/webm' });
-                  setVideoSrc(URL.createObjectURL(blob));
-                };
-
-                mediaRecorder.start();
-                setTimeout(() => {
-                  mediaRecorder.stop();
-                }, 1000); // Stop recording after 1 second
-              }
-              
-            };
-            pc.current.setRemoteDescription(new RTCSessionDescription(data.offer));
-            pc.current.createAnswer().then((answer) => {
-              pc.current?.setLocalDescription(answer);
-              ws.current?.send(JSON.stringify({ type: 'answer', answer }));
-            });
-          } else if (data.type === 'candidate') {
-            pc.current?.addIceCandidate(new RTCIceCandidate(data.candidate));
-          }
-        };
-        ws.current.onclose = () => {
-          console.log('WebSocket connection closed');
-        };
-        return () => {
-          ws.current?.close();
-        };
+        if(!ws.current){
+          ws.current = new WebSocket(wsUrl);
+          ws.current.onopen = () => {
+            console.log('WebSocket connection opened');
+            const registrationMessage = {
+              type: 'register',
+              role: currentSession.role,
+              id: currentSession.sessionID
+            }
+            ws.current!.send(JSON.stringify(registrationMessage));
+            console.log('Sent registration message:', registrationMessage);
+          };
+          ws.current.onerror = (event) => {
+            console.log('WebSocket error:', event);
+          };
+          ws.current.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === 'offer') {
+              pc.current = new RTCPeerConnection({
+                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+              });
+              pc.current.onicecandidate = (event) => {
+                if (event.candidate) {
+                  ws.current?.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
+                }
+              };
+              pc.current.ontrack = (event) => {
+                if(event.track.kind === 'video'){
+                  const mediaRecorder = new MediaRecorder(event.streams[0]);
+                  const chunks: Blob[] = [];
+  
+                  mediaRecorder.ondataavailable = (event) => {
+                    chunks.push(event.data);
+                  };
+  
+                  mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'video/webm' });
+                    setVideoSrc(URL.createObjectURL(blob));
+                  };
+  
+                  mediaRecorder.start();
+                  setTimeout(() => {
+                    mediaRecorder.stop();
+                  }, 1000); // Stop recording after 1 second
+                }
+                
+              };
+              pc.current.setRemoteDescription(new RTCSessionDescription(data.offer));
+              pc.current.createAnswer().then((answer) => {
+                pc.current?.setLocalDescription(answer);
+                ws.current?.send(JSON.stringify({ type: 'answer', answer }));
+              });
+            } else if (data.type === 'candidate') {
+              pc.current?.addIceCandidate(new RTCIceCandidate(data.candidate));
+            }
+          };
+          ws.current.onclose = () => {
+            console.log('WebSocket connection closed');
+          };
+          return () => {
+            ws.current?.close();
+          };
+        }
+        
       } else {
         // setSessionData({ isLoggedIn: currentSession.isLoggedIn });
         alert("Please login again.")
