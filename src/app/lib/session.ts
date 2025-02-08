@@ -11,11 +11,13 @@ export interface SessionData {
     emailVerified?: boolean;
     isLoggedIn: boolean;
     authToken: string;
+    sessionID: string
   }
   
   export const defaultSession: SessionData = {
     isLoggedIn: false,
     authToken: "",
+    sessionID: ""
   };
   
   export const sessionOptions: SessionOptions = {

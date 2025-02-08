@@ -43,12 +43,13 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Username already exists' }, {status: 400});
       }
       // Insert new user into the database
-      const [result]: [newUser[], FieldPacket[]] = await connection.query(
+      //const [result]: [newUser[], FieldPacket[]] = 
+      await connection.query(
         'INSERT INTO users (username, name, role, contact_num, password, email) VALUES (?, ?, ?, ?, ?)',
         [username, name, role, contact_num, hashedPassword, email]
-      ) as [newUser[], FieldPacket[]];
+      )// as [newUser[], FieldPacket[]];
 
-      console.log('Database result:', result);
+      // console.log('Database result:', result);
       connection.release();
       // Return success response
       return NextResponse.json({ message: 'User added successfully', user: { username, name, role, contact_num, password, email }

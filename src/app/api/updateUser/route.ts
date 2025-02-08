@@ -22,7 +22,7 @@ export async function PUT(req: NextRequest) {
             SET name = ?, password = ?, role = ?, contact_num = ?, email = ?
             WHERE username = ? LIMIT 1
         `, [name, password, role, contact_num, email, username]) as [ResultSetHeader, FieldPacket[]];
-        console.log('Database result:', result.affectedRows); 
+        //console.log('Database result:', result.affectedRows); 
         if (result.affectedRows === 0) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }

@@ -15,7 +15,7 @@ const DateTimeComponent: React.FC = () => {
   }, []);
   useEffect(() => {
     const timeContainer = timeContainerRef.current;
-    const initial =  80;
+    const initial =  0;
     const handleScroll = () => {
       const scrollTop = window.scrollY;
       // console.log(`Scroll: ${scrollTop}`);

@@ -5,7 +5,7 @@ import axios from "axios";
 
 import Navbar from "@/components/adminNav";
 import Footer from "@/components/Footer";
-
+import DateTimeComponent from '@/components/DateTimeComponent';
 // type Reportss =
 // {
 //   id: string;
@@ -118,6 +118,7 @@ export default function AdminReportManagement()
 
   return (
     <>
+      <DateTimeComponent />
       <Navbar />
       <div className="page-container">
         <div className="admin-report-management">
