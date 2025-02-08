@@ -1,59 +1,125 @@
 'use client'
 
-// import { useSession } from 'next-auth/react';
 import Nav from '@/components/adminNav';
 import { UserCircleIcon } from '@heroicons/react/24/outline';
 import { getSession } from '@/app/lib/actions';
 import { useState, useEffect } from 'react';
 
-// type User = {
-//   name?: string;
-//   email?: string;
-//   image?: string;
-//   contactNum?: string;
-//   role?: string;
-//   id: string;
-//   username: string;
-//   password: string;
-//   user_id?: string;
-//   emailVerified?: boolean
-// };
-type SessionData = {
+type SessionData =
+{
   isLoggedIn: boolean;
   name?: string;
   contact_num?: string;
   role?: string;
   email?: string;
 } | null;
-export default function Profile() {
-  const [sessionData, setSessionData] = useState<SessionData>(null);
-  useEffect(() => {
-    getSession().then((session) => {
-      const currentSession = JSON.parse(JSON.stringify(session));
-      if (currentSession.isLoggedIn) {
+
+type EditData = {
+  isLoggedIn: boolean;
+  name: string;
+  contact_num: string;
+  role: string;
+  email: string;
+};
+
+export default function Profile()
+{
+  const [sessionData, setSessionData] = useState<SessionData>(null)
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [password, setPassword] = useState('')
+  const [editData, setEditData] = useState<EditData>({
+    isLoggedIn: false,
+    name: '',
+    contact_num: '',
+    role: '',
+    email: ''
+  })
+
+  useEffect(() =>
+  {
+    getSession().then((session) =>
+    {
+      const currentSession = JSON.parse(JSON.stringify(session))
+      if (currentSession.isLoggedIn)
+      {
         setSessionData({
-          isLoggedIn: currentSession  .isLoggedIn,
+          isLoggedIn: currentSession.isLoggedIn,
           name: currentSession.name,
           contact_num: currentSession.contact_num,
           role: currentSession.role,
           email: currentSession.email,
-        });
-      } else {
-        setSessionData({ isLoggedIn: currentSession.isLoggedIn });
-      }
-    });
-  }, []);
-  // const user = session?.user as User; // Direct access to session.user
+        })
+      } else setSessionData({ isLoggedIn: currentSession.isLoggedIn })
 
-  if (!sessionData) return <p>Loading...</p>;
-  if (!sessionData.isLoggedIn) return <p>Please log in to view your profile.</p>;
+      console.log(editData)
+    })
+  }, [editData])
+
+  if (!sessionData)
+    return <p>Loading...</p>;
+
+  if (!sessionData.isLoggedIn)
+    return <p>Please log in to view your profile.</p>;
+
+  // Function to handle password submission
+  const handlePasswordSubmit = async () =>
+  {
+    const res = await fetch('/api/masterLogin',
+    {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    if (!res.ok)
+    {
+      alert('Incorrect password')
+      return
+    }
+
+    setIsPasswordModalOpen(false)
+    setEditData({
+      isLoggedIn: sessionData.isLoggedIn,
+      name: sessionData.name || '',
+      contact_num: sessionData.contact_num || '',
+      role: sessionData.role || '',
+      email: sessionData.email || '',
+    })
+    setIsEditModalOpen(true)
+    setPassword('')
+  }
+
+  const handleEditSubmit = async () =>
+  {
+    console.log(editData)
+    try
+    {
+      const res = await fetch('/api/masterLogin/updateProfile',
+      {
+        method: 'POST', // or 'PATCH' if updating
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editData),
+      })
+
+      if (!res.ok)
+      {
+        alert(`Error: Failed to update profile. Status: ${res.status}`)
+        return
+      }
+
+      alert('Profile updated successfully!')
+      setSessionData({ ...sessionData, ...editData })
+      setIsEditModalOpen(false)
+    } catch (error) {
+      console.error('Update error:', error)
+      alert('Something went wrong')
+    }
+  }
 
   return (
     <>
-    <Nav>
-
-    </Nav>
-     
+      <Nav />
       <div className="flex flex-col items-center p-8 bg-blue-50 min-h-screen">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full text-center">
           <div className="mb-6 flex justify-center">
@@ -70,7 +136,7 @@ export default function Profile() {
             </>
           )}
           <div className="mt-4 space-x-4">
-            <button onClick={() => alert('Edit Profile')} className="bg-blue-500 text-white px-4 py-2 rounded">
+            <button onClick={() => setIsPasswordModalOpen(true)} className="bg-blue-500 text-white px-4 py-2 rounded">
               Edit Profile
             </button>
             <button onClick={() => alert('Delete Account')} className="bg-red-500 text-white px-4 py-2 rounded">
@@ -79,6 +145,81 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {/* Password Modal */}
+      {isPasswordModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+          <div className="bg-white p-6 rounded-md shadow-lg">
+            <h2 className="text-xl font-bold mb-4">Require&apos;s Master Password</h2>
+            <input
+              type="password"
+              className="border p-2 w-full rounded-md"
+              placeholder="Enter master password"
+              value={password}
+              onChange={ (e) => setPassword(e.target.value) }
+            />
+            <div className="mt-4 flex justify-end space-x-2">
+              <button className="px-4 py-2 bg-gray-300 rounded" onClick={() => 
+                {
+                  setIsPasswordModalOpen(false)
+                  setPassword('')
+                }}>Cancel</button>
+              <button className="px-4 py-2 bg-blue-500 text-white rounded" onClick={handlePasswordSubmit}>Submit</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Profile Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+          <div className="bg-white p-6 rounded-md shadow-lg w-96">
+            <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
+            <input
+              type="text"
+              className="border p-2 w-full rounded-md mb-2"
+              placeholder="Full Name"
+              value={editData.name}
+              onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+            />
+            <input
+              type="text"
+              className="border p-2 w-full rounded-md mb-2"
+              placeholder="Contact Number"
+              value={editData.contact_num}
+              onChange={(e) => setEditData({ ...editData, contact_num: e.target.value })}
+            />
+            {/* <input
+              type="text"
+              className="border p-2 w-full rounded-md mb-2"
+              placeholder="Role"
+              value={editData.role}
+              onChange={(e) => setEditData({ ...editData, role: e.target.value })}
+            /> */}
+            <select
+              className="border p-2 w-full rounded-md mb-2"
+              value={editData.role}
+              onChange={(e) => setEditData({ ...editData, role: e.target.value })}
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+            <input
+              type="email"
+              className="border p-2 w-full rounded-md mb-2"
+              placeholder="Email"
+              value={editData.email}
+              onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+            />
+            <div className="mt-4 flex justify-end space-x-2">
+              <button className="px-4 py-2 bg-gray-300 rounded" onClick={() => setIsEditModalOpen(false)}>Cancel</button>
+              <button className="px-4 py-2 bg-green-500 text-white rounded" onClick={handleEditSubmit}>
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
-  );
-};
+  )
+}

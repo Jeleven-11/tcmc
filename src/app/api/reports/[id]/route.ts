@@ -61,7 +61,7 @@ export async function DELETE(req:NextRequest, {params}: {params: {id: string}})
   const { id } = params
   const connection = await pool.getConnection();
     try {
-      const [result]: [ResultSetHeader, FieldPacket[]] = await connection.query('DELETE FROM reports WHERE id = ?', [id]) as [ResultSetHeader, FieldPacket[]];
+      const [result]: [ResultSetHeader, FieldPacket[]] = await connection.query('DELETE FROM reports WHERE reportID = ?', [id]) as [ResultSetHeader, FieldPacket[]];
       connection.release();
       if (result.affectedRows === 0) {
         return NextResponse.json({ error: 'Report not found' } , { status: 404 }); 

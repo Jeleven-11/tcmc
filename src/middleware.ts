@@ -1,15 +1,18 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
-// import { getSession } from "./app/lib/actions";
+import { getSession } from "./app/lib/actions";
 
 // import jsrsasign from 'jsrsasign';
 
 export async function middleware(request: NextRequest)
 {
-//   const session = await getSession()
+  const session = await getSession()
   const { pathname } = request.nextUrl
-  console.log("path:", pathname)
-  // if (pathname.startsWith("/admin") && session.authToken !== "")
+  if (pathname.startsWith("/admin") && !session.isLoggedIn)
+  {
+      session.destroy()
+      return NextResponse.redirect(new URL("/adminlogin", request.url))
+  }
   // {
     /*interface Token {
       id: number

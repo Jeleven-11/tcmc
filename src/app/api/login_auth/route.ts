@@ -65,17 +65,19 @@ function generateAuthToken(userData:User, remember:boolean=false) {
     }
   }
   let tokenExpiry = '2d';
-  if (remember){
-      tokenExpiry = '14d';
-  }
-  const expiryInSeconds = getExpiryInSeconds(tokenExpiry);
-  const secretKeyBuffer = Buffer.from(secretKey, 'utf8');
+  if (remember)
+      tokenExpiry = '14d'
+
+  const expiryInSeconds = getExpiryInSeconds(tokenExpiry)
+  const secretKeyBuffer = Buffer.from(secretKey, 'utf8')
   // Generate the token with the specified payload and secret key
-  const token = jwt.sign(payload, secretKeyBuffer, { expiresIn: expiryInSeconds });
-  console.log(`Generated a token that expires in ${tokenExpiry}`);
+  const token = jwt.sign(payload, secretKeyBuffer, { expiresIn: expiryInSeconds })
+  console.log(`Generated a token that expires in ${tokenExpiry}`)
   return token;
 }
-export async function POST(req: NextRequest){
+
+export async function POST(req: NextRequest)
+{
   if (req.method === "POST")
   {
     try
@@ -98,7 +100,8 @@ export async function POST(req: NextRequest){
       if (!isPassValid)
         return NextResponse.json({ message: 'Invalid credentials' }, { status: 400 })
       const session = await getSession();
-      if(session){
+      if(session)
+      {
         const userData = {
           id: data.id,
           username: data.username,

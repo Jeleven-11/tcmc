@@ -81,14 +81,14 @@ const WeeklyChart = () =>
                         x: {
                             type: "category",
                             title: {
-                            display: true,
-                            text: "Week Day",
+                                display: true,
+                                text: "Week Day",
                             },
                         },
                         y: {
                             title: {
-                            display: true,
-                            text: "Report Count",
+                                display: true,
+                                text: "Report Count",
                             },
                             beginAtZero: true,
                             ticks: {
