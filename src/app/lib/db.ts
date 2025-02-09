@@ -20,7 +20,8 @@ export const getConnection = promisify(pool.getConnection).bind(pool);
 
 // Function to query the database
 
-export const query = async (sql: string, params: unknown[]) =>{
+export const query = async (sql: string, params: unknown[]) =>
+  {
     let conn
     try
     {

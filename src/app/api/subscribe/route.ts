@@ -8,14 +8,14 @@ interface _PushSubscription {
   //endpoint: string;
   //expirationTime: number | null;
   keys: {
-    p256dh: string;
-    auth: string;
+    p256dh: string
+    auth: string
   };
 }
 
 interface Subscribers {
-  auth: string | "";
-  data: string | "";
+  auth: string | ""
+  data: string | ""
 }
 
 export async function POST(req: NextRequest)
@@ -23,11 +23,11 @@ export async function POST(req: NextRequest)
   let conn
   try
   {
-    const subscription = await req.json()
+    const subscriber_payload = await req.json()
     conn = await pool.getConnection()
 
-    const psubscription: PushSubscription = subscription
-    const _psubscription: _PushSubscription = subscription as _PushSubscription
+    const psubscription: PushSubscription = subscriber_payload
+    const _psubscription: _PushSubscription = subscriber_payload as _PushSubscription
 
     // Read existing subscriptions
     //const fileData = await fs.readFile(FILE_PATH, "utf8");
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest)
       const qStr = `INSERT INTO subscriptions (auth, data) VALUES (?, ?)`
       const isInserted = await conn.execute(qStr, [auth, JSON.stringify(psubscription)])
       if (!isInserted)
-        return NextResponse.json({ message: "Subscription failed"}, { status: 400 })
+        return NextResponse.json({ message: "Subscription failed to insert..."}, { status: 400 })
 
       return NextResponse.json({ message: "Subscribed successfully!" }, { status: 200 })
     } else return NextResponse.json({ message: "Already subscribed!" }, { status: 400 })

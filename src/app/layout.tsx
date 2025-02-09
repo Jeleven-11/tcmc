@@ -15,11 +15,9 @@ export default function RootLayout({
   return (
     <html>
       <body>
-        {/* <SessionProvider> */}
-          <main>
-            {children}
-          </main>
-        {/* </SessionProvider> */}
+        <main>
+          {children}
+        </main>
       </body>
     </html>
   )

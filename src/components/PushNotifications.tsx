@@ -67,8 +67,8 @@ const PushNotification = () =>
         <p>🔔 Enabling push notifications...</p>
       )}
     </div>
-  );
-};
+  )
+}
 
 // Helper function to convert VAPID key
 function urlBase64ToUint8Array(base64String: string)

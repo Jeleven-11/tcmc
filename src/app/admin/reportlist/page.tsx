@@ -2,10 +2,18 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
+import Image from 'next/image';
+
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 import Navbar from "@/components/adminNav";
 import Footer from "@/components/Footer";
-import DateTimeComponent from '@/components/DateTimeComponent';
+import { getSession } from "@/app/lib/actions";
+
 // type Reportss =
 // {
 //   id: string;
@@ -39,8 +47,8 @@ type Report = {
 
 const departments = ["Help Desk", "Task Force"]
 const statuses = [
+  "unread",
   "pending",
-  "accepted",
   "on investigation",
   "dropped",
   "solved",
@@ -58,9 +66,11 @@ const statusColors: Record<string, string> =
 export default function AdminReportManagement()
 {
   const [reports, setReports] = useState<Report[]>([])
-  const [activeTab, setActiveTab] = useState("pending")
+  const [activeTab, setActiveTab] = useState("unread")
   const [counts, setCounts] = useState<Record<string, number>>({})
-  const [selectedDept, setSelectedDept] = useState(departments[0])
+  const [selectedDepts, setSelectedDepts] = useState<Record<string, string>>({})
+  const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({})
+  const [activeDept, setActiveDept] = useState(departments[0])
 
   const fetchReports = async () =>
   {
@@ -83,46 +93,78 @@ export default function AdminReportManagement()
     }
   }
 
+  const sendNotif = async (reportId: string, status: string, type: string) =>
+  {
+    const session = await getSession()
+
+    // notification message
+    const nStatus = status.charAt(0).toUpperCase() + status.substring(1) // uppercase first letter
+    let title, desc;
+    if (type !== 'delete')
+    {
+      title = "🔔" + nStatus + " Status Notification"
+      desc = "Report [" + reportId + "] has been marked \"" + nStatus + "\" by " + session.name + " (" + session.username + ")"
+    } else {
+      title = "🔔 Deleted Report Notification"
+      desc = "Report [" + reportId + "] has been deleted with status \"" + nStatus + "\" by " + session.name + " (" + session.username + ")"
+    }
+
+    await fetch('/api/sendPush',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ title: title, desc: desc })
+    }).then(response => response.json()).then(msg =>
+    {
+      console.log(msg)
+    })
+  }
+
   const updateStatus = async (id: string, newStatus: string): Promise<void> =>
   {
     try
     {
       const res = await axios.put(`/api/reports/${id}`, { status: newStatus })
-      console.log("res update status:", res);
+      console.log("res update status:", newStatus, res)
+
+      await sendNotif(id, newStatus, '')
+
       fetchReports()
-      // if (res.status === 200){
-      //   // fetchReports()
-      // }
-      // fetchReports()
     } catch (error) {
       console.error("Error updating status:", error)
     }
   }
 
-  const deleteReport = async (id: string): Promise<void> =>
+  const deleteReport = async (id: string, newStatus: string): Promise<void> =>
   {
     try
     {
       const res = await axios.delete(`/api/reports/${id}`)
-      console.log("res delete report:", res);
+      console.log("res delete report:", res)
+
+      await sendNotif(id, newStatus, 'delete')
+
       fetchReports()
-      // if (res.status === 200){
-      //   // fetchReports()
-      // }
     } catch (error) {
       console.error("Error deleting report:", error)
     }
   }
 
-  useEffect(() => { fetchReports() }, [])
+  useEffect(() =>
+  {
+    fetchReports()
+  }, [])
+
+  const loadCarousel = (reportId: string) => setLoadedImages((prev) => ({ ...prev, [reportId]: true }))
 
   return (
     <>
-      <DateTimeComponent />
       <Navbar />
       <div className="page-container">
         <div className="admin-report-management">
-          <h1 className="header">Admin Report Management</h1>
+          <h1 className="header">Admin Report Managementss</h1>
           <div className="tabs">
             {statuses.map((status) => (
               <button
@@ -134,13 +176,27 @@ export default function AdminReportManagement()
               </button>
             ))}
           </div>
+          {/* Department Tabs */}
+          <div className="flex border-b mb-4">
+            {departments.map((dept) => (
+              <button
+                key={dept}
+                className={`py-2 px-4 w-1/2 text-center bg-white border-b-2 transition-all ${
+                  activeDept === dept ? "border-blue-500 font-bold" : "border-transparent"
+                }`}
+                onClick={() => setActiveDept(dept)}
+              >
+                {dept}
+              </button>
+            ))}
+          </div>
 
           <div className="report-list">
             {reports.filter((report) => report.status === activeTab)
               .map((report) => (
                   <div key={report.id} className="relative p-4 border bg-white rounded-lg shadow-md report-item">
                   <strong><h1>Reported ID: {report.reportID}</h1></strong>
-                  <h4>Reported by: {report.fullName}</h4>
+                  <h4>Reported by: {report.fullName} | {report.sex}</h4>
                   <p>Reported on: {new Date(report.createdAt).toLocaleDateString("en-US", {month: "short", day: "numeric", year: "numeric"})} | {new Date(report.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true})}</p>
                   <p>Status: 
                     <span className={`font-bold ${statusColors[report.status] || ''}`}>
@@ -150,8 +206,8 @@ export default function AdminReportManagement()
                   <div className="absolute top-2 right-2">
                     <select
                       className="bg-gray-100 border px-2 py-1 rounded-md text-lg focus:outline-none"
-                      value={selectedDept}
-                      onChange={(e) => setSelectedDept(e.target.value)}
+                      value={selectedDepts[report.id] || departments[0]}
+                      onChange={(e) => setSelectedDepts((prev) => ({ ...prev, [report.id]: e.target.value }))}
                     >
                       {departments.map((dept, index) => (
                         <option key={index} value={dept}>
@@ -162,8 +218,9 @@ export default function AdminReportManagement()
                   </div>
 
                   <p><br />Vehicle Type: {report.vehicleType}</p>
+                  <p>Vehicle Color: {report.color}</p>
                   <p>Address: {report.address}</p>
-                  
+
                   <p><strong>Reason:</strong> {report.reason}</p>
                   <p><strong>Description:</strong> {report.description}</p>
                   <div className="actions">
@@ -177,10 +234,37 @@ export default function AdminReportManagement()
                         </option>
                       ))}
                     </select>
-                    <button onClick={() => deleteReport(report.id)} className="delete-btn">
+                    <button onClick={() => deleteReport(report.reportID, report.status)} className="delete-btn">
                       Delete
                     </button>
                   </div>
+
+                  {report.isOwner === 'Yes' ? (
+                    !loadedImages[report.id] ? (
+                      <button onClick={() => loadCarousel(report.id)} className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg">Load Images</button>
+                    ) : (
+                      <Swiper 
+                        navigation 
+                        pagination={{ clickable: true }} 
+                        modules={[Navigation, Pagination]} 
+                        className="my-4"
+                      >
+                        {[report.driversLicense, report.vehicleRegistration, report.orCr]
+                          .filter(Boolean)
+                          .map((image, index) => (
+                            <SwiperSlide key={index} className="relative w-full h-64">
+                                  {/* <img 
+                                    src={image} 
+                                    alt={`Document ${index + 1}`} 
+                                    className="w-auto h-auto max-w-full max-h-full object-contain rounded-lg" 
+                                    layout="responsive"
+                                  /> */}
+                              <Image src={image} alt={`Document ${index + 1}`} width={500} height={256} className="w-full h-64 object-cover rounded-lg" />
+                            </SwiperSlide>
+                          ))}
+                      </Swiper>
+                    )
+                  ) : null }
                 </div>
               ))}
           </div>
