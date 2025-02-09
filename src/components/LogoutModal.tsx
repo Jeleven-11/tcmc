@@ -40,14 +40,26 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ isOpen, onClose, onConfirm })
         <div className="mt-4 flex justify-end space-x-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg"
-          >
+            className="px-4 py-2 border-b text-gray-500 
+        font-semibold 
+        bg-white rounded-lg 
+        border border-gray-500 
+        transition hover:bg-gray-500 
+        hover:text-white focus:outline-none 
+        focus:shadow-[0_0_0_4px_theme(colors.gray.500),0_0_0_8px_theme(colors.gray.300)]"
+        >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-          >
+            className="px-4 py-2 bg-red-600 text-red-500 
+        font-semibold bg-white 
+        rounded-lg border 
+        border-red-500 
+        transition hover:bg-red-500 
+        hover:text-white focus:outline-none 
+        focus:shadow-[0_0_0_4px_theme(colors.red.500),0_0_0_8px_theme(colors.red.300)]"
+        >
             Logout
           </button>
         </div>
