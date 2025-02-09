@@ -9,9 +9,9 @@ const port = process.env.PORT || 3000;
 const wss = new WebSocket.Server({ server }); // Create WebSocket server
 */ //I create a websocket server in nodjs like this (with expressJS for the app), how do I do this properly with NextJS?
 // const wss = new WebSocket.Server({ server });//in nodejs - expressjs
-const wss = new WebSocketServer({ port:  3306 })//in NextJS
+const wss = new WebSocketServer({ port:  3001 })//in NextJS
 const webRTCClients = new Map();
-
+//wss://tcmc.vercel.app:3306?
 wss.on('connection', async (ws, req) => {
     const serverHostname = req.headers.host; // Get the hostname from the HTTP request headers
     const url = new URL(req.url, `wss://${serverHostname}`);
@@ -123,4 +123,4 @@ wss.on('connection', async (ws, req) => {
     
 });
 
-console.log('WebSocket server started on port 3306');
+console.log('WebSocket server started on port 3001');

@@ -3,7 +3,7 @@
 import Nav from '@/components/Nav';
 import { useEffect, useRef, useState } from 'react';
 import { getSession } from '@/app/lib/actions';
-export const dynamic = 'force-dynamic';
+// export const dynamic = 'force-dynamic';
 type SessionData = {
   isLoggedIn: boolean;
   name?: string;
@@ -34,8 +34,9 @@ export default function Livefeed () {
           authToken: currentSession.authToken,
           sessionID: currentSession.sessionID
         });
+        if (typeof window === 'undefined') return;
         // const wsUrl = `ws://localhost:3306?token=${currentSession.authToken}`;
-        const wsUrl = `wss://tcmc.vercel.app:3306?token=${currentSession.authToken}`;
+        const wsUrl = `wss://${window.location.hostname}:3001?token=${currentSession.authToken}`;//new url will be wss://tcmc.vercel.app/api/websocket:3306 if I still need to specify in this url the PORT (or can I make this more dynamic?)
         console.log(`Creating a new websocket connection to ${wsUrl}`);
         if(!ws.current){
           ws.current = new WebSocket(wsUrl);
@@ -98,6 +99,7 @@ export default function Livefeed () {
           };
           return () => {
             ws.current?.close();
+            ws.current = null;
           };
         }
         
