@@ -21,6 +21,7 @@ interface WebRTCClientInfo {
 interface MessageType {
   type: string,
   id: string,
+  sessionID: string | '',
   role: string,
   payload: string,
   from?:string,
@@ -94,6 +95,19 @@ export default function RealtimeDisplay () {
         // }
         if(channelInstance===null) return;
         channelInstance.subscribe(async (msg: Ably.Message) => {
+        //   const channelName = `signaling-${data.target}`;
+        // if(ably.current === null) return;
+        // const channel = ably.current.channels.get(channelName);
+        // channel.publish('signaling-message', {
+        //   type: 'offer',
+        //   payload: 'Your signaling message payload here',
+        //   from: data.from,
+        // });
+          channelInstance.publish('WebRTC-client-register',{
+            role: 'admin',
+            id: sessionData.sessionID,
+            message:"Connect"
+          })
           const data = msg.data;
           console.log('Received message: ', data);
 
