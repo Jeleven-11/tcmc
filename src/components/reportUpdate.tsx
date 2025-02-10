@@ -34,7 +34,7 @@ const CheckUpdates = () => {
   const [filteredReports, setFilteredReports] = useState<Report[]>([]); // Reports filtered by status
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | undefined | null>(null);
-  const [activeTab, setActiveTab] = useState('all');
+  //const [activeTab, setActiveTab] = useState('all');
   
     const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({});
     const [imageVisibility, setImageVisibility] = useState<Record<string, boolean>>({});
