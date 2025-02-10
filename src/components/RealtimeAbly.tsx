@@ -32,7 +32,7 @@ type SessionData = {
 //   type: 'offer' | 'answer' | 'pranswer' | 'rollback';
 //   sdp: string;
 // }
-export async function InitAblyConnection(sessionData: SessionData){
+export async function InitAblyConnection(sessionID: string){
   
   const client = {
     key : process.env.NEXT_PUBLIC_ABLY_API_KEY,
@@ -45,11 +45,11 @@ export async function InitAblyConnection(sessionData: SessionData){
   });
   const registrationMessage = {
     'role': 'Raspberry Pi',
-    'id': sessionData!.sessionID,
+    'id': sessionID,
     'message':"Connect"
   };
   await channel.publish('WebRTC-client-register', registrationMessage)
-
+  console.log('Sent registration message to ably: ', registrationMessage)
 }
 export default function RealtimeDisplay () {
   
@@ -71,7 +71,7 @@ export default function RealtimeDisplay () {
   // }, [remoteStream]);
     useEffect(() => {
       if(sessionData!==null) {
-        InitAblyConnection(sessionData);
+        
         return
       };
       getSession().then(async (session) => {
@@ -86,13 +86,13 @@ export default function RealtimeDisplay () {
             authToken: currentSession.authToken,
             sessionID: currentSession.sessionID
           });
-          
+          InitAblyConnection(currentSession.sessionID);
         } else {
           // setSessionData({ isLoggedIn: currentSession.isLoggedIn });
           alert("Please login again.")
         }
       });
-    }, []);
+    }, [sessionData]);
   // useEffect(() => {
   //   const initAbly = async () => {
   //     try {
