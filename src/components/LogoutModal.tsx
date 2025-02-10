@@ -52,7 +52,7 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ isOpen, onClose, onConfirm })
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-600 text-red-500 
+            className="px-4 py-2 text-red-500 
         font-semibold bg-white 
         rounded-lg border 
         border-red-500 

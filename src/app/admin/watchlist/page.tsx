@@ -71,11 +71,18 @@ export default function AdminReportManagement()
       console.log(typeof response.data)//object
       setReports(response.data)
 
-      const statusCounts: Record<string, number> = response.data.reduce((acc: Record<string, number>, report: Report) =>
-      {
-        acc[report.status] = (acc[report.status] || 0) + 1
-        return acc
-      }, {})
+       // Sort reports by `createdAt` (newest to oldest)
+    const sortedReports = response.data.sort((a: Report, b: Report) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    setReports(sortedReports);
+
+    // Count status occurrences
+    const statusCounts: Record<string, number> = sortedReports.reduce((acc: Record<string, number>, report: Report) => {
+      acc[report.status] = (acc[report.status] || 0) + 1;
+      return acc;
+    }, {});
 
       setCounts(statusCounts)
     } catch (error) {

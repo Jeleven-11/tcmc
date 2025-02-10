@@ -24,13 +24,13 @@ const CheckUpdates = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Report[]>([]); // Results from search
 
-  const [allReports, setAllReports] = useState<Report[]>([]); // All reports from database (to browse)
-  const [statusCounts, setStatusCounts] = useState<{ [key: string]: number }>({
-    pending: 0,
-    accepted: 0,
-    dropped: 0,
-    solved: 0,
-  });
+ // const [allReports, setAllReports] = useState<Report[]>([]); // All reports from database (to browse)
+ // const [statusCounts, setStatusCounts] = useState<{ [key: string]: number }>({
+  //  pending: 0,
+ //   accepted: 0,
+  //  dropped: 0,
+ //   solved: 0,
+ // });
   const [filteredReports, setFilteredReports] = useState<Report[]>([]); // Reports filtered by status
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | undefined | null>(null);
@@ -70,7 +70,7 @@ const CheckUpdates = () => {
             console.log("Replaced datetime:", formattedTimestamp);
             return { ...report, createdAt: formattedTimestamp };
           })
-          setAllReports(modifiedReports);
+         // setAllReports(modifiedReports);
           // setAllReports(data.reports);
           setFilteredReports(modifiedReports); // Initially, display all reports
 
@@ -82,7 +82,7 @@ const CheckUpdates = () => {
             },
             { pending: 0, accepted: 0, dropped: 0, solved: 0 }
           );
-          setStatusCounts(counts);
+          //setStatusCounts(counts);
         } else {
           setError('Error fetching reports.');
         }
@@ -127,7 +127,7 @@ const CheckUpdates = () => {
   };
 
   // Handle tab click to filter reports by status
-  const handleTabClick = (status: React.SetStateAction<string>) =>
+ {/* const handleTabClick = (status: React.SetStateAction<string>) =>
   {
     setLoading(true);
     setActiveTab(status);
@@ -149,7 +149,7 @@ const CheckUpdates = () => {
     accepted: 'bg-green-400',
     dropped: 'bg-red-400',
     solved: 'bg-blue-400',
-  };
+  }; */}
 
   // Pagination Logic
   const indexOfLastReport = currentPage * reportsPerPage;
@@ -169,7 +169,7 @@ const CheckUpdates = () => {
       {/* First Segment: Search Area */}
       <div className="bg-blue-100 border border-blue-500 text-blue-700 px-4 py-3 rounded mb-4 flex items-start">
         <span className="mr-2 text-xl">ℹ️</span>
-        <p>Want to check updates? Please input your report ID or full name in the search bar below.</p>
+        <p>Want to check updates on your submitted report? Just input the provided report ID or your full name in the search bar below.</p>
       </div>
 
       {/* Search Bar */}
@@ -209,7 +209,7 @@ const CheckUpdates = () => {
       {/* Second Segment: Search Results */}
       {searchResults.length > 0 && (
         <div className="space-y-4 mb-4">
-          <h2 className="text-xl font-bold">Search Results:</h2>
+          <h2 className="text-xl font-bold">Search Results ({searchResults.length} found):</h2>
           {searchResults.map((report) => (
             <div key={report.reportID} className="bg-white p-4 rounded shadow-md">
               {/* <h3 className="text-lg font-bold">Report ID: {report.reportID}</h3> */}
@@ -231,10 +231,11 @@ const CheckUpdates = () => {
 
       {/* Third Segment: Reports from Other People (Browse) */}
       <div className="mt-6">
-        <h2 className="text-2xl font-bold mb-4">Browse All Reports:</h2>
+        <h2 className="text-2xl font-bold mb-4">Reports Feed</h2>
+        <h2 className="text-1xl font-semibold mb-4">These are reports that are on investigation which you might be able to help</h2>
 
         {/* Tabs with Badges */}
-        <div className="flex space-x-4 mb-6">
+        {/*<div className="flex space-x-4 mb-6">
           {['all', 'pending', 'accepted', 'dropped', 'solved'].map((status) => (
             <button
               key={status}
@@ -256,7 +257,7 @@ const CheckUpdates = () => {
               )}
             </button>
           ))}
-        </div>
+        </div> */}
 
         {/* Display All Reports (if no search query or after filtering by status) */}
         {currentReports.length > 0 && (
@@ -305,7 +306,7 @@ const CheckUpdates = () => {
               )}
             </div>
           ))}
-        </div>
+        </div> 
       )}
 
 
