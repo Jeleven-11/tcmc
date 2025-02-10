@@ -1,13 +1,22 @@
-//src/app/lib/websocketServer.mjs
-import { WebSocketServer } from 'ws';// in nextjs
+import { createServer } from 'http'
+import { parse } from 'url'
+import next from 'next'
+import { WebSocketServer } from 'ws'
 import jwt from 'jsonwebtoken'
-import dotenv from 'dotenv';
+const port = parseInt(process.env.PORT || '3000', 10)
+const dev = process.env.NODE_ENV !== 'production'
+const app = next({ dev })
+const handle = app.getRequestHandler()
+ 
+app.prepare().then(() => {
+  const server = createServer((req, res) => {
+    const parsedUrl = parse(req.url, true)
+    handle(req, res, parsedUrl)
+  })
 
-dotenv.config();
-
-const wss = new WebSocketServer({ port:  3001 });//noServer:true
-const webRTCClients = new Map();
-wss.on('connection', async (ws, req) => {
+  const wss = new WebSocketServer({ server })
+  const webRTCClients = new Map();
+  wss.on('connection', async(ws, req) => {
     const serverHostname = req.headers.host; // Get the hostname from the HTTP request headers
     const url = new URL(req.url, `ws://${serverHostname}`);
     // Check if the connection is secure (HTTPS)
@@ -47,9 +56,10 @@ wss.on('connection', async (ws, req) => {
                     webRTCClients.set(ws, {
                         role: data.role,
                         id: data.id,
-                        userID: data.userID
+                        // userID: data.userID
                     });
                     console.log('Client registered with ID:', data.id);
+                    console.log('webRTCClients: ', webRTCClients);
                 }
                 else if(data.type === 'offer'){
                     const targetClient = Array.from(webRTCClients.entries())
@@ -121,6 +131,15 @@ wss.on('connection', async (ws, req) => {
         ws.close(1008, 'Invalid token');
     }
     
-});
+  })
+  server.listen(port, () => {
 
-console.log('WebSocket server started on port 3001');
+    console.log(
+        `> Server listening at http://localhost:${port} as ${
+            dev ? 'development' : process.env.NODE_ENV
+        }`
+    )
+    console.log(`> WebSocket server listening at port: ${port}`)
+  })
+  
+})

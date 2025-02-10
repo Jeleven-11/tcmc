@@ -22,6 +22,7 @@ export default function Livefeed () {
   const pc = useRef<RTCPeerConnection | null>(null);
   const [sessionData, setSessionData] = useState<SessionData>(null);
   useEffect(() => {
+    if(sessionData!==null) return;
     getSession().then(async (session) => {
       const currentSession = JSON.parse(JSON.stringify(session));
       if (currentSession.isLoggedIn) {
@@ -34,9 +35,18 @@ export default function Livefeed () {
           authToken: currentSession.authToken,
           sessionID: currentSession.sessionID
         });
-        if (typeof window === 'undefined') return;
+        
+      } else {
+        // setSessionData({ isLoggedIn: currentSession.isLoggedIn });
+        alert("Please login again.")
+      }
+    });
+  }, [sessionData]);
+  useEffect(() => {
+    if(sessionData){
+    if (typeof window === 'undefined') return;
         // const wsUrl = `ws://localhost:3306?token=${currentSession.authToken}`;
-        const wsUrl = `wss://${window.location.hostname}:3001?token=${currentSession.authToken}`;//new url will be wss://tcmc.vercel.app/api/websocket:3306 if I still need to specify in this url the PORT (or can I make this more dynamic?)
+        const wsUrl = `ws://${window.location.hostname}:3000?token=${sessionData.authToken}`;//new url will be wss://tcmc.vercel.app/api/websocket:3306 if I still need to specify in this url the PORT (or can I make this more dynamic?)
         console.log(`Creating a new websocket connection to ${wsUrl}`);
         if(!ws.current){
           ws.current = new WebSocket(wsUrl);
@@ -44,8 +54,8 @@ export default function Livefeed () {
             console.log('WebSocket connection opened');
             const registrationMessage = {
               type: 'register',
-              role: currentSession.role,
-              id: currentSession.sessionID
+              role: sessionData.role,
+              id: sessionData.sessionID
             }
             ws.current!.send(JSON.stringify(registrationMessage));
             console.log('Sent registration message:', registrationMessage);
@@ -102,13 +112,8 @@ export default function Livefeed () {
             ws.current = null;
           };
         }
-        
-      } else {
-        // setSessionData({ isLoggedIn: currentSession.isLoggedIn });
-        alert("Please login again.")
       }
-    });
-  }, []);
+  }, [sessionData]);
   
   console.log('Retrieved session: ', sessionData);
   const [captures, ] = useState([
