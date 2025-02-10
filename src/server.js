@@ -18,7 +18,7 @@ app.prepare().then(() => {
   const webRTCClients = new Map();
   wss.on('connection', async(ws, req) => {
     const serverHostname = req.headers.host; // Get the hostname from the HTTP request headers
-    const url = new URL(req.url, `ws://${serverHostname}`);
+    const url = new URL(req.url, `wss://${serverHostname}`);
     // Check if the connection is secure (HTTPS)
   if (req.headers['x-forwarded-proto'] === 'https' || req.headers['x-forwarded-ssl'] === 'on') {
     // Update the URL scheme to wss

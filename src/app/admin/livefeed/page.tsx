@@ -46,7 +46,7 @@ export default function Livefeed () {
     if(sessionData){
     if (typeof window === 'undefined') return;
         // const wsUrl = `ws://localhost:3306?token=${currentSession.authToken}`;
-        const wsUrl = `ws://${window.location.hostname}:3000?token=${sessionData.authToken}`;//new url will be wss://tcmc.vercel.app/api/websocket:3306 if I still need to specify in this url the PORT (or can I make this more dynamic?)
+        const wsUrl = `wss://${window.location.hostname}:3000?token=${sessionData.authToken}`;//new url will be wss://tcmc.vercel.app/api/websocket:3306 if I still need to specify in this url the PORT (or can I make this more dynamic?)
         console.log(`Creating a new websocket connection to ${wsUrl}`);
         if(!ws.current){
           ws.current = new WebSocket(wsUrl);
