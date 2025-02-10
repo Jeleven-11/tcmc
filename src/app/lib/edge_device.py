@@ -1184,6 +1184,7 @@ async def ably_connection():
         await channel.subscribe('command', on_message)
         await webRTCChannel.subscribe('WebRTC-client-register', on_message)
         print("Listening for Commands")
+        
         # while True:
             #send data
         data={
@@ -1198,6 +1199,8 @@ async def ably_connection():
             'message':"Connect"
           })
         print(f"Published data: {data}")
+        while True:
+            await asyncio.sleep(1)
     except ably.AblyException as e:
         print(f"Ably Error: {e}")
     except Exception as e:
