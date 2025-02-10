@@ -44,7 +44,7 @@ export async function InitAblyConnection(sessionID: string){
     console.log("Received ably message: ", message.data);
   });
   const registrationMessage = {
-    'role': 'Raspberry Pi',
+    'role': 'Admin',
     'id': sessionID,
     'message':"Connect"
   };
