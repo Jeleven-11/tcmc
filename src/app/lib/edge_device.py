@@ -1181,8 +1181,8 @@ async def ably_connection():
         def on_message(msg):
             print(f"Received message: {msg.data}")
 
-        channel.subscribe('command', on_message)
-        webRTCChannel.subscribe('WebRTC-client-register', on_message)
+        await channel.subscribe('command', on_message)
+        await webRTCChannel.subscribe('WebRTC-client-register', on_message)
         print("Listening for Commands")
         # while True:
             #send data
@@ -1191,8 +1191,8 @@ async def ably_connection():
             'role':"Raspberry Pi",
             'sessionID': raspberry_pi_id
         }
-        channel.publish(raspberry_pi_id, data)
-        webRTCChannel.publish('WebRTC-client-register',{
+        await channel.publish(raspberry_pi_id, data)
+        await webRTCChannel.publish('WebRTC-client-register',{
             'role': 'Raspberry Pi',
             'id': raspberry_pi_id,
             'message':"Connect"
@@ -1640,10 +1640,10 @@ async def main():
     # await websocket_communication()
     await ably_connection()
 
-# if __name__ == "__main__":
-#     try:
-#         asyncio.run(main())
-#     except KeyboardInterrupt:
-#         # GPIO_Cleanup()
-#         release_camera()
-#         print("Python Script stopped by user via keyboard interrupt.")
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        # GPIO_Cleanup()
+        release_camera()
+        print("Python Script stopped by user via keyboard interrupt.")

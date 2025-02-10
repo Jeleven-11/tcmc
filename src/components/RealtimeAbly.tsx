@@ -38,8 +38,8 @@ export default function RealtimeDisplay () {
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [webRTCClients, setWebRTCClients] = useState<Map<string, WebRTCClientInfo>>(new Map());
   const ably = useRef<Ably.Realtime | null>(null);
-  const [channelInstance, setChannelInstance] = useState<Ably.RealtimeChannel | null>(null);
-  const [ownChannelInstance, setOwnChannelInstance] = useState<Ably.RealtimeChannel | null>(null);
+  const [channelInstance, setChannelInstance] = useState<Ably.RealtimeChannel>();
+  const [ownChannelInstance, setOwnChannelInstance] = useState<Ably.RealtimeChannel>();
   const [sessionData, setSessionData] = useState<SessionData>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -77,8 +77,8 @@ export default function RealtimeDisplay () {
         setChannelInstance(ably.current.channels.get('webrtc-signaling-channel'));
         if(sessionData===null) return;
         setOwnChannelInstance(ably.current.channels.get(`${sessionData.sessionID}`));
-        if(ownChannelInstance===null) return;
-        ownChannelInstance.subscribe(async (msg: Ably.Message) => {
+        // if(ownChannelInstance===null) return;
+        ownChannelInstance?.subscribe(async (msg: Ably.Message) => {
           const data = msg.data;
           console.log('Received message: ', data);
           if (data.type === 'request-stream') {
@@ -93,8 +93,8 @@ export default function RealtimeDisplay () {
         //     const parsedClients = new Map(JSON.parse(storedClients));
         //     setWebRTCClients(parsedClients);
         // }
-        if(channelInstance===null) return;
-        channelInstance.subscribe(async (msg: Ably.Message) => {
+        // if(channelInstance===null) return;
+        channelInstance?.subscribe(async (msg: Ably.Message) => {
         //   const channelName = `signaling-${data.target}`;
         // if(ably.current === null) return;
         // const channel = ably.current.channels.get(channelName);
