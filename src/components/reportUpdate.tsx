@@ -75,18 +75,24 @@ const CheckUpdates = () => {
           setFilteredReports(modifiedReports); // Initially, display all reports
 
           // Calculate status counts
-          const counts = data.reports.reduce(
+          {/*
+            const counts = data.reports.reduce(
             (acc: { [x: string]: number; }, report: { status: string; }) => {
               acc[report.status.toLowerCase()] = (acc[report.status.toLowerCase()] || 0) + 1;
               return acc;
             },
             { pending: 0, accepted: 0, dropped: 0, solved: 0 }
-          );
-          //setStatusCounts(counts);
-        } else {
+          );  
+          //setStatusCounts(counts);  */}
+        } 
+          
+          else {
           setError('Error fetching reports.');
-        }
-      } catch (err) {
+        } 
+          
+      }
+        
+      catch (err) {
         console.log(err)
         setError('An error occurred while fetching the reports.');
       }
