@@ -135,7 +135,7 @@ export default function AdminReportManagement()
             ))}
           </div>
 
-          <div className="report-list">
+          <div className="report-list relative z-10">
             {reports.filter((report) => report.status === activeTab)
               .map((report) => (
                   <div key={report.id} className="relative p-4 border bg-white rounded-lg shadow-md report-item">
