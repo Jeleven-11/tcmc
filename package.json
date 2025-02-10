@@ -54,6 +54,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/ably": "^1.0.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/json5": "^0.0.30",
     "@types/jsonwebtoken": "^9.0.8",
@@ -64,6 +65,7 @@
     "@types/react-dom": "^18",
     "@types/swiper": "^6.0.0",
     "@types/web-push": "^3.6.4",
+    "@types/webrtc": "^0.0.44",
     "@types/ws": "^8.5.14",
     "chartjs-adapter-date-fns": "^3.0.0",
     "eslint": "^8",
