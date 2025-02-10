@@ -23,19 +23,22 @@ interface MessageType {
   id: string,
   role: string,
   payload: string,
-  from?:string
+  from?:string,
+  target?:string
 }
 interface RTCSessionDescriptionInit {
   type: 'offer' | 'answer' | 'pranswer' | 'rollback';
   sdp: string;
 }
 export default function RealtimeDisplay () {
+  // const [targetId, setTargetId] = useState('');
   const [peerConnection, setPeerConnection] = useState<RTCPeerConnection | null>(null);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [webRTCClients, setWebRTCClients] = useState<Map<string, WebRTCClientInfo>>(new Map());
   const ably = useRef<Ably.Realtime | null>(null);
   const [channelInstance, setChannelInstance] = useState<Ably.RealtimeChannel | null>(null);
+  const [ownChannelInstance, setOwnChannelInstance] = useState<Ably.RealtimeChannel | null>(null);
   const [sessionData, setSessionData] = useState<SessionData>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -71,6 +74,16 @@ export default function RealtimeDisplay () {
         // if(!ably.current)
         ably.current = new Ably.Realtime({ key: process.env.NEXT_PUBLIC_ABLY_API_KEY });
         setChannelInstance(ably.current.channels.get('webrtc-signaling-channel'));
+        if(sessionData===null) return;
+        setOwnChannelInstance(ably.current.channels.get(`${sessionData.sessionID}`));
+        if(ownChannelInstance===null) return;
+        ownChannelInstance.subscribe(async (msg: Ably.Message) => {
+          const data = msg.data;
+          console.log('Received message: ', data);
+          if (data.type === 'request-stream') {
+            handleRequestStream(data);
+          }
+        })
         // channel.current = ably.current.channels.get('webrtc-signaling-channel');
 
         // Initialize WebRTC clients map in local storage
@@ -79,8 +92,8 @@ export default function RealtimeDisplay () {
         //     const parsedClients = new Map(JSON.parse(storedClients));
         //     setWebRTCClients(parsedClients);
         // }
-
-        channelInstance!.subscribe(async (msg: Ably.Message) => {
+        if(channelInstance===null) return;
+        channelInstance.subscribe(async (msg: Ably.Message) => {
           const data = msg.data;
           console.log('Received message: ', data);
 
@@ -164,7 +177,7 @@ export default function RealtimeDisplay () {
         console.error('Error during offer handling:', error);
       }
     };
-
+    
     const handleAnswer = async (data: MessageType) => {
       try {
         const descriptionInit: RTCSessionDescriptionInit = {
@@ -193,6 +206,19 @@ export default function RealtimeDisplay () {
     const handleRequestStream = async (data: MessageType) => {
       console.log('Received request stream message: ', data);
       // Implement your logic to handle stream requests
+      const targetClient = Array.from(webRTCClients.entries())
+      .find(([, info]) => info.id === data.target);
+      console.log(`Request Stream from: ${data.from} to: ${data.target}`);
+      if (targetClient) {
+        const channelName = `signaling-${data.target}`;
+        if(ably.current === null) return;
+        const channel = ably.current.channels.get(channelName);
+        channel.publish('signaling-message', {
+          type: 'offer',
+          payload: 'Your signaling message payload here',
+          from: data.from,
+        });
+      }
     };
 
     initAbly();
@@ -210,6 +236,38 @@ export default function RealtimeDisplay () {
       }
     };
   }, []);
+  // const handleTargetIdChange = (event:React.FormEvent<HTMLFormElement>) => {
+  //   setTargetId(event.target.value);
+  // };
+  // const handleMakeOffer = async () => {
+  //   if (!peerConnection) {
+  //     const pc = new RTCPeerConnection({
+  //       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+  //     });
+  //     setPeerConnection(pc);
+  //   }
+
+  //   try {
+  //     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+  //     setLocalStream(stream);
+
+  //     stream.getTracks().forEach((track) => {
+  //       peerConnection.addTrack(track, stream);
+  //     });
+
+  //     const offer = await peerConnection.createOffer();
+  //     await peerConnection.setLocalDescription(new RTCSessionDescription({ type: 'offer', sdp: offer }));
+  //     setOffer(offer);
+
+  //     channelInstance.publish('message', {
+  //       type: 'offer',
+  //       payload: offer,
+  //       target: targetId,
+  //     });
+  //   } catch (error) {
+  //     console.error('Error making offer:', error);
+  //   }
+  // };
 
   return (
     <div>
@@ -219,7 +277,19 @@ export default function RealtimeDisplay () {
       ) : (
         <p>Waiting for video stream...</p>
       )}
+      {/* <div>
+      <input type="text" value={targetId} onChange={handleTargetIdChange} placeholder="Enter target ID" />
+      <button onClick={handleMakeOffer}>Make Offer</button>
+      {remoteStream && (
+        <video ref={(video) => {
+          if (video) {
+            video.srcObject = remoteStream;
+          }
+        }} autoPlay playsInline />
+      )}
+    </div> */}
     </div>
+    
   );
 };
 
