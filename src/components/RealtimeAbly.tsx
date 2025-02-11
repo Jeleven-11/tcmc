@@ -37,15 +37,15 @@ const client = {
   transportParams: { heartbeatInterval: 15000 }
 }
 const AblyConnectionComponent = () => {
-  const [peerConnection, setPeerConnection] = useState<RTCPeerConnection | null>(null);
+  const peerConnection = useRef<RTCPeerConnection | null>(null);
   // const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const webRTCPeerChannel = useRef<Ably.RealtimeChannel>();
+  // const webRTCPeerChannel = useRef<Ably.RealtimeChannel>();
   const myID = useRef<string | null>(null);
   const sentSignalingMessage = useRef<boolean>(false);
   const [sessionData, setSessionData] = useState<SessionData>(null);
-  
+  const piID = useRef<string>('');
     useEffect(() => {
       if(sessionData!==null) return;
       getSession().then(async (session) => {
@@ -71,16 +71,17 @@ const AblyConnectionComponent = () => {
               if(message.data.role === 'Raspberry Pi'){
                 console.log("message.data.role = ", message.data.role);
                 console.log("message.data.sessionID = ", message.data.sessionID);
-                webRTCPeerChannel.current = realtime.channels.get(message.data.sessionID);
-                console.log('Type of webRTCPeerChannel.current', typeof webRTCPeerChannel.current);
-                if(webRTCPeerChannel.current !== undefined){
-                  await webRTCPeerChannel.current.subscribe('Stream', async (streamMessage) => {
+                piID.current = message.data.sessionID;
+                const webRTCPeerChannel = realtime.channels.get(piID.current);
+                console.log('Type of webRTCPeerChannel.current', typeof webRTCPeerChannel);
+                // if(webRTCPeerChannel.current !== undefined){
+                  await webRTCPeerChannel.subscribe(piID.current, async (streamMessage) => {
                     console.log("Received streamMessage: ", streamMessage);
                     console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
                     if(sentSignalingMessage.current === false){
-                      await webRTCPeerChannel.current?.publish('Stream', {
+                      await webRTCPeerChannel.publish(piID.current, {
                         type: 'start_live_stream', 
-                        target: message.data.sessionID,
+                        target: piID.current,
                         camera_stream: true
                       })
                       sentSignalingMessage.current = true;
@@ -89,47 +90,50 @@ const AblyConnectionComponent = () => {
                     if(streamMessage.data.type === 'offer'){
                       console.log("Received offer from: ", streamMessage.data.from);
                       try{
-                        if(peerConnection){
-                          peerConnection.close();
-                          setPeerConnection(null);
+                        if(peerConnection.current){
+                          peerConnection.current.close();
+                          peerConnection.current = null;
+                          // setPeerConnection(null);
                         }
-                        setPeerConnection(new RTCPeerConnection());
-                        if(peerConnection){
-                          peerConnection.onicecandidate = async(event) => {
+                        // setPeerConnection(new RTCPeerConnection());
+                        peerConnection.current = new RTCPeerConnection();
+                        if(peerConnection.current){
+                          peerConnection.current.onicecandidate = async(event) => {
                             if(event.candidate){
-                              await webRTCPeerChannel.current?.publish('Stream',{
+                              await webRTCPeerChannel.publish(piID.current,{
                                 type: 'ice-candidate',
                                 payload: event.candidate,
                                 from: myID.current
                               })
                             }
                           };
-                          peerConnection.ontrack = (event:RTCTrackEvent) => {
+                          peerConnection.current.ontrack = (event:RTCTrackEvent) => {
                             setRemoteStream(event.streams[0]);
                           };
-                          await peerConnection.setRemoteDescription(new RTCSessionDescription(streamMessage.data.payload));
-                          const answer = await peerConnection.createAnswer();
-                          await peerConnection.setLocalDescription(answer);
-                          await webRTCPeerChannel.current?.publish('Stream',{
+                          await peerConnection.current.setRemoteDescription(new RTCSessionDescription(streamMessage.data.payload));
+                          const answer = await peerConnection.current.createAnswer();
+                          await peerConnection.current.setLocalDescription(answer);
+                          await webRTCPeerChannel.publish(piID.current,{
                             type: 'answer',
                             payload: answer,
-                            from: streamMessage.data.from.id
+                            from: myID.current
                           })
                         }
                       } catch (error){
                         console.error("Error handling offer: ", error);
                       }
-                      const answer = {
-                        type: streamMessage.data.type,
-                        payload: streamMessage.data.payload,
-                        from: myID.current
-                      }
-                      await webRTCPeerChannel.current?.publish('Stream', answer);    
+                      // const answer = {
+                      //   type: streamMessage.data.type,
+                      //   payload: streamMessage.data.payload,
+                      //   from: myID.current
+                      // }
+                      // await webRTCPeerChannel.publish(piID.current, answer);    
                     }
                     if(streamMessage.data.type === 'ice-candidate'){
                       console.log("Received ICE candidate");
                       try{
-                        await peerConnection?.addIceCandidate(new RTCIceCandidate(streamMessage.data.payload)) 
+                        if(peerConnection.current)
+                        await peerConnection.current.addIceCandidate(new RTCIceCandidate(streamMessage.data.payload)) 
                       } catch (error){
                         console.error("Error adding ICE candidate:", error);
                       }
@@ -137,13 +141,14 @@ const AblyConnectionComponent = () => {
                     if(streamMessage.data.type === 'answer'){
                       console.log('Received answer');
                       try {
-                          await peerConnection?.setRemoteDescription(new RTCSessionDescription(streamMessage.data.payload));
+                          if(peerConnection.current)
+                          await peerConnection.current.setRemoteDescription(new RTCSessionDescription(streamMessage.data.payload));
                       } catch (error) {
                           console.error('Error setting remote description:', error);
                       }
                     }    
                   });
-                }
+                // }
               }
             });
             const registrationMessage = {
@@ -160,7 +165,7 @@ const AblyConnectionComponent = () => {
           alert("Please login again.")
         }
       });
-    }, [sessionData, webRTCPeerChannel, peerConnection]);
+    }, [sessionData]);
   useEffect(() => {
     if (videoRef.current && remoteStream) {
       videoRef.current.srcObject = remoteStream;
