@@ -41,6 +41,7 @@ const AblyConnectionComponent = () => {
   // const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  // const [videoState, setVideoState] = useState<HTMLVideoElement>(null);
   // const webRTCPeerChannel = useRef<Ably.RealtimeChannel>();
   const myID = useRef<string | null>(null);
   // const sentSignalingMessage = useRef<boolean>(false);
@@ -193,6 +194,8 @@ const AblyConnectionComponent = () => {
     }, [sessionData, piIDState]);
   useEffect(() => {
     if (videoRef.current && remoteStream) {
+      console.log(remoteStream);
+      console.log("Type: ", typeof remoteStream);
       videoRef.current.srcObject = remoteStream;
     }
   }, [remoteStream]);

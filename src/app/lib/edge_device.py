@@ -83,6 +83,7 @@ local_tz = pytz.timezone("Asia/Manila")
 # started_training = None
 now_live = False
 isCameraConfigured = False
+surveillanceTask = None
 # def IR_LED_ON():
 #     ir_led1.value = brightness
 #     ir_led2.value = brightness
@@ -675,7 +676,7 @@ async def surveillance_loop():
     global surveillance_running, stream
     while True:
         if surveillance_running:
-            await stream.surveillanceMode
+            stream.surveillanceMode
             await asyncio.sleep(0.04)
     # if not self.running:
     #     print("Started processing frames")
@@ -902,7 +903,7 @@ class CameraStreamTrack(VideoStreamTrack):
         atexit._run_exitfuncs()
         self.cleanup()
 
-    async def surveillanceMode(self):
+    def surveillanceMode(self):
         # global camera
         try:
             # frame = camera.capture_array()
@@ -913,7 +914,7 @@ class CameraStreamTrack(VideoStreamTrack):
                 return
             
             img = Image.fromarray(frame)
-            results = self.model.predict(source=img)
+            # results = self.model.predict(source=img)
             
             
             # for result in results:
@@ -1192,7 +1193,7 @@ async def ably_connection():
 
             if data['role'] == 'Admin' and data['message'] == 'Connect':
                 try:
-                    global now_live
+                    global now_live, surveillanceTask
                     peer_id = data["from"]
                     print(f"Received start_live_stream from {peer_id}")
                     if peer_id in peer_connections:
@@ -1208,6 +1209,7 @@ async def ably_connection():
                             print('Stream is running, now stopping...')
                             surveillance_running = False
                             print("Paused surveillance mode...")
+                            surveillanceTask.cancel()
                         print("Starting WebRTC Mode...")
                         camera_track = stream
                         pc.addTrack(camera_track)
@@ -1217,7 +1219,7 @@ async def ably_connection():
                     async def on_icecandidate(candidate):
                         if candidate:
                             print('sending candidate')
-                            await channel.publish('WebRTC-client-register',{
+                            await webRTCChannel.publish('WebRTC-client-register',{
                                 "type": "ice-candidate",
                                 "payload": {
                                     "candidate": candidate.candidate,
@@ -1231,7 +1233,7 @@ async def ably_connection():
                     offer = await pc.createOffer()
                     await pc.setLocalDescription(offer)
                     print(f"Will send offer to: {peer_id}")
-                    await channel.publish('WebRTC-client-register', {
+                    await webRTCChannel.publish('WebRTC-client-register', {
                         "type": "offer",
                         "payload":{
                             "sdp": pc.localDescription.sdp,
@@ -1305,7 +1307,7 @@ async def ably_connection():
                     print(f"Error handling answer: {e}")
 
 
-        await webRTCChannel.subscribe(raspberry_pi_id, messageToMyID)
+        # await webRTCChannel.subscribe(raspberry_pi_id, messageToMyID)
         await webRTCChannel.subscribe('WebRTC-client-register', messageToMyID)
         print("Listening for Commands")
         
@@ -1334,12 +1336,12 @@ async def ably_connection():
         await ably_client.close()#Ensure the connection is closed on exit
 
 async def setup_stream():
-    global stream, surveillance_running
+    global stream, surveillance_running, surveillanceTask
     if stream is None:
         print("stream is none. Will attach camera stream track to it")
         stream = CameraStreamTrack()
         surveillance_running = True
-        asyncio.create_task(surveillance_loop())
+        surveillanceTask = asyncio.create_task(surveillance_loop())
 
 # async def websocket_communication():
 #     atexit.register(release_camera)
