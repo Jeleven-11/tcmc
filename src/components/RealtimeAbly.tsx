@@ -38,6 +38,8 @@ const client = {
 }
 const AblyConnectionComponent = () => {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
+  const realtime = useRef(new Ably.Realtime(client));
+  const channel = useRef(realtime.current.channels.get('webrtc-signaling-channel'));
   // const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const remoteStream = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -49,6 +51,111 @@ const AblyConnectionComponent = () => {
   const piID = useRef<string>('');
   const [piIDState, setPiIDState] = useState<string|''>('')
     useEffect(() => {
+      async function InitWebRTC() {
+        if(piID.current==='' && piIDState !== ''){
+          piID.current=piIDState;
+        }
+        try{
+          await channel.current.subscribe('WebRTC-client-register', async (message) => {
+            console.log("Received ably message: ", message.data);
+            if(message.data.role === 'Raspberry Pi'){
+              console.log("message.data.role = ", message.data.role);
+              console.log("message.data.sessionID = ", message.data.sessionID);
+              piID.current = message.data.sessionID;
+              setPiIDState(piID.current)
+              console.log('piID.current inside:', piID.current);
+            
+                console.log("Received streamMessage channel name piID.current: ", message);
+                
+                if(message.data.type === 'offer'){
+                  console.log("Received offer from: ", message.data.from);
+                  try{
+                    if(peerConnection.current){
+                      peerConnection.current.close();
+                      peerConnection.current = null;
+                    }
+                    peerConnection.current = new RTCPeerConnection({
+                      iceServers: [{ urls: "stun:stun.l.google.com:19302" }], // Public STUN server
+                    });
+                    // if(peerConnection.current){
+                      peerConnection.current.onicecandidate = async(event) => {
+                        if(event.candidate){
+                          await channel.current.publish('WebRTC-client-register',{
+                            type: 'ice-candidate',
+                            payload: event.candidate,
+                            from: myID.current,
+                            target: piID.current
+                          })
+                        }
+                      };
+                      remoteStream.current = new MediaStream();
+                      videoRef.current!.srcObject = remoteStream.current;
+                      peerConnection.current.ontrack = (event:RTCTrackEvent) => {
+                        event.streams[0].getTracks().forEach((track) => {
+                          remoteStream.current?.addTrack(track);
+                        });
+                        //setRemoteStream(event.streams[0]);
+                      };
+                      await peerConnection.current.setRemoteDescription(new RTCSessionDescription(message.data.payload));
+                      const answer = await peerConnection.current.createAnswer();
+                      await peerConnection.current.setLocalDescription(answer);
+                      await channel.current.publish('WebRTC-client-register',{
+                        type: 'answer',
+                        payload: answer,
+                        from: myID.current,
+                        target: piID.current
+                      })
+                    // }
+                  } catch (error){
+                    console.error("Error handling offer: ", error);
+                  }   
+                }
+                if(message.data.type === 'ice-candidate'){
+                  console.log("Received ICE candidate");
+                  try{
+                    if(peerConnection.current)
+                    await peerConnection.current.addIceCandidate(new RTCIceCandidate(message.data.payload)) 
+                  } catch (error){
+                    console.error("Error adding ICE candidate:", error);
+                  }
+                }           
+                if(message.data.type === 'answer'){
+                  console.log('Received answer');
+                  try {
+                      if(peerConnection.current)
+                      await peerConnection.current.setRemoteDescription(new RTCSessionDescription(message.data.payload));
+                  } catch (error) {
+                      console.error('Error setting remote description:', error);
+                  }
+                }    
+            }
+          });
+          const registrationMessage = {
+            'role': 'Admin',
+            'id': myID.current,
+            'message':"Connect",
+            'from': myID.current,
+            'camera_stream': true
+          };
+          await channel.current.publish('WebRTC-client-register', registrationMessage)
+          console.log('piID.current outside:', piID.current);
+          
+          console.log('Sent registration message to ably: ', registrationMessage)
+        } catch (error){
+          console.error(`Error encountered in Ably: `, error);
+        } finally {
+          return () => {
+            console.log("Cleanup subscription here by unsubscribing... TODO...");
+          }
+        }
+      }
+      InitWebRTC();
+      return () => {
+        peerConnection.current?.close();
+        // realtime.current.close();
+      };
+    })
+    useEffect(() => {
       if(sessionData!==null) return;
       getSession().then(async (session) => {
         const currentSession = JSON.parse(JSON.stringify(session));
@@ -58,113 +165,12 @@ const AblyConnectionComponent = () => {
           });
           myID.current = currentSession.sessionID;
           console.log('myID.current: ', myID.current)
-          const InitAblyConnection = async(sessionID: string) => {
-            if(piID.current==='' && piIDState !== ''){
-              piID.current=piIDState;
-            }
-            try{
-
-            
-            const realtime = new Ably.Realtime(client)
-            const channel = realtime.channels.get('webrtc-signaling-channel')
-            await channel.subscribe('WebRTC-client-register', async (message) => {
-              console.log("Received ably message: ", message.data);
-              if(message.data.role === 'Raspberry Pi'){
-                console.log("message.data.role = ", message.data.role);
-                console.log("message.data.sessionID = ", message.data.sessionID);
-                piID.current = message.data.sessionID;
-                setPiIDState(piID.current)
-                console.log('piID.current inside:', piID.current);
-               
-                  console.log("Received streamMessage channel name piID.current: ", message);
-                  
-                  if(message.data.type === 'offer'){
-                    console.log("Received offer from: ", message.data.from);
-                    try{
-                      if(peerConnection.current){
-                        peerConnection.current.close();
-                        peerConnection.current = null;
-                      }
-                      peerConnection.current = new RTCPeerConnection();
-                      if(peerConnection.current){
-                        peerConnection.current.onicecandidate = async(event) => {
-                          if(event.candidate){
-                            await channel.publish('WebRTC-client-register',{
-                              type: 'ice-candidate',
-                              payload: event.candidate,
-                              from: myID.current,
-                              target: piID.current
-                            })
-                          }
-                        };
-                        remoteStream.current = new MediaStream();
-                        videoRef.current!.srcObject = remoteStream.current;
-                        peerConnection.current.ontrack = (event:RTCTrackEvent) => {
-                          event.streams[0].getTracks().forEach((track) => {
-                            remoteStream.current?.addTrack(track);
-                          });
-                          //setRemoteStream(event.streams[0]);
-                        };
-                        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(message.data.payload));
-                        const answer = await peerConnection.current.createAnswer();
-                        await peerConnection.current.setLocalDescription(answer);
-                        await channel.publish('WebRTC-client-register',{
-                          type: 'answer',
-                          payload: answer,
-                          from: myID.current,
-                          target: piID.current
-                        })
-                      }
-                    } catch (error){
-                      console.error("Error handling offer: ", error);
-                    }   
-                  }
-                  if(message.data.type === 'ice-candidate'){
-                    console.log("Received ICE candidate");
-                    try{
-                      if(peerConnection.current)
-                      await peerConnection.current.addIceCandidate(new RTCIceCandidate(message.data.payload)) 
-                    } catch (error){
-                      console.error("Error adding ICE candidate:", error);
-                    }
-                  }           
-                  if(message.data.type === 'answer'){
-                    console.log('Received answer');
-                    try {
-                        if(peerConnection.current)
-                        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(message.data.payload));
-                    } catch (error) {
-                        console.error('Error setting remote description:', error);
-                    }
-                  }    
-              }
-            });
-            const registrationMessage = {
-              'role': 'Admin',
-              'id': sessionID,
-              'message':"Connect",
-              'from':sessionID,
-              'camera_stream': true
-            };
-            await channel.publish('WebRTC-client-register', registrationMessage)
-            console.log('piID.current outside:', piID.current);
-            
-            console.log('Sent registration message to ably: ', registrationMessage)
-          } catch (error){
-            console.error(`Error encountered in Ably: `, error);
-          } finally {
-            return () => {
-              console.log("Cleanup subscription here by unsubscribing... TODO")
-            }
-          }
-          }
-          InitAblyConnection(currentSession.sessionID);
         } else {
           // setSessionData({ isLoggedIn: currentSession.isLoggedIn });
           alert("Please login again.")
         }
       });
-    }, [sessionData, piIDState]);
+    }, [sessionData]);
   // useEffect(() => {
   //   if (remoteStream) {
   //     console.log(remoteStream);
