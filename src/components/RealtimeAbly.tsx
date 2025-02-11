@@ -43,7 +43,7 @@ const AblyConnectionComponent = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [webRTCPeerChannel, setWebRTCPeerChannel] = useState<Ably.RealtimeChannel>();
   const myID = useRef<string | null>(null);
-  
+  const sentSignalingMessage = useRef<boolean>(false);
   const [sessionData, setSessionData] = useState<SessionData>(null);
   
     useEffect(() => {
@@ -73,6 +73,14 @@ const AblyConnectionComponent = () => {
               if(message.data.role === 'Raspberry Pi'){
                 setWebRTCPeerChannel(realtime.channels.get(message.data.id));
                 await webRTCPeerChannel?.subscribe('Stream', async (streamMessage) => {
+                  if(sentSignalingMessage.current === false){
+                    await webRTCPeerChannel?.publish('Stream', {
+                      type: 'start_live_stream', 
+                      target: message.data.id,
+                      camera_stream: true
+                    })
+                    sentSignalingMessage.current = true;
+                  }
                   if(streamMessage.data.type === 'offer'){
                     console.log("Received offer from: ", streamMessage.data.from);
                     try{
@@ -147,9 +155,6 @@ const AblyConnectionComponent = () => {
         }
       });
     }, [sessionData, webRTCPeerChannel, peerConnection]);
-  useEffect(() => {
-    
-  });
   useEffect(() => {
     if (videoRef.current && remoteStream) {
       videoRef.current.srcObject = remoteStream;
