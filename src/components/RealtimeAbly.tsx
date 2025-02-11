@@ -57,8 +57,12 @@ const AblyConnectionComponent = () => {
         }
         try{
           await channel.current.subscribe('WebRTC-client-register', async (message) => {
-            console.log("Received ably message: ", message.data);
+            
             if(message.data.role === 'Raspberry Pi'){
+              console.log("Received ably message from Raspberry Pi: ", message.data);
+              peerConnection.current = new RTCPeerConnection({
+                iceServers: [{ urls: "stun:stun.l.google.com:19302" }], // Public STUN server
+              });
               console.log("message.data.role = ", message.data.role);
               console.log("message.data.sessionID = ", message.data.sessionID);
               piID.current = message.data.sessionID;
@@ -70,14 +74,20 @@ const AblyConnectionComponent = () => {
                 if(message.data.type === 'offer'){
                   console.log("Received offer from: ", message.data.from);
                   try{
-                    if(peerConnection.current){
-                      peerConnection.current.close();
-                      peerConnection.current = null;
-                    }
-                    peerConnection.current = new RTCPeerConnection({
-                      iceServers: [{ urls: "stun:stun.l.google.com:19302" }], // Public STUN server
-                    });
                     // if(peerConnection.current){
+                    //   peerConnection.current.close();
+                    //   peerConnection.current = null;
+                    // }
+                    
+                    // if(peerConnection.current){
+                      remoteStream.current = new MediaStream();
+                      videoRef.current!.srcObject = remoteStream.current;
+                      peerConnection.current.ontrack = (event:RTCTrackEvent) => {
+                        event.streams[0].getTracks().forEach((track) => {
+                          remoteStream.current?.addTrack(track);
+                        });
+                        //setRemoteStream(event.streams[0]);
+                      };
                       peerConnection.current.onicecandidate = async(event) => {
                         if(event.candidate){
                           await channel.current.publish('WebRTC-client-register',{
@@ -88,14 +98,7 @@ const AblyConnectionComponent = () => {
                           })
                         }
                       };
-                      remoteStream.current = new MediaStream();
-                      videoRef.current!.srcObject = remoteStream.current;
-                      peerConnection.current.ontrack = (event:RTCTrackEvent) => {
-                        event.streams[0].getTracks().forEach((track) => {
-                          remoteStream.current?.addTrack(track);
-                        });
-                        //setRemoteStream(event.streams[0]);
-                      };
+                      
                       await peerConnection.current.setRemoteDescription(new RTCSessionDescription(message.data.payload));
                       const answer = await peerConnection.current.createAnswer();
                       await peerConnection.current.setLocalDescription(answer);
