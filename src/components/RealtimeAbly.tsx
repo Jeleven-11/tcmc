@@ -46,33 +46,33 @@ const AblyConnectionComponent = () => {
         if (role !== 'Raspberry Pi') return;
         console.log('Received message from Raspberry Pi:', message.data);
 
-        if (!peerConnection.current) {
-          peerConnection.current = new RTCPeerConnection({
-            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-          });
+        // if (!peerConnection.current) {
+        //   peerConnection.current = new RTCPeerConnection({
+        //     iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+        //   });
 
-          remoteStream.current = new MediaStream();
-          if (videoRef.current) {
-            videoRef.current.srcObject = remoteStream.current;
-          }
+        //   remoteStream.current = new MediaStream();
+        //   if (videoRef.current) {
+        //     videoRef.current.srcObject = remoteStream.current;
+        //   }
 
-          peerConnection.current.ontrack = (event) => {
-            event.streams[0].getTracks().forEach((track) => {
-              remoteStream.current?.addTrack(track);
-            });
-          };
+        //   peerConnection.current.ontrack = (event) => {
+        //     event.streams[0].getTracks().forEach((track) => {
+        //       remoteStream.current?.addTrack(track);
+        //     });
+        //   };
 
-          peerConnection.current.onicecandidate = async (event) => {
-            if (event.candidate) {
-              await channel.current?.publish('WebRTC-client-register', {
-                type: 'ice-candidate',
-                payload: event.candidate,
-                from: myID.current,
-                target: piID.current,
-              });
-            }
-          };
-        }
+        //   peerConnection.current.onicecandidate = async (event) => {
+        //     if (event.candidate) {
+        //       await channel.current?.publish('WebRTC-client-register', {
+        //         type: 'ice-candidate',
+        //         payload: event.candidate,
+        //         from: myID.current,
+        //         target: piID.current,
+        //       });
+        //     }
+        //   };
+        // }
 
         if (type === 'offer') {
           console.log('Received WebRTC offer from:', from);
@@ -81,6 +81,28 @@ const AblyConnectionComponent = () => {
           if(piID.current==='')piID.current=piIDState;
 
           try {
+            if(peerConnection.current){
+              peerConnection.current.close();
+              peerConnection.current = null;
+            }
+            peerConnection.current = new RTCPeerConnection({
+              iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+            })
+            peerConnection.current.onicecandidate = async (event) => {
+              if (event.candidate) {
+                await channel.current?.publish('WebRTC-client-register', {
+                  type: 'ice-candidate',
+                  payload: event.candidate,
+                  from: myID.current,
+                  target: piID.current,
+                });
+              }
+            };
+            peerConnection.current.ontrack = (event) => {
+              event.streams[0].getTracks().forEach((track) => {
+                remoteStream.current?.addTrack(track);
+              });
+            }
             await peerConnection.current.setRemoteDescription(new RTCSessionDescription(payload));
             const answer = await peerConnection.current.createAnswer();
             await peerConnection.current.setLocalDescription(answer);
@@ -134,7 +156,7 @@ const AblyConnectionComponent = () => {
       peerConnection.current?.close();
       channel.current?.unsubscribe('WebRTC-client-register');
     };
-  }, [channel.current]);
+  }, [piIDState]);
 
   useEffect(() => {
     if (sessionData !== null) return;
