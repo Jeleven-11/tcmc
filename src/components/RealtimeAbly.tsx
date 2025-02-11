@@ -159,7 +159,8 @@ const AblyConnectionComponent = () => {
               'role': 'Admin',
               'id': sessionID,
               'message':"Connect",
-              'from':sessionID
+              'from':sessionID,
+              'camera_stream': true
             };
             await channel.publish('WebRTC-client-register', registrationMessage)
             console.log('piID.current outside:', piID.current);

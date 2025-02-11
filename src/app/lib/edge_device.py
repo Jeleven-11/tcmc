@@ -1170,21 +1170,26 @@ async def cleanup_peer_connection(peer_id):
     return
 
 async def ably_connection():
+    global stream, surveillance_running
     print(f"ABLY_API_KEY: {ABLY_API_KEY}")
     secret_key = os.environ.get("AUTH_SECRETKEY")
     print(f"AUTH_SECRETKEY: {secret_key}")
     ably_client = AblyRealtime(ABLY_API_KEY)
     try:
         raspberry_pi_id = get_cpu_serial()
+        if stream is None:
+            stream = CameraStreamTrack()
+            surveillance_running = True
+            surveillanceTask = asyncio.create_task(surveillance_loop())
         channel = ably_client.channels.get(raspberry_pi_id)
         webRTCChannel=ably_client.channels.get('webrtc-signaling-channel')
         async def on_message(msg):
             # data = json.loads(msg.data)
-            print(f"Received message 'WebRTCccc-client-register': {msg.data}")
+            print(f"Received message 'WebRTC-client-register': {msg.data}")
         #     data = json.loads(msg.data)
         #     await messageToMyID(data)
-        # async def messageToMyID(message):
-            data = msg.data
+        async def messageToMyID(message):
+            data = message.data
             print(f"Message for {raspberry_pi_id} received: {data}")
             print(f"data: {data}")
 
@@ -1194,11 +1199,12 @@ async def ably_connection():
                     print(f"Received start_live_stream from {peer_id}")
                     if peer_id in peer_connections:
                         await cleanup_peer_connection(peer_id)
-                    pc = RTCPeerConnection
+                    pc = RTCPeerConnection()
                     peer_connections[peer_id] = pc
                     if data.get('camera_stream', False):
                         if stream is None:
                             stream = CameraStreamTrack()
+                            print("Start CameraStreamTrack")
                         elif surveillance_running:
                             print('Stream is running, now stopping...')
                             surveillance_running = False
@@ -1207,6 +1213,7 @@ async def ably_connection():
                         camera_track = stream
                         pc.addTrack(camera_track)
                         now_live = True
+                    print("Still good 1")
                     @pc.on("icecandidate")
                     async def on_icecandidate(candidate):
                         if candidate:
@@ -1234,6 +1241,7 @@ async def ably_connection():
                         "from": raspberry_pi_id,
                         "target": peer_id
                     })
+                    print("Still good 2")
                     @pc.on("connectionstatechange")
                     async def on_connectionstatechange():
                         if pc.connectionState in ["failed", "disconnected", "closed"]:
@@ -1245,7 +1253,7 @@ async def ably_connection():
                             # exit(1)
                                 
                 except Exception as ex:
-                    print("Exception error during strat_live_stream setup: ", ex)
+                    print("Exception error during start_live_stream setup: ", ex)
             if data["type"] == "ice-candidate":
                 peer_id = data["from"]["id"]
                 if peer_id in peer_connections:
@@ -1296,8 +1304,8 @@ async def ably_connection():
                     print(f"Error handling answer: {e}")
 
 
-        await webRTCChannel.subscribe(raspberry_pi_id, on_message)
-        await webRTCChannel.subscribe('WebRTC-client-register', on_message)
+        await webRTCChannel.subscribe(raspberry_pi_id, messageToMyID)
+        await webRTCChannel.subscribe('WebRTC-client-register', messageToMyID)
         print("Listening for Commands")
         
         # while True:
