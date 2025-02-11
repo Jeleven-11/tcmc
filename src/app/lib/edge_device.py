@@ -1179,7 +1179,7 @@ async def ably_connection():
         await setup_stream()
         
         channel = ably_client.channels.get(raspberry_pi_id)
-        # webRTCChannel=ably_client.channels.get('webrtc-signaling-channel')
+        webRTCChannel=ably_client.channels.get('webrtc-signaling-channel')
         async def on_message(msg):
             # data = json.loads(msg.data)
             print(f"Received message 'WebRTC-client-register': {msg.data}")
