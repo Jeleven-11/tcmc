@@ -101,7 +101,7 @@ const AblyConnectionComponent = () => {
                       
                       await peerConnection.current.setRemoteDescription(new RTCSessionDescription(message.data.payload));
                       const answer = await peerConnection.current.createAnswer();
-                      if (peerConnection.current.signalingState === 'have-remote-offer') {
+                      if (peerConnection.current.signalingState === 'have-remote-offer' || peerConnection.current.signalingState !== 'stable') {  
                         await peerConnection.current.setLocalDescription(answer);
                       }
                       await channel.current.publish('WebRTC-client-register',{
