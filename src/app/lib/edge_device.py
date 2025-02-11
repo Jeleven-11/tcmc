@@ -1179,10 +1179,10 @@ async def ably_connection():
         channel = ably_client.channels.get(raspberry_pi_id)
         webRTCChannel=ably_client.channels.get('webrtc-signaling-channel')
         def on_message(msg):
-            print(f"Received message: {msg.data}")
+            print(f"Received message 'WebRTC-client-register': {msg.data}")
         async def messageToMyID(message):
-            print(f"Message for {raspberry_pi_id} received: {message}")
             data = message.data
+            print(f"Message for {raspberry_pi_id} received: {data}")
             print(f"data: {data}")
             if data['type'] == 'start_live_stream':
                 try:
@@ -1298,19 +1298,19 @@ async def ably_connection():
         
         # while True:
             #send data
-        data={
-            'id': raspberry_pi_id,
-            'role':"Raspberry Pi",
-            'sessionID': raspberry_pi_id
-        }
-        await channel.publish(raspberry_pi_id, data)
+        # data={
+        #     'id': raspberry_pi_id,
+        #     'role':"Raspberry Pi",
+        #     'sessionID': raspberry_pi_id
+        # }
+        # await channel.publish(raspberry_pi_id, data)
         await webRTCChannel.publish('WebRTC-client-register',{
             'role': 'Raspberry Pi',
             'id': raspberry_pi_id,
             'message':"Connect",
             'sessionID': raspberry_pi_id
-          })
-        print(f"Published data: {data}")
+        })
+        # print(f"Published data: {data}")
         while True:
             await asyncio.sleep(1)
     # except ably.AblyException as e:
