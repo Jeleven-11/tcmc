@@ -45,7 +45,7 @@ const AblyConnectionComponent = () => {
   const myID = useRef<string | null>(null);
   const sentSignalingMessage = useRef<boolean>(false);
   const [sessionData, setSessionData] = useState<SessionData>(null);
-  const [piID, setPiID] = useState<string>('');
+  const piID = useRef<string>('');
     useEffect(() => {
       if(sessionData!==null) return;
       getSession().then(async (session) => {
@@ -71,7 +71,8 @@ const AblyConnectionComponent = () => {
               if(message.data.role === 'Raspberry Pi'){
                 console.log("message.data.role = ", message.data.role);
                 console.log("message.data.sessionID = ", message.data.sessionID);
-                setPiID(message.data.sessionID);//does this rerender the component? piID is a dependency
+                piID.current = message.data.sessionID;//does this rerender the component? piID is a dependency
+                console.log('piID.current inside:', piID.current);
                 // const webRTCPeerChannel = realtime.channels.get(piID.current);
                 
                 // if(webRTCPeerChannel.current !== undefined){
@@ -85,15 +86,15 @@ const AblyConnectionComponent = () => {
               'message':"Connect"
             };
             await channel.publish('WebRTC-client-register', registrationMessage)
-            console.log('piID:', piID);
-            if(piID !== ''){
-              await channel.subscribe(piID, async (streamMessage) => {
+            console.log('piID.current outside:', piID.current);
+            if(piID.current !== ''){
+              await channel.subscribe(piID.current, async (streamMessage) => {
                 console.log("Received streamMessage: ", streamMessage);
                 console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
                 if(sentSignalingMessage.current === false){
-                  await channel.publish(piID, {
+                  await channel.publish(piID.current, {
                     type: 'start_live_stream', 
-                    target: piID,
+                    target: piID.current,
                     camera_stream: true
                   })
                   sentSignalingMessage.current = true;
@@ -112,7 +113,7 @@ const AblyConnectionComponent = () => {
                     if(peerConnection.current){
                       peerConnection.current.onicecandidate = async(event) => {
                         if(event.candidate){
-                          await channel.publish(piID,{
+                          await channel.publish(piID.current,{
                             type: 'ice-candidate',
                             payload: event.candidate,
                             from: myID.current
@@ -125,7 +126,7 @@ const AblyConnectionComponent = () => {
                       await peerConnection.current.setRemoteDescription(new RTCSessionDescription(streamMessage.data.payload));
                       const answer = await peerConnection.current.createAnswer();
                       await peerConnection.current.setLocalDescription(answer);
-                      await channel.publish(piID,{
+                      await channel.publish(piID.current,{
                         type: 'answer',
                         payload: answer,
                         from: myID.current
@@ -169,7 +170,7 @@ const AblyConnectionComponent = () => {
           alert("Please login again.")
         }
       });
-    }, [sessionData, piID]);
+    }, [sessionData]);
   useEffect(() => {
     if (videoRef.current && remoteStream) {
       videoRef.current.srcObject = remoteStream;
