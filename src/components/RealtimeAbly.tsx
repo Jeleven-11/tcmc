@@ -61,6 +61,7 @@ const AblyConnectionComponent = () => {
             sessionID: currentSession.sessionID
           });
           myID.current = currentSession.sessionID;
+          console.log('myID.current: ', myID.current)
           const InitAblyConnection = async(sessionID: string) => {
   
             const realtime = new Ably.Realtime(client)
@@ -69,16 +70,20 @@ const AblyConnectionComponent = () => {
               console.log("Received ably message: ", message.data);
               if(message.data.role === 'Raspberry Pi'){
                 console.log("message.data.role = ", message.data.role);
-                webRTCPeerChannel.current = realtime.channels.get(message.data.id);
+                console.log("message.data.sessionID = ", message.data.sessionID);
+                webRTCPeerChannel.current = realtime.channels.get(message.data.sessionID);
                 if(webRTCPeerChannel.current){
                   await webRTCPeerChannel.current.subscribe('Stream', async (streamMessage) => {
+                    console.log("Received streamMessage: ", streamMessage);
+                    console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
                     if(sentSignalingMessage.current === false){
                       await webRTCPeerChannel.current?.publish('Stream', {
                         type: 'start_live_stream', 
-                        target: message.data.id,
+                        target: message.data.sessionID,
                         camera_stream: true
                       })
                       sentSignalingMessage.current = true;
+                      console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
                     }
                     if(streamMessage.data.type === 'offer'){
                       console.log("Received offer from: ", streamMessage.data.from);
