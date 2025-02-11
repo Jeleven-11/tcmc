@@ -72,14 +72,14 @@ const AblyConnectionComponent = () => {
                 console.log("message.data.role = ", message.data.role);
                 console.log("message.data.sessionID = ", message.data.sessionID);
                 piID.current = message.data.sessionID;
-                const webRTCPeerChannel = realtime.channels.get(piID.current);
-                console.log('Type of webRTCPeerChannel.current', typeof webRTCPeerChannel);
+                // const webRTCPeerChannel = realtime.channels.get(piID.current);
+                // console.log('Type of webRTCPeerChannel.current', typeof webRTCPeerChannel);
                 // if(webRTCPeerChannel.current !== undefined){
-                  await webRTCPeerChannel.subscribe(piID.current, async (streamMessage) => {
+                  await channel.subscribe(piID.current, async (streamMessage) => {
                     console.log("Received streamMessage: ", streamMessage);
                     console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
                     if(sentSignalingMessage.current === false){
-                      await webRTCPeerChannel.publish(piID.current, {
+                      await channel.publish(piID.current, {
                         type: 'start_live_stream', 
                         target: piID.current,
                         camera_stream: true
@@ -100,7 +100,7 @@ const AblyConnectionComponent = () => {
                         if(peerConnection.current){
                           peerConnection.current.onicecandidate = async(event) => {
                             if(event.candidate){
-                              await webRTCPeerChannel.publish(piID.current,{
+                              await channel.publish(piID.current,{
                                 type: 'ice-candidate',
                                 payload: event.candidate,
                                 from: myID.current
@@ -113,7 +113,7 @@ const AblyConnectionComponent = () => {
                           await peerConnection.current.setRemoteDescription(new RTCSessionDescription(streamMessage.data.payload));
                           const answer = await peerConnection.current.createAnswer();
                           await peerConnection.current.setLocalDescription(answer);
-                          await webRTCPeerChannel.publish(piID.current,{
+                          await channel.publish(piID.current,{
                             type: 'answer',
                             payload: answer,
                             from: myID.current
