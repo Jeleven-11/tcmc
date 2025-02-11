@@ -41,7 +41,7 @@ const AblyConnectionComponent = () => {
   // const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [webRTCPeerChannel, setWebRTCPeerChannel] = useState<Ably.RealtimeChannel>();
+  const webRTCPeerChannel = useRef<Ably.RealtimeChannel>();
   const myID = useRef<string | null>(null);
   const sentSignalingMessage = useRef<boolean>(false);
   const [sessionData, setSessionData] = useState<SessionData>(null);
@@ -69,11 +69,11 @@ const AblyConnectionComponent = () => {
               console.log("Received ably message: ", message.data);
               if(message.data.role === 'Raspberry Pi'){
                 console.log("message.data.role = ", message.data.role);
-                setWebRTCPeerChannel(realtime.channels.get(message.data.id));
-                if(webRTCPeerChannel){
-                  await webRTCPeerChannel?.subscribe('Stream', async (streamMessage) => {
+                webRTCPeerChannel.current = realtime.channels.get(message.data.id);
+                if(webRTCPeerChannel.current){
+                  await webRTCPeerChannel.current.subscribe('Stream', async (streamMessage) => {
                     if(sentSignalingMessage.current === false){
-                      await webRTCPeerChannel?.publish('Stream', {
+                      await webRTCPeerChannel.current?.publish('Stream', {
                         type: 'start_live_stream', 
                         target: message.data.id,
                         camera_stream: true
@@ -91,7 +91,7 @@ const AblyConnectionComponent = () => {
                         if(peerConnection){
                           peerConnection.onicecandidate = async(event) => {
                             if(event.candidate){
-                              await webRTCPeerChannel.publish('Stream',{
+                              await webRTCPeerChannel.current?.publish('Stream',{
                                 type: 'ice-candidate',
                                 payload: event.candidate,
                                 from: myID.current
@@ -104,7 +104,7 @@ const AblyConnectionComponent = () => {
                           await peerConnection.setRemoteDescription(new RTCSessionDescription(streamMessage.data.payload));
                           const answer = await peerConnection.createAnswer();
                           await peerConnection.setLocalDescription(answer);
-                          await webRTCPeerChannel.publish('Stream',{
+                          await webRTCPeerChannel.current?.publish('Stream',{
                             type: 'answer',
                             payload: answer,
                             from: streamMessage.data.from.id
@@ -118,7 +118,7 @@ const AblyConnectionComponent = () => {
                         payload: streamMessage.data.payload,
                         from: myID.current
                       }
-                      await webRTCPeerChannel.publish('Stream', answer);    
+                      await webRTCPeerChannel.current?.publish('Stream', answer);    
                     }
                     if(streamMessage.data.type === 'ice-candidate'){
                       console.log("Received ICE candidate");

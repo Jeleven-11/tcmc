@@ -1311,8 +1311,8 @@ async def ably_connection():
         print(f"Published data: {data}")
         while True:
             await asyncio.sleep(1)
-    except ably.AblyException as e:
-        print(f"Ably Error: {e}")
+    # except ably.AblyException as e:
+    #     print(f"Ably Error: {e}")
     except Exception as e:
         print(f"General Error: {e}")
     finally:
