@@ -77,15 +77,15 @@ const AblyConnectionComponent = () => {
                   await channel.subscribe(piID.current, async (streamMessage) => {
                     console.log("Received streamMessage: ", streamMessage);
                     console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
-                    if(sentSignalingMessage.current === false){
-                      await channel.publish(piID.current, {
-                        type: 'start_live_stream', 
-                        target: piID.current,
-                        camera_stream: true
-                      })
-                      sentSignalingMessage.current = true;
-                      console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
-                    }
+                    // if(sentSignalingMessage.current === false){
+                    //   await channel.publish(piID.current, {
+                    //     type: 'start_live_stream', 
+                    //     target: piID.current,
+                    //     camera_stream: true
+                    //   })
+                    //   sentSignalingMessage.current = true;
+                    //   console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
+                    // }
                     if(streamMessage.data.type === 'offer'){
                       console.log("Received offer from: ", streamMessage.data.from);
                       try{
@@ -158,7 +158,8 @@ const AblyConnectionComponent = () => {
             const registrationMessage = {
               'role': 'Admin',
               'id': sessionID,
-              'message':"Connect"
+              'message':"Connect",
+              'from':sessionID
             };
             await channel.publish('WebRTC-client-register', registrationMessage)
             console.log('piID.current outside:', piID.current);

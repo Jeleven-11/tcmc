@@ -1178,13 +1178,17 @@ async def ably_connection():
         raspberry_pi_id = get_cpu_serial()
         channel = ably_client.channels.get(raspberry_pi_id)
         webRTCChannel=ably_client.channels.get('webrtc-signaling-channel')
-        def on_message(msg):
-            print(f"Received message 'WebRTC-client-register': {msg.data}")
-        async def messageToMyID(message):
-            data = message.data
+        async def on_message(msg):
+            # data = json.loads(msg.data)
+            print(f"Received message 'WebRTCccc-client-register': {msg.data}")
+        #     data = json.loads(msg.data)
+        #     await messageToMyID(data)
+        # async def messageToMyID(message):
+            data = msg.data
             print(f"Message for {raspberry_pi_id} received: {data}")
             print(f"data: {data}")
-            if data['type'] == 'start_live_stream':
+
+            if data['role'] == 'Admin' and data['message'] == 'Connect':
                 try:
                     peer_id = data["from"]
                     print(f"Received start_live_stream from {peer_id}")
@@ -1292,7 +1296,7 @@ async def ably_connection():
                     print(f"Error handling answer: {e}")
 
 
-        await webRTCChannel.subscribe(raspberry_pi_id, messageToMyID)
+        await webRTCChannel.subscribe(raspberry_pi_id, on_message)
         await webRTCChannel.subscribe('WebRTC-client-register', on_message)
         print("Listening for Commands")
         
