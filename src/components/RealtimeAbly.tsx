@@ -193,10 +193,10 @@ const AblyConnectionComponent = () => {
       });
     }, [sessionData, piIDState]);
   useEffect(() => {
-    if (videoRef.current && remoteStream) {
+    if (remoteStream) {
       console.log(remoteStream);
       console.log("Type: ", typeof remoteStream);
-      videoRef.current.srcObject = remoteStream;
+      videoRef.current!.srcObject = remoteStream;
     }
   }, [remoteStream]);
   return (
