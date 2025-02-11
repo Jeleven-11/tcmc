@@ -1306,7 +1306,8 @@ async def ably_connection():
         await webRTCChannel.publish('WebRTC-client-register',{
             'role': 'Raspberry Pi',
             'id': raspberry_pi_id,
-            'message':"Connect"
+            'message':"Connect",
+            'sessionID': raspberry_pi_id
           })
         print(f"Published data: {data}")
         while True:

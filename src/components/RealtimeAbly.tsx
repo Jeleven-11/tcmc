@@ -72,7 +72,8 @@ const AblyConnectionComponent = () => {
                 console.log("message.data.role = ", message.data.role);
                 console.log("message.data.sessionID = ", message.data.sessionID);
                 webRTCPeerChannel.current = realtime.channels.get(message.data.sessionID);
-                if(webRTCPeerChannel.current){
+                console.log('Type of webRTCPeerChannel.current', typeof webRTCPeerChannel.current);
+                if(webRTCPeerChannel.current !== undefined){
                   await webRTCPeerChannel.current.subscribe('Stream', async (streamMessage) => {
                     console.log("Received streamMessage: ", streamMessage);
                     console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
