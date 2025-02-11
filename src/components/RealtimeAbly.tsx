@@ -74,7 +74,8 @@ const AblyConnectionComponent = () => {
                 piID.current = message.data.sessionID;//does this rerender the component? piID is a dependency
                 console.log('piID.current inside:', piID.current);
                 if(piID.current !== ''){
-                  await channel.subscribe(piID.current, async (streamMessage) => {
+                  const channel1 = realtime.channels.get(piID.current)
+                  await channel1.subscribe(piID.current, async (streamMessage) => {
                     console.log("Received streamMessage: ", streamMessage);
                     console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
                     // if(sentSignalingMessage.current === false){

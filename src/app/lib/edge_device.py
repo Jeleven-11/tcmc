@@ -1170,19 +1170,16 @@ async def cleanup_peer_connection(peer_id):
     return
 
 async def ably_connection():
-    global stream, surveillance_running
     print(f"ABLY_API_KEY: {ABLY_API_KEY}")
     secret_key = os.environ.get("AUTH_SECRETKEY")
     print(f"AUTH_SECRETKEY: {secret_key}")
     ably_client = AblyRealtime(ABLY_API_KEY)
     try:
         raspberry_pi_id = get_cpu_serial()
-        if stream is None:
-            stream = CameraStreamTrack()
-            surveillance_running = True
-            surveillanceTask = asyncio.create_task(surveillance_loop())
+        await setup_stream()
+        
         channel = ably_client.channels.get(raspberry_pi_id)
-        webRTCChannel=ably_client.channels.get('webrtc-signaling-channel')
+        # webRTCChannel=ably_client.channels.get('webrtc-signaling-channel')
         async def on_message(msg):
             # data = json.loads(msg.data)
             print(f"Received message 'WebRTC-client-register': {msg.data}")
@@ -1195,6 +1192,7 @@ async def ably_connection():
 
             if data['role'] == 'Admin' and data['message'] == 'Connect':
                 try:
+                    global now_live
                     peer_id = data["from"]
                     print(f"Received start_live_stream from {peer_id}")
                     if peer_id in peer_connections:
@@ -1202,6 +1200,7 @@ async def ably_connection():
                     pc = RTCPeerConnection()
                     peer_connections[peer_id] = pc
                     if data.get('camera_stream', False):
+                        global stream, surveillance_running
                         if stream is None:
                             stream = CameraStreamTrack()
                             print("Start CameraStreamTrack")
@@ -1226,7 +1225,8 @@ async def ably_connection():
                                     "sdpMLineIndex": candidate.sdpMLineIndex,
                                 },
                                 "target": peer_id,
-                                "from": raspberry_pi_id
+                                "from": raspberry_pi_id,
+                                "role": "Raspberry Pi"
                             })
                     offer = await pc.createOffer()
                     await pc.setLocalDescription(offer)
@@ -1239,7 +1239,8 @@ async def ably_connection():
                         },
                         # "sdp": pc.localDescription.sdp,
                         "from": raspberry_pi_id,
-                        "target": peer_id
+                        "target": peer_id,
+                        "role": "Raspberry Pi"
                     })
                     print("Still good 2")
                     @pc.on("connectionstatechange")
@@ -1332,6 +1333,13 @@ async def ably_connection():
     finally:
         await ably_client.close()#Ensure the connection is closed on exit
 
+async def setup_stream():
+    global stream, surveillance_running
+    if stream is None:
+        print("stream is none. Will attach camera stream track to it")
+        stream = CameraStreamTrack()
+        surveillance_running = True
+        asyncio.create_task(surveillance_loop())
 
 # async def websocket_communication():
 #     atexit.register(release_camera)
