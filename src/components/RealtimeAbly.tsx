@@ -71,9 +71,9 @@ const AblyConnectionComponent = () => {
               if(message.data.role === 'Raspberry Pi'){
                 console.log("message.data.role = ", message.data.role);
                 console.log("message.data.sessionID = ", message.data.sessionID);
-                setPiID(message.data.sessionID);
+                setPiID(message.data.sessionID);//does this rerender the component? piID is a dependency
                 // const webRTCPeerChannel = realtime.channels.get(piID.current);
-                console.log('piID', piID);
+                
                 // if(webRTCPeerChannel.current !== undefined){
                   
                 // }
@@ -85,6 +85,7 @@ const AblyConnectionComponent = () => {
               'message':"Connect"
             };
             await channel.publish('WebRTC-client-register', registrationMessage)
+            console.log('piID:', piID);
             if(piID !== ''){
               await channel.subscribe(piID, async (streamMessage) => {
                 console.log("Received streamMessage: ", streamMessage);
