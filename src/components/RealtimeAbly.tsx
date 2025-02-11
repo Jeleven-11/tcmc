@@ -39,7 +39,7 @@ const client = {
 const AblyConnectionComponent = () => {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   // const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const remoteStream = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   // const [videoState, setVideoState] = useState<HTMLVideoElement>(null);
   // const webRTCPeerChannel = useRef<Ably.RealtimeChannel>();
@@ -48,22 +48,6 @@ const AblyConnectionComponent = () => {
   const [sessionData, setSessionData] = useState<SessionData>(null);
   const piID = useRef<string>('');
   const [piIDState, setPiIDState] = useState<string|''>('')
-  useEffect(() => {
-    // This effect is dedicated to handling the ontrack event
-  if (peerConnection.current) {
-      peerConnection.current.ontrack = (event: RTCTrackEvent) => {
-          console.log("Received remote track!", event);
-          setRemoteStream(event.streams[0]);
-      };
-    }
-
-    // Cleanup function to clear the track listener
-    return () => {
-        if (peerConnection.current) {
-            peerConnection.current.ontrack = null;
-        }
-    };
-  }, [peerConnection]);
     useEffect(() => {
       if(sessionData!==null) return;
       getSession().then(async (session) => {
@@ -113,7 +97,14 @@ const AblyConnectionComponent = () => {
                             })
                           }
                         };
-                        
+                        remoteStream.current = new MediaStream();
+                        videoRef.current!.srcObject = remoteStream.current;
+                        peerConnection.current.ontrack = (event:RTCTrackEvent) => {
+                          event.streams[0].getTracks().forEach((track) => {
+                            remoteStream.current?.addTrack(track);
+                          });
+                          //setRemoteStream(event.streams[0]);
+                        };
                         await peerConnection.current.setRemoteDescription(new RTCSessionDescription(message.data.payload));
                         const answer = await peerConnection.current.createAnswer();
                         await peerConnection.current.setLocalDescription(answer);
@@ -174,13 +165,13 @@ const AblyConnectionComponent = () => {
         }
       });
     }, [sessionData, piIDState]);
-  useEffect(() => {
-    if (remoteStream) {
-      console.log(remoteStream);
-      console.log("Type: ", typeof remoteStream);
-      videoRef.current!.srcObject = remoteStream;
-    }
-  }, [remoteStream]);
+  // useEffect(() => {
+  //   if (remoteStream) {
+  //     console.log(remoteStream);
+  //     console.log("Type: ", typeof remoteStream);
+  //     // videoRef.current!.srcObject = remoteStream;
+  //   }
+  // }, [remoteStream]);
   return (
     <div>
       <h2>WebRTC Video Stream</h2>
