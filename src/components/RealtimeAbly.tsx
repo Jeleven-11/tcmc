@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as Ably from 'ably';
 // import { AblyProvider, useChannel, usePresence } from 'ably/react';
 // import { RTCPeerConnection, RTCSessionDescription } from 'webrtc';
@@ -32,43 +32,20 @@ type SessionData = {
 //   type: 'offer' | 'answer' | 'pranswer' | 'rollback';
 //   sdp: string;
 // }
-export async function InitAblyConnection(sessionID: string){
-  
-  const client = {
-    key : process.env.NEXT_PUBLIC_ABLY_API_KEY,
-    transportParams: { heartbeatInterval: 15000 }
-  }
-  const realtime = new Ably.Realtime(client)
-  const channel = realtime.channels.get('webrtc-signaling-channel')
-  await channel.subscribe('WebRTC-client-register', (message) => {
-    console.log("Received ably message: ", message.data);
-  });
-  const registrationMessage = {
-    'role': 'Admin',
-    'id': sessionID,
-    'message':"Connect"
-  };
-  await channel.publish('WebRTC-client-register', registrationMessage)
-  console.log('Sent registration message to ably: ', registrationMessage)
+const client = {
+  key : process.env.NEXT_PUBLIC_ABLY_API_KEY,
+  transportParams: { heartbeatInterval: 15000 }
 }
-export default function RealtimeDisplay () {
-  
-  // const [targetId, setTargetId] = useState('');
-  // const [peerConnection, setPeerConnection] = useState<RTCPeerConnection | null>(null);
+const AblyConnectionComponent = () => {
+  const [peerConnection, setPeerConnection] = useState<RTCPeerConnection | null>(null);
   // const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-  // const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
-  // const [webRTCClients, setWebRTCClients] = useState<Map<string, WebRTCClientInfo>>(new Map());
-  // const ably = useRef<Ably.Realtime | null>(null);
-  // const [channelInstance, setChannelInstance] = useState<Ably.RealtimeChannel>();
-  // const [ownChannelInstance, setOwnChannelInstance] = useState<Ably.RealtimeChannel>();
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [webRTCPeerChannel, setWebRTCPeerChannel] = useState<Ably.RealtimeChannel>();
+  const myID = useRef<string | null>(null);
+  
   const [sessionData, setSessionData] = useState<SessionData>(null);
-  // const videoRef = useRef<HTMLVideoElement>(null);
-
-  // useEffect(() => {
-  //   if (videoRef.current && remoteStream) {
-  //     videoRef.current.srcObject = remoteStream;
-  //   }
-  // }, [remoteStream]);
+  
     useEffect(() => {
       if(sessionData!==null) {
         
@@ -86,235 +63,106 @@ export default function RealtimeDisplay () {
             authToken: currentSession.authToken,
             sessionID: currentSession.sessionID
           });
+          myID.current = currentSession.sessionID;
+          const InitAblyConnection = async(sessionID: string) => {
+  
+            const realtime = new Ably.Realtime(client)
+            const channel = realtime.channels.get('webrtc-signaling-channel')
+            await channel.subscribe('WebRTC-client-register', async (message) => {
+              console.log("Received ably message: ", message.data);
+              if(message.data.role === 'Raspberry Pi'){
+                setWebRTCPeerChannel(realtime.channels.get(message.data.id));
+                await webRTCPeerChannel?.subscribe('Stream', async (streamMessage) => {
+                  if(streamMessage.data.type === 'offer'){
+                    console.log("Received offer from: ", streamMessage.data.from);
+                    try{
+                      if(peerConnection){
+                        peerConnection.close();
+                        setPeerConnection(null);
+                      }
+                      setPeerConnection(new RTCPeerConnection());
+                      if(peerConnection){
+                        peerConnection.onicecandidate = async(event) => {
+                          if(event.candidate){
+                            await webRTCPeerChannel.publish('Stream',{
+                              type: 'ice-candidate',
+                              payload: event.candidate,
+                              from: myID.current
+                            })
+                          }
+                        };
+                        peerConnection.ontrack = (event:RTCTrackEvent) => {
+                          setRemoteStream(event.streams[0]);
+                        };
+                        await peerConnection.setRemoteDescription(new RTCSessionDescription(streamMessage.data.payload));
+                        const answer = await peerConnection.createAnswer();
+                        await peerConnection.setLocalDescription(answer);
+                        await webRTCPeerChannel.publish('Stream',{
+                          type: 'answer',
+                          payload: answer,
+                          from: streamMessage.data.from.id
+                        })
+                      }
+                    } catch (error){
+                      console.error("Error handling offer: ", error);
+                    }
+                    const answer = {
+                      type: streamMessage.data.type,
+                      payload: streamMessage.data.payload,
+                      from: myID.current
+                    }
+                    await webRTCPeerChannel.publish('Stream', answer);    
+                  }
+                  if(streamMessage.data.type === 'ice-candidate'){
+                    console.log("Received ICE candidate");
+                    try{
+                      await peerConnection?.addIceCandidate(new RTCIceCandidate(streamMessage.data.payload)) 
+                    } catch (error){
+                      console.error("Error adding ICE candidate:", error);
+                    }
+                  }           
+                  if(streamMessage.data.type === 'answer'){
+                    console.log('Received answer');
+                    try {
+                        await peerConnection?.setRemoteDescription(new RTCSessionDescription(streamMessage.data.payload));
+                    } catch (error) {
+                        console.error('Error setting remote description:', error);
+                    }
+                  }    
+                });
+              }
+            });
+            const registrationMessage = {
+              'role': 'Admin',
+              'id': sessionID,
+              'message':"Connect"
+            };
+            await channel.publish('WebRTC-client-register', registrationMessage)
+            console.log('Sent registration message to ably: ', registrationMessage)
+          }
           InitAblyConnection(currentSession.sessionID);
         } else {
           // setSessionData({ isLoggedIn: currentSession.isLoggedIn });
           alert("Please login again.")
         }
       });
-    }, [sessionData]);
-  // useEffect(() => {
-  //   const initAbly = async () => {
-  //     try {
-  //       // if(!ably.current)
-  //       ably.current = new Ably.Realtime({ key: process.env.NEXT_PUBLIC_ABLY_API_KEY });
-  //       setChannelInstance(ably.current.channels.get('webrtc-signaling-channel'));
-  //       if(sessionData===null) return;
-  //       setOwnChannelInstance(ably.current.channels.get(`${sessionData.sessionID}`));
-  //       // if(ownChannelInstance===null) return;
-  //       ownChannelInstance?.subscribe(async (msg: Ably.Message) => {
-  //         const data = msg.data;
-  //         console.log('Received message: ', data);
-  //         if (data.type === 'request-stream') {
-  //           handleRequestStream(data);
-  //         }
-  //       })
-  //       // channel.current = ably.current.channels.get('webrtc-signaling-channel');
-
-  //       // Initialize WebRTC clients map in local storage
-  //       // const storedClients = localStorage.getItem('webRTCClients');
-  //       // if (storedClients) {
-  //       //     const parsedClients = new Map(JSON.parse(storedClients));
-  //       //     setWebRTCClients(parsedClients);
-  //       // }
-  //       // if(channelInstance===null) return;
-  //       channelInstance?.subscribe(async (msg: Ably.Message) => {
-  //       //   const channelName = `signaling-${data.target}`;
-  //       // if(ably.current === null) return;
-  //       // const channel = ably.current.channels.get(channelName);
-  //       // channel.publish('signaling-message', {
-  //       //   type: 'offer',
-  //       //   payload: 'Your signaling message payload here',
-  //       //   from: data.from,
-  //       // });
-  //         channelInstance.publish('WebRTC-client-register',{
-  //           role: 'admin',
-  //           id: sessionData.sessionID,
-  //           message:"Connect"
-  //         })
-  //         const data = msg.data;
-  //         console.log('Received message: ', data);
-
-  //         if (data.type === 'register') {
-  //           handleRegister(data);
-  //         } else if (data.type === 'offer') {
-  //           handleOffer(data);
-  //         } else if (data.type === 'answer') {
-  //           handleAnswer(data);
-  //         } else if (data.type === 'ice-candidate') {
-  //           handleIceCandidate(data);
-  //         } else if (data.type === 'request-stream') {
-  //           handleRequestStream(data);
-  //         }
-  //       });
-  //       console.log('Subscribed to webrtc-signaling-channel');
-  //     } catch (error) {
-  //       console.error("Ably error:", error);
-  //     }
-  //   };
-
-  //   const handleRegister = (data: MessageType) => {
-  //     setWebRTCClients(prevClients => {
-  //       const newClients = new Map(prevClients);
-  //       newClients.set(data.id, {
-  //         role: data.role,
-  //         id: data.id
-  //       });
-  //       console.log('Registered client with ID:', data.id);
-  //       console.log('webRTCClients: ', webRTCClients);
-
-  //           // Store updated clients in local storage
-  //           // localStorage.setItem('webRTCClients', JSON.stringify(Array.from(newClients.entries())));
-  //           return newClients;
-  //       });
-  //   };
-
-  //   const handleOffer = async (data: MessageType) => {
-  //     console.log('handleOffer, offer: ', data.payload)
-  //     try{
-  //     const peerConnection = new RTCPeerConnection({
-  //       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-  //     });
-  //     setPeerConnection(peerConnection);
-
-  //     const localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-  //     setLocalStream(localStream);
-      
-  //     localStream.getTracks().forEach(track => {
-  //       peerConnection.addTrack(track, localStream);
-  //     });
+    }, [sessionData, webRTCPeerChannel, peerConnection]);
+  useEffect(() => {
     
-
-  //     peerConnection.ontrack = (event:RTCTrackEvent) => {
-  //       setRemoteStream(event.streams[0]);
-  //     };
-
-  //     peerConnection.onicecandidate = (event:RTCPeerConnectionIceEvent) => {
-  //       if (event.candidate) {
-  //         channelInstance!.publish('message', {
-  //           type: 'ice-candidate',
-  //           payload: event.candidate,
-  //           target: data.from // Send to the offer initiator
-  //         });
-  //       }
-  //     };
-  //     const descriptionInit: RTCSessionDescriptionInit = {
-  //       type: 'offer', // or 'answer', depending on the context
-  //       sdp: data.payload,
-  //     };
-  //     await peerConnection.setRemoteDescription(new RTCSessionDescription(descriptionInit));
-  //     const answer = await peerConnection.createAnswer();
-  //     await peerConnection.setLocalDescription(answer);
-
-  //     channelInstance!.publish('message', {
-  //       type: 'answer',
-  //       payload: answer,
-  //       target: data.from // Send to the offer initiator
-  //     });
-  //     }catch(error){
-  //       console.error('Error during offer handling:', error);
-  //     }
-  //   };
-    
-  //   const handleAnswer = async (data: MessageType) => {
-  //     try {
-  //       const descriptionInit: RTCSessionDescriptionInit = {
-  //         type: 'answer', // or 'answer', depending on the context
-  //         sdp: data.payload,
-  //       };
-  //       if (peerConnection) {
-  //           console.log('answer data: ', data.payload)
-  //         await peerConnection.setRemoteDescription(new RTCSessionDescription(descriptionInit));
-  //       }
-  //     } catch (error) {
-  //       console.error('Error setting remote description:', error);
-  //     }
-  //   };
-
-  //   const handleIceCandidate = async (data: MessageType) => {
-  //     try {
-  //       if (peerConnection) {
-  //         await peerConnection.addIceCandidate(JSON.parse(data.payload));
-  //       }
-  //     } catch (error) {
-  //       console.error('Error adding ice candidate:', error);
-  //     }
-  //   };
-
-  //   const handleRequestStream = async (data: MessageType) => {
-  //     console.log('Received request stream message: ', data);
-  //     // Implement your logic to handle stream requests
-  //     const targetClient = Array.from(webRTCClients.entries())
-  //     .find(([, info]) => info.id === data.target);
-  //     console.log(`Request Stream from: ${data.from} to: ${data.target}`);
-  //     if (targetClient) {
-  //       const channelName = `signaling-${data.target}`;
-  //       if(ably.current === null) return;
-  //       const channel = ably.current.channels.get(channelName);
-  //       channel.publish('signaling-message', {
-  //         type: 'offer',
-  //         payload: 'Your signaling message payload here',
-  //         from: data.from,
-  //       });
-  //     }
-  //   };
-
-  //   initAbly();
-
-  //   return () => {
-  //     if (ably.current && ably.current.connection.state !== 'closed') {
-  //       ably.current.close();
-  //     }
-  //     // ably.current.close();
-  //     if (peerConnection) {
-  //       peerConnection.close();
-  //     }
-  //     if (localStream) {
-  //       localStream.getTracks().forEach(track => track.stop());
-  //     }
-  //   };
-  // }, []);
-  // const handleTargetIdChange = (event:React.FormEvent<HTMLFormElement>) => {
-  //   setTargetId(event.target.value);
-  // };
-  // const handleMakeOffer = async () => {
-  //   if (!peerConnection) {
-  //     const pc = new RTCPeerConnection({
-  //       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-  //     });
-  //     setPeerConnection(pc);
-  //   }
-
-  //   try {
-  //     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-  //     setLocalStream(stream);
-
-  //     stream.getTracks().forEach((track) => {
-  //       peerConnection.addTrack(track, stream);
-  //     });
-
-  //     const offer = await peerConnection.createOffer();
-  //     await peerConnection.setLocalDescription(new RTCSessionDescription({ type: 'offer', sdp: offer }));
-  //     setOffer(offer);
-
-  //     channelInstance.publish('message', {
-  //       type: 'offer',
-  //       payload: offer,
-  //       target: targetId,
-  //     });
-  //   } catch (error) {
-  //     console.error('Error making offer:', error);
-  //   }
-  // };
-
+  });
+  useEffect(() => {
+    if (videoRef.current && remoteStream) {
+      videoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream]);
   return (
     <div>
       <h2>WebRTC Video Stream</h2>
-      {/* {remoteStream ? (
+      {remoteStream ? (
         <video ref={videoRef} autoPlay playsInline />
-      ) : ( }
+      ) : ( 
         <p>Waiting for video stream...</p>
-      )*/}
+      )}
       {/* <div>
       <input type="text" value={targetId} onChange={handleTargetIdChange} placeholder="Enter target ID" />
       <button onClick={handleMakeOffer}>Make Offer</button>
@@ -331,4 +179,5 @@ export default function RealtimeDisplay () {
   );
 };
 
-// export default RealtimeDisplay;
+
+export default AblyConnectionComponent;
