@@ -82,8 +82,8 @@ const AblyConnectionComponent = () => {
                 console.log('piID.current inside:', piID.current);
                 // if(piID.current !== ''){
                   
-                await channel.subscribe(piID.current, async (streamMessage) => {
-                  console.log("Received streamMessage channel name piID.current: ", streamMessage);
+                // await channel.subscribe('WebRTC-client-register', async (streamMessage) => {
+                  console.log("Received streamMessage channel name piID.current: ", message);
                   // console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
                   // if(sentSignalingMessage.current === false){
                   //   await channel.publish(piID.current, {
@@ -94,8 +94,8 @@ const AblyConnectionComponent = () => {
                   //   sentSignalingMessage.current = true;
                   //   console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
                   // }
-                  if(streamMessage.data.type === 'offer'){
-                    console.log("Received offer from: ", streamMessage.data.from);
+                  if(message.data.type === 'offer'){
+                    console.log("Received offer from: ", message.data.from);
                     try{
                       if(peerConnection.current){
                         peerConnection.current.close();
@@ -118,7 +118,7 @@ const AblyConnectionComponent = () => {
                         peerConnection.current.ontrack = (event:RTCTrackEvent) => {
                           setRemoteStream(event.streams[0]);
                         };
-                        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(streamMessage.data.payload));
+                        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(message.data.payload));
                         const answer = await peerConnection.current.createAnswer();
                         await peerConnection.current.setLocalDescription(answer);
                         await channel.publish('WebRTC-client-register',{
@@ -138,25 +138,25 @@ const AblyConnectionComponent = () => {
                     // }
                     // await webRTCPeerChannel.publish(piID.current, answer);    
                   }
-                  if(streamMessage.data.type === 'ice-candidate'){
+                  if(message.data.type === 'ice-candidate'){
                     console.log("Received ICE candidate");
                     try{
                       if(peerConnection.current)
-                      await peerConnection.current.addIceCandidate(new RTCIceCandidate(streamMessage.data.payload)) 
+                      await peerConnection.current.addIceCandidate(new RTCIceCandidate(message.data.payload)) 
                     } catch (error){
                       console.error("Error adding ICE candidate:", error);
                     }
                   }           
-                  if(streamMessage.data.type === 'answer'){
+                  if(message.data.type === 'answer'){
                     console.log('Received answer');
                     try {
                         if(peerConnection.current)
-                        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(streamMessage.data.payload));
+                        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(message.data.payload));
                     } catch (error) {
                         console.error('Error setting remote description:', error);
                     }
                   }    
-                });
+                // });
                 // }
                 // const webRTCPeerChannel = realtime.channels.get(piID.current);
                 
