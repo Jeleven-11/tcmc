@@ -1217,7 +1217,7 @@ async def ably_connection():
                     async def on_icecandidate(candidate):
                         if candidate:
                             print('sending candidate')
-                            await channel.publish(raspberry_pi_id,{
+                            await channel.publish('WebRTC-client-register',{
                                 "type": "ice-candidate",
                                 "payload": {
                                     "candidate": candidate.candidate,
@@ -1231,7 +1231,7 @@ async def ably_connection():
                     offer = await pc.createOffer()
                     await pc.setLocalDescription(offer)
                     print(f"Will send offer to: {peer_id}")
-                    await channel.publish(raspberry_pi_id, {
+                    await channel.publish('WebRTC-client-register', {
                         "type": "offer",
                         "payload":{
                             "sdp": pc.localDescription.sdp,

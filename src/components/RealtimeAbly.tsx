@@ -72,82 +72,6 @@ const AblyConnectionComponent = () => {
             
             const realtime = new Ably.Realtime(client)
             const channel = realtime.channels.get('webrtc-signaling-channel')
-            const raspberryPiChannel = async(clientID:string) =>{
-              await channel.subscribe(clientID, async (streamMessage) => {
-                console.log("Received streamMessage channel name piID.current: ", streamMessage);
-                // console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
-                // if(sentSignalingMessage.current === false){
-                //   await channel.publish(piID.current, {
-                //     type: 'start_live_stream', 
-                //     target: piID.current,
-                //     camera_stream: true
-                //   })
-                //   sentSignalingMessage.current = true;
-                //   console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
-                // }
-                if(streamMessage.data.type === 'offer'){
-                  console.log("Received offer from: ", streamMessage.data.from);
-                  try{
-                    if(peerConnection.current){
-                      peerConnection.current.close();
-                      peerConnection.current = null;
-                      // setPeerConnection(null);
-                    }
-                    // setPeerConnection(new RTCPeerConnection());
-                    peerConnection.current = new RTCPeerConnection();
-                    if(peerConnection.current){
-                      peerConnection.current.onicecandidate = async(event) => {
-                        if(event.candidate){
-                          await channel.publish(clientID,{
-                            type: 'ice-candidate',
-                            payload: event.candidate,
-                            from: myID.current
-                          })
-                        }
-                      };
-                      peerConnection.current.ontrack = (event:RTCTrackEvent) => {
-                        setRemoteStream(event.streams[0]);
-                      };
-                      await peerConnection.current.setRemoteDescription(new RTCSessionDescription(streamMessage.data.payload));
-                      const answer = await peerConnection.current.createAnswer();
-                      await peerConnection.current.setLocalDescription(answer);
-                      await channel.publish(clientID,{
-                        type: 'answer',
-                        payload: answer,
-                        from: myID.current
-                      })
-                    }
-                  } catch (error){
-                    console.error("Error handling offer: ", error);
-                  }
-                  // const answer = {
-                  //   type: streamMessage.data.type,
-                  //   payload: streamMessage.data.payload,
-                  //   from: myID.current
-                  // }
-                  // await webRTCPeerChannel.publish(piID.current, answer);    
-                }
-                if(streamMessage.data.type === 'ice-candidate'){
-                  console.log("Received ICE candidate");
-                  try{
-                    if(peerConnection.current)
-                    await peerConnection.current.addIceCandidate(new RTCIceCandidate(streamMessage.data.payload)) 
-                  } catch (error){
-                    console.error("Error adding ICE candidate:", error);
-                  }
-                }           
-                if(streamMessage.data.type === 'answer'){
-                  console.log('Received answer');
-                  try {
-                      if(peerConnection.current)
-                      await peerConnection.current.setRemoteDescription(new RTCSessionDescription(streamMessage.data.payload));
-                  } catch (error) {
-                      console.error('Error setting remote description:', error);
-                  }
-                }    
-              });
-            };
-
             await channel.subscribe('WebRTC-client-register', async (message) => {
               console.log("Received ably message: ", message.data);
               if(message.data.role === 'Raspberry Pi'){
@@ -157,8 +81,82 @@ const AblyConnectionComponent = () => {
                 setPiIDState(piID.current)
                 console.log('piID.current inside:', piID.current);
                 // if(piID.current !== ''){
-                await raspberryPiChannel(piID.current)
-                
+                  
+                await channel.subscribe(piID.current, async (streamMessage) => {
+                  console.log("Received streamMessage channel name piID.current: ", streamMessage);
+                  // console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
+                  // if(sentSignalingMessage.current === false){
+                  //   await channel.publish(piID.current, {
+                  //     type: 'start_live_stream', 
+                  //     target: piID.current,
+                  //     camera_stream: true
+                  //   })
+                  //   sentSignalingMessage.current = true;
+                  //   console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
+                  // }
+                  if(streamMessage.data.type === 'offer'){
+                    console.log("Received offer from: ", streamMessage.data.from);
+                    try{
+                      if(peerConnection.current){
+                        peerConnection.current.close();
+                        peerConnection.current = null;
+                        // setPeerConnection(null);
+                      }
+                      // setPeerConnection(new RTCPeerConnection());
+                      peerConnection.current = new RTCPeerConnection();
+                      if(peerConnection.current){
+                        peerConnection.current.onicecandidate = async(event) => {
+                          if(event.candidate){
+                            await channel.publish('WebRTC-client-register',{
+                              type: 'ice-candidate',
+                              payload: event.candidate,
+                              from: myID.current,
+                              target: piID.current
+                            })
+                          }
+                        };
+                        peerConnection.current.ontrack = (event:RTCTrackEvent) => {
+                          setRemoteStream(event.streams[0]);
+                        };
+                        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(streamMessage.data.payload));
+                        const answer = await peerConnection.current.createAnswer();
+                        await peerConnection.current.setLocalDescription(answer);
+                        await channel.publish('WebRTC-client-register',{
+                          type: 'answer',
+                          payload: answer,
+                          from: myID.current,
+                          target: piID.current
+                        })
+                      }
+                    } catch (error){
+                      console.error("Error handling offer: ", error);
+                    }
+                    // const answer = {
+                    //   type: streamMessage.data.type,
+                    //   payload: streamMessage.data.payload,
+                    //   from: myID.current
+                    // }
+                    // await webRTCPeerChannel.publish(piID.current, answer);    
+                  }
+                  if(streamMessage.data.type === 'ice-candidate'){
+                    console.log("Received ICE candidate");
+                    try{
+                      if(peerConnection.current)
+                      await peerConnection.current.addIceCandidate(new RTCIceCandidate(streamMessage.data.payload)) 
+                    } catch (error){
+                      console.error("Error adding ICE candidate:", error);
+                    }
+                  }           
+                  if(streamMessage.data.type === 'answer'){
+                    console.log('Received answer');
+                    try {
+                        if(peerConnection.current)
+                        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(streamMessage.data.payload));
+                    } catch (error) {
+                        console.error('Error setting remote description:', error);
+                    }
+                  }    
+                });
                 // }
                 // const webRTCPeerChannel = realtime.channels.get(piID.current);
                 
@@ -167,9 +165,6 @@ const AblyConnectionComponent = () => {
                 // }
               }
             });
-            if(piIDState!==''){
-              await raspberryPiChannel(piIDState)
-            }
             const registrationMessage = {
               'role': 'Admin',
               'id': sessionID,
@@ -185,7 +180,7 @@ const AblyConnectionComponent = () => {
             console.error(`Error encountered in Ably: `, error);
           } finally {
             return () => {
-              console.log("Cleanup subscription here by unsubscribing... TODO");
+              console.log("Cleanup subscription here by unsubscribing... TODO")
             }
           }
           }
