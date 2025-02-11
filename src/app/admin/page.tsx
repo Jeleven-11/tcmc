@@ -6,8 +6,10 @@ import Footer from '@/components/Footer';
 // import RequestNotificationPermission from '@/components/RequestNotificationPermission';
 import LineTinapa from '@/components/LineTinapa';
 import LineWeeklyTinapa from '@/components/LineWeeklyTinapa';
+import LineMonthlyTinapa from '@/components/LineMonthlyTinapa';
 import DateTimeComponent from '@/components/DateTimeComponent';
 import PushNotification from '@/components/PushNotifications';
+import LineYearlyTinapa from '@/components/LineYearlyTinapa';
 export const dynamic = 'force-dynamic'
 // Make this a Server Component by fetching data directly in the component
 const AdminDashboard = async () =>
@@ -39,6 +41,14 @@ const AdminDashboard = async () =>
                       <div className="bg-white p-4 rounded shadow-md">
                         <h2 className="text-xl font-semibold mb-4">Weekly Reports</h2>
                         <LineWeeklyTinapa />
+                      </div>
+                      <div className="bg-white p-4 rounded shadow-md">
+                        <h2 className="text-xl font-semibold mb-4">Monthly Reports</h2>
+                        <LineMonthlyTinapa />
+                      </div>
+                      <div className="bg-white p-4 rounded shadow-md">
+                        <h2 className="text-xl font-semibold mb-4">Yearly Reports</h2>
+                        <LineYearlyTinapa />
                       </div>
                     </div>
 

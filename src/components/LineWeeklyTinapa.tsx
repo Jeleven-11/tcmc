@@ -38,7 +38,7 @@ const WeeklyChart = () =>
         {
             try
             {
-                const response = await fetch("/api/getChartWeeklyReports")
+                const response = await fetch("/api/getChart/getChartWeeklyReports")
                 if (!response.ok)
                     throw new Error("Failed to fetch data")
 
