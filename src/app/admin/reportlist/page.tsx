@@ -13,6 +13,7 @@ import 'swiper/css/pagination';
 import Navbar from "@/components/adminNav";
 import Footer from "@/components/Footer";
 import { getSession } from "@/app/lib/actions";
+import DataTableReports from "@/components/DataTableReports";
 
 // type Reportss =
 // {
@@ -162,6 +163,7 @@ export default function AdminReportManagement()
   return (
     <>
       <Navbar />
+      <DataTableReports />
       <div className="page-container">
         <div className="admin-report-management">
           <h1 className="header">Admin Report Managementss</h1>

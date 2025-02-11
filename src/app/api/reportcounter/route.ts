@@ -2,13 +2,14 @@ import { FieldPacket } from 'mysql2';
 import pool from '../../lib/db'; // Correct import for the pool
 import { NextResponse } from 'next/server';
 
-interface ReportCount {
-    total_count: number;
-    pending_count: number; 
-    accepted_count: number;
-    dropped_count: number;
-    solved_count: number;
-  }
+interface ReportCount
+{
+  total_count: number;
+  pending_count: number; 
+  accepted_count: number;
+  dropped_count: number;
+  solved_count: number;
+}
 
 export async function GET() {
   try {

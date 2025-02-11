@@ -30,7 +30,7 @@ export async function GET(req: NextRequest)
       try
       {
         conn =  await pool.getConnection()
-        const [results]: [Report[], FieldPacket[]] = await conn.query('SELECT * FROM reports', []) as [Report[], FieldPacket[]]
+        const [results]: [Report[], FieldPacket[]] = await conn.query('SELECT * FROM reports ORDER BY id DESC', []) as [Report[], FieldPacket[]]
         console.log('Database result:', results)
 
         return NextResponse.json(results, {status: 200})

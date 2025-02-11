@@ -40,7 +40,7 @@ const DailyReports = () =>
     {
         const fetchChartData = async () =>
         {
-            fetch('/api/getChartDailyReports')
+            fetch('/api/getChart/getChartDailyReports')
             .then(response => response.json())
             .then(data =>
             {
