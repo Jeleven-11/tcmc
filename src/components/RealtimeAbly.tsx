@@ -48,18 +48,28 @@ const AblyConnectionComponent = () => {
   const [sessionData, setSessionData] = useState<SessionData>(null);
   const piID = useRef<string>('');
   const [piIDState, setPiIDState] = useState<string|''>('')
+  useEffect(() => {
+    // This effect is dedicated to handling the ontrack event
+  if (peerConnection.current) {
+      peerConnection.current.ontrack = (event: RTCTrackEvent) => {
+          console.log("Received remote track!", event);
+          setRemoteStream(event.streams[0]);
+      };
+    }
+
+    // Cleanup function to clear the track listener
+    return () => {
+        if (peerConnection.current) {
+            peerConnection.current.ontrack = null;
+        }
+    };
+  }, [peerConnection]);
     useEffect(() => {
       if(sessionData!==null) return;
       getSession().then(async (session) => {
         const currentSession = JSON.parse(JSON.stringify(session));
         if (currentSession.isLoggedIn) {
           setSessionData({
-            // isLoggedIn: currentSession.isLoggedIn,
-            // name: currentSession.name,
-            // contact_num: currentSession.contact_num,
-            // role: currentSession.role,
-            // email: currentSession.email,
-            // authToken: currentSession.authToken,
             sessionID: currentSession.sessionID
           });
           myID.current = currentSession.sessionID;
@@ -81,29 +91,16 @@ const AblyConnectionComponent = () => {
                 piID.current = message.data.sessionID;
                 setPiIDState(piID.current)
                 console.log('piID.current inside:', piID.current);
-                // if(piID.current !== ''){
-                  
-                // await channel.subscribe('WebRTC-client-register', async (streamMessage) => {
+               
                   console.log("Received streamMessage channel name piID.current: ", message);
-                  // console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
-                  // if(sentSignalingMessage.current === false){
-                  //   await channel.publish(piID.current, {
-                  //     type: 'start_live_stream', 
-                  //     target: piID.current,
-                  //     camera_stream: true
-                  //   })
-                  //   sentSignalingMessage.current = true;
-                  //   console.log('sentSignalingMessage.current:', sentSignalingMessage.current)
-                  // }
+                  
                   if(message.data.type === 'offer'){
                     console.log("Received offer from: ", message.data.from);
                     try{
                       if(peerConnection.current){
                         peerConnection.current.close();
                         peerConnection.current = null;
-                        // setPeerConnection(null);
                       }
-                      // setPeerConnection(new RTCPeerConnection());
                       peerConnection.current = new RTCPeerConnection();
                       if(peerConnection.current){
                         peerConnection.current.onicecandidate = async(event) => {
@@ -116,9 +113,7 @@ const AblyConnectionComponent = () => {
                             })
                           }
                         };
-                        peerConnection.current.ontrack = (event:RTCTrackEvent) => {
-                          setRemoteStream(event.streams[0]);
-                        };
+                        
                         await peerConnection.current.setRemoteDescription(new RTCSessionDescription(message.data.payload));
                         const answer = await peerConnection.current.createAnswer();
                         await peerConnection.current.setLocalDescription(answer);
@@ -131,13 +126,7 @@ const AblyConnectionComponent = () => {
                       }
                     } catch (error){
                       console.error("Error handling offer: ", error);
-                    }
-                    // const answer = {
-                    //   type: streamMessage.data.type,
-                    //   payload: streamMessage.data.payload,
-                    //   from: myID.current
-                    // }
-                    // await webRTCPeerChannel.publish(piID.current, answer);    
+                    }   
                   }
                   if(message.data.type === 'ice-candidate'){
                     console.log("Received ICE candidate");
@@ -157,13 +146,6 @@ const AblyConnectionComponent = () => {
                         console.error('Error setting remote description:', error);
                     }
                   }    
-                // });
-                // }
-                // const webRTCPeerChannel = realtime.channels.get(piID.current);
-                
-                // if(webRTCPeerChannel.current !== undefined){
-                  
-                // }
               }
             });
             const registrationMessage = {
