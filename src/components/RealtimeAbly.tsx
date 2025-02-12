@@ -19,7 +19,22 @@ const AblyConnectionComponent = () => {
   // const [sessionIDState, setSessionIDState] = useState<string>('');
   const [sessionData, setSessionData] = useState<SessionData>(null);
   // const [isRemoteStreamSet, setIsRemoteStreamSet] = useState<boolean>(false);
+  useEffect(() => {
+    if (sessionData !== null) return;
 
+    getSession().then(async (session) => {
+      if (!session?.isLoggedIn) {
+        alert('Please login again.');
+        return;
+      }
+
+      setSessionData({ sessionID: session.sessionID });
+      myID.current = session.sessionID;
+      console.log('User ID:', myID.current);
+      // setSessionIDState(session.sessionID);
+
+    });
+  }, [sessionData]);
   useEffect(() => {
     // Initialize Ably instance
     realtime.current = new Ably.Realtime({
@@ -162,22 +177,7 @@ const AblyConnectionComponent = () => {
       };
     };
   }, []);
-  useEffect(() => {
-    if (sessionData !== null) return;
-
-    getSession().then(async (session) => {
-      if (!session?.isLoggedIn) {
-        alert('Please login again.');
-        return;
-      }
-
-      setSessionData({ sessionID: session.sessionID });
-      myID.current = session.sessionID;
-      console.log('User ID:', myID.current);
-      // setSessionIDState(session.sessionID);
-
-    });
-  }, [sessionData]);
+  
 
   return (
     <div>
