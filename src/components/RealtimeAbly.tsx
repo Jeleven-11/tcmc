@@ -88,7 +88,13 @@ const AblyConnectionComponent = () => {
                 return;
               };
               if(event.candidate){
-                console.log('Sending ICE candidate:', event.candidate);
+                console.log('Sending ICE candidate payload:', {
+                  type: 'ice-candidate',
+                  payload: event.candidate,
+                  from: myID.current,
+                  target: piID.current,
+                  role: 'Admin'
+                });
                 await channel.current.publish('WebRTC-client-register', {
                   type: 'ice-candidate',
                   payload: event.candidate,
@@ -100,13 +106,16 @@ const AblyConnectionComponent = () => {
             };
             remoteStream.current = new MediaStream();
             if (videoRef.current) {
+              console.log("Setting videoRef.current.srcObject to remoteStream.current");
               videoRef.current.srcObject = remoteStream.current;
             }
             peerConnection.current.ontrack = (event) => {
               console.log('Received tracks:', event.streams[0].getTracks());
               event.streams[0].getTracks().forEach((track) => {
+                console.log('Adding track:', track);
                 if(remoteStream.current)
                 remoteStream.current.addTrack(track);
+                else videoRef.current!.srcObject = event.streams[0];
               });
               // if (videoRef.current) {
               //   videoRef.current.srcObject = remoteStream.current;

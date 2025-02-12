@@ -975,7 +975,7 @@ async def ably_connection():
             
             if data['role'] == 'Admin':
                 # print(f"Data: {data}")
-                if data['type'] == 'Connect' and data["from"] is not None:
+                if data['type'] == 'Connect':
                     try:
                         
                         global surveillanceTask
@@ -1000,26 +1000,12 @@ async def ably_connection():
                             pc.addTrack(camera_track)
                             # now_live = True
                         # print("Still good 1")
-                        offer = await pc.createOffer()
-                        await pc.setLocalDescription(offer)
-                        print(f"Will send offer to: {peer_id}")
-                        await webRTCChannel.publish('WebRTC-client-register', {
-                            "type": "offer",
-                            "payload":{
-                                "sdp": pc.localDescription.sdp,
-                                "type": pc.localDescription.type
-                            },
-                            # "sdp": pc.localDescription.sdp,
-                            "from": raspberry_pi_id,
-                            "target": peer_id,
-                            "role": "Raspberry Pi"
-                        })
+                        
 
                         @pc.on("icecandidate")
                         async def on_icecandidate(candidate):
                             if candidate:
-                                print('sending candidate')
-                                await webRTCChannel.publish('WebRTC-client-register',{
+                                candidatePayload = {
                                     "type": "ice-candidate",
                                     "payload": {
                                         "candidate": candidate.candidate,
@@ -1029,8 +1015,24 @@ async def ably_connection():
                                     "target": peer_id,
                                     "from": raspberry_pi_id,
                                     "role": "Raspberry Pi"
-                                })
-                        
+                                }
+                                print('sending candidate to {peer_id} with {candidatePayload}')
+                                await webRTCChannel.publish('WebRTC-client-register', candidatePayload)
+                        offer = await pc.createOffer()
+                        await pc.setLocalDescription(offer)
+                        offerPayload = {
+                            "type": "offer",
+                            "payload":{
+                                "sdp": pc.localDescription.sdp,
+                                "type": pc.localDescription.type
+                            },
+                            # "sdp": pc.localDescription.sdp,
+                            "from": raspberry_pi_id,
+                            "target": peer_id,
+                            "role": "Raspberry Pi"
+                        }
+                        print(f"Will send offer to: {peer_id} with {offerPayload}")
+                        await webRTCChannel.publish('WebRTC-client-register', offerPayload)
                         # print("Still good 2")
                         @pc.on("connectionstatechange")
                         async def on_connectionstatechange():
@@ -1044,8 +1046,8 @@ async def ably_connection():
                                     
                     except Exception as ex:
                         print("Exception error during start_live_stream setup: ", ex)
-                elif data["type"] == "ice-candidate" and data["from"] is not None:
-                    print(f"Message for {data['type']} received: {data}")
+                elif data["type"] == "ice-candidate":
+                    print(f"Received ICE candidate.")
                     peer_id = data["from"]
                     if peer_id in peer_connections:
                         pc = peer_connections[peer_id]
@@ -1070,8 +1072,8 @@ async def ably_connection():
                             if pc.connectionState in ["failed", "disconnected", "closed"]:
                                 print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Ice-candidate")
                                 await cleanup_peer_connection(peer_id)
-                elif data['type'] == "answer" and data["from"] is not None:
-                    print(f"Message for {data['type']} received: {data}")
+                elif data['type'] == "answer":
+                    # print(f"Message for {data['type']} received: {data}")
                     # global peer_connections
                     try:
                         peer_id = data["from"]
