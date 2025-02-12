@@ -260,7 +260,7 @@ const AblyConnectionComponent = () => {
   return (
     <div>
       {isClient ? (
-        <video ref={videoRef} autoPlay playsInline style={{ width: "100%", height: "auto", backgroundColor: "black" }} />
+        <video ref={videoRef} autoPlay playsInline muted style={{ width: "100%", height: "auto"}} />
       ) : (
         <p>Loading video...</p>
       )}
