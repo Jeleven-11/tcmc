@@ -16,10 +16,12 @@ const AblyConnectionComponent = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const myID = useRef<string | null>(null);
   const piID = useRef<string>('');
-  // const [piIDState, setPiIDState] = useState<string>('');
+  const [isClient, setIsClient] = useState<boolean>(false);
   const [sessionData, setSessionData] = useState<SessionData>(null);
   // const [isRemoteStreamSet, setIsRemoteStreamSet] = useState<boolean>(false);
-
+  useEffect(() => {
+    setIsClient(true);
+  }, [isClient]);
   useEffect(() => {
     // Initialize Ably instance
     realtime.current = new Ably.Realtime({
@@ -124,6 +126,8 @@ const AblyConnectionComponent = () => {
                   if (videoRef.current) {
                     videoRef.current.srcObject = event.streams[0];
                     console.log("📹 Video stream set to videoRef");
+                    videoRef.current.load(); // Force a refresh
+                    console.log("📹 Video stream refreshed.");
                   } else {
                     console.error("❌ videoRef is NULL!");
                   }
@@ -229,8 +233,11 @@ const AblyConnectionComponent = () => {
 
   return (
     <div>
-      <h2>WebRTC Video Stream</h2>
-      <video ref={videoRef} autoPlay playsInline />
+      {isClient ? (
+        <video ref={videoRef} autoPlay playsInline style={{ width: "100%", height: "auto", backgroundColor: "black" }} />
+      ) : (
+        <p>Loading video...</p>
+      )}
     </div>
   );
 };
