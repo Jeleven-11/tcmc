@@ -47,7 +47,7 @@ const AblyConnectionComponent = () => {
       const handleSignalingMessage = async (message: Ably.Message) => {
         const { type, from, payload, role, sessionID } = message.data;
         
-        if (role !== 'Raspberry Pi') return;
+        if (role !== 'Raspberry Pi' || (type === 'ice-candidate' && from === myID.current)) return;
         console.log('Received message from Raspberry Pi:', message.data);
 
         // if (!peerConnection.current) {

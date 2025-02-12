@@ -62,7 +62,7 @@ pc = None
 executor = ThreadPoolExecutor(max_workers=2)
 
 # --- WebRTC Data Configurations --- #
-peer_connections = {}
+
 # startTraining = False
 # trainingMin = 0
 # trainingHour = 0
@@ -917,7 +917,7 @@ def parse_candidate(candidate_str):
 #         print(f"will train in {trainingHour}:{trainingMin}")
 #     await close_web_rtc_session(target["id"])
         
-async def close_web_rtc_session(peer_id):
+async def close_web_rtc_session(peer_id, peer_connections):
     global pc
     if peer_id in peer_connections:
         pc = peer_connections[peer_id]
@@ -933,7 +933,7 @@ async def close_web_rtc_session(peer_id):
             print(f"Cleaned up peer connection for --> {peer_id}.")
             pc = None 
             print("WebRTC session closed")
-async def cleanup_peer_connection(peer_id):
+async def cleanup_peer_connection(peer_id, peer_connections):
     # global peer_connections
     if peer_id in peer_connections:
         try:
@@ -953,192 +953,194 @@ async def cleanup_peer_connection(peer_id):
     print(f"peer is not found: {peer_id}")
     return
 
-async def ably_connection():
-    print(f"ABLY_API_KEY: {ABLY_API_KEY}")
-    secret_key = os.environ.get("AUTH_SECRETKEY")
-    print(f"AUTH_SECRETKEY: {secret_key}")
-    ably_client = AblyRealtime(ABLY_API_KEY)
-    global peer_connections
-    try:
-        raspberry_pi_id = get_cpu_serial()
-        await setup_stream()
-        
-        # channel = ably_client.channels.get(raspberry_pi_id)
-        webRTCChannel=ably_client.channels.get('webrtc-signaling-channel')
-        async def on_message(msg):
-            # data = json.loads(msg.data)
-            print(f"Received message 'WebRTC-client-register': {msg.data}")
-        #     data = json.loads(msg.data)
-        #     await messageToMyID(data)
-        async def messageToMyID(message):
-            data = message.data
+class WebRTCConnection():
+    def __init__(self):
+        self.peer_connections = {}
+        self.pc = None
+    async def cleanup_peer_connection(self):
+        # self.pc = self.peer_connections[peer_id]
+        self.pc.on("connectionstatechange", None)  
+        self.pc.on("icecandidate", None)
+        await self.pc.close()  
+    async def ably_connection(self):
+        print(f"ABLY_API_KEY: {ABLY_API_KEY}")
+        secret_key = os.environ.get("AUTH_SECRETKEY")
+        print(f"AUTH_SECRETKEY: {secret_key}")
+        ably_client = AblyRealtime(ABLY_API_KEY)
+        try:
             
-            if data['role'] == 'Admin':
-                # print(f"Data: {data}")
+            raspberry_pi_id = get_cpu_serial()
+            await setup_stream()
+            
+            # channel = ably_client.channels.get(raspberry_pi_id)
+            webRTCChannel=ably_client.channels.get('webrtc-signaling-channel')
+            async def on_icecandidate(candidate):
+                print("ICE candidate event triggered")
+                if candidate:
+                    candidatePayload = {
+                        "type": "ice-candidate",
+                        "payload": {
+                            "candidate": candidate.candidate,
+                            "sdpMid": candidate.sdpMid,
+                            "sdpMLineIndex": candidate.sdpMLineIndex,
+                        },
+                        "from": raspberry_pi_id,
+                        "role": "Raspberry Pi"
+                    }
+                    print('sending candidate to {peer_id} with {candidatePayload}')
+                    await webRTCChannel.publish('WebRTC-client-register', candidatePayload)
+            async def on_connectionstatechange(peer_id):
+                if self.pc.connectionState in ["failed", "disconnected", "closed"]:
+                    print(f"Connection state {self.pc.connectionState} for peer {peer_id}. Cleaning up. Live stream")
+                    await cleanup_peer_connection()
+                    now_live = False
+                    print("Resumed surveillance mode...")
+                    surveillance_running = True
+                    # exit(1)       
                 
-                if data['type'] == 'Connect':
-                    global surveillanceTask
-                    try:
+            async def messageToMyID(message):
+                data = message.data
+                
+                if data['role'] == 'Admin':
+                    # print(f"Data: {data}")
+                    
+                    if data['type'] == 'Connect':
+                        global surveillanceTask
+                        try:
+                            peer_id = data["from"]
+                            print(f"Received start_live_stream from {peer_id}")
+                            
+                            if peer_id in self.peer_connections:
+                                await cleanup_peer_connection()
+                            self.pc = RTCPeerConnection()
+                            self.pc.on("icecandidate", lambda: on_icecandidate)
+                            print(f"Peer Connections: {self.peer_connections}")
+                            if data.get('camera_stream', False):
+                                global stream, surveillance_running
+                                if stream is None:
+                                    stream = CameraStreamTrack()
+                                    print("Start CameraStreamTrack")
+                                elif surveillance_running:
+                                    print('Stream is running, now stopping...')
+                                    surveillance_running = False
+                                    print("Paused surveillance mode...")
+                                    surveillanceTask.cancel()
+                                print("Starting WebRTC Mode...")
+                                camera_track = stream
+                                self.pc.addTrack(camera_track)
+                                # now_live = True
+                            # print("Still good 1")
+                            
+                            
+                            
+                            
+                            
+                            offer = await self.pc.createOffer()
+                            await self.pc.setLocalDescription(offer)
+                            offerPayload = {
+                                "type": "offer",
+                                "payload":{
+                                    "sdp": self.pc.localDescription.sdp,
+                                    "type": self.pc.localDescription.type
+                                },
+                                # "sdp": pc.localDescription.sdp,
+                                "from": raspberry_pi_id,
+                                "target": peer_id,
+                                "role": "Raspberry Pi"
+                            }
+                            print(f"Will send offer to: {peer_id}")
+                            await webRTCChannel.publish('WebRTC-client-register', offerPayload)
+                            
+                            # print("Still good 2")
+                            self.peer_connections[peer_id] = self.pc
+                            print(f"Peer Connections after sending offer: {self.peer_connections}")
+                            self.pc.on("connectionstatechange", lambda: on_connectionstatechange(peer_id))
+                            
+                                        
+                        except Exception as ex:
+                            print("Exception error during start_live_stream setup: ", ex)
+                    if data["type"] == "ice-candidate":
+                        print(f"Received ICE candidate.")
+                        print(f"Peer Connections during ice-candidate: {self.peer_connections}")
                         peer_id = data["from"]
-                        print(f"Received start_live_stream from {peer_id}")
-                        
-                        if peer_id in peer_connections:
-                            await cleanup_peer_connection(peer_id)
-                        pc = RTCPeerConnection()
-                        peer_connections[peer_id] = pc
-                        print(f"Peer Connections: {peer_connections}")
-                        if data.get('camera_stream', False):
-                            global stream, surveillance_running
-                            if stream is None:
-                                stream = CameraStreamTrack()
-                                print("Start CameraStreamTrack")
-                            elif surveillance_running:
-                                print('Stream is running, now stopping...')
-                                surveillance_running = False
-                                print("Paused surveillance mode...")
-                                surveillanceTask.cancel()
-                            print("Starting WebRTC Mode...")
-                            camera_track = stream
-                            pc.addTrack(camera_track)
-                            # now_live = True
-                        # print("Still good 1")
-                        
-                        async def on_icecandidate(candidate):
-                            print("ICE candidate event triggered")
-                            if candidate:
-                                candidatePayload = {
-                                    "type": "ice-candidate",
-                                    "payload": {
-                                        "candidate": candidate.candidate,
-                                        "sdpMid": candidate.sdpMid,
-                                        "sdpMLineIndex": candidate.sdpMLineIndex,
-                                    },
-                                    "target": peer_id,
-                                    "from": raspberry_pi_id,
-                                    "role": "Raspberry Pi"
-                                }
-                                print('sending candidate to {peer_id} with {candidatePayload}')
-                                await webRTCChannel.publish('WebRTC-client-register', candidatePayload)
-                        pc.on("icecandidate", on_icecandidate)
-                        
-                        offer = await pc.createOffer()
-                        await pc.setLocalDescription(offer)
-                        offerPayload = {
-                            "type": "offer",
-                            "payload":{
-                                "sdp": pc.localDescription.sdp,
-                                "type": pc.localDescription.type
-                            },
-                            # "sdp": pc.localDescription.sdp,
-                            "from": raspberry_pi_id,
-                            "target": peer_id,
-                            "role": "Raspberry Pi"
-                        }
-                        print(f"Will send offer to: {peer_id} with {offerPayload}")
-                        await webRTCChannel.publish('WebRTC-client-register', offerPayload)
-                        print(f"Peer Connections after sending offer: {peer_connections}")
-                        # print("Still good 2")
-                        @pc.on("connectionstatechange")
-                        async def on_connectionstatechange():
-                            if pc.connectionState in ["failed", "disconnected", "closed"]:
-                                print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Live stream")
-                                await cleanup_peer_connection(peer_id)
-                                now_live = False
-                                print("Resumed surveillance mode...")
-                                surveillance_running = True
-                                # exit(1)
-                                    
-                    except Exception as ex:
-                        print("Exception error during start_live_stream setup: ", ex)
-                elif data["type"] == "ice-candidate":
-                    print(f"Received ICE candidate.")
-                    print(f"Peer Connections during ice-candidate: {peer_connections}")
-                    peer_id = data["from"]
-                    if peer_id in peer_connections:
-                        print(f"Received ICE candidate from {peer_id}")
-                        pc = peer_connections[peer_id]
-                        candidate_dict = parse_candidate(data["payload"]["candidate"])
-                        if data["payload"]:
-                            candidate = RTCIceCandidate(
-                                foundation=candidate_dict['foundation'],
-                                component=candidate_dict['component'],
-                                protocol=candidate_dict['protocol'],
-                                priority=candidate_dict['priority'],
-                                ip=candidate_dict['ip'],
-                                port=candidate_dict['port'],
-                                type=candidate_dict['type'],
-                                sdpMid=data["payload"]['sdpMid'],
-                                sdpMLineIndex=data["payload"]['sdpMLineIndex']
-                            )
-                            await pc.addIceCandidate(candidate)
-                        else:
-                            print(f"No payload in ICE candidate from {peer_id}")
-                        @pc.on("connectionstatechange")
-                        async def on_connectionstatechange():
-                            if pc.connectionState in ["failed", "disconnected", "closed"]:
-                                print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Ice-candidate")
-                                await cleanup_peer_connection(peer_id)
-                elif data['type'] == "answer":
-                    # print(f"Message for {data['type']} received: {data}")
-                    print(f"Peer Connections during answer: {peer_connections}")
-                    try:
-                        peer_id = data["from"]
-                        print(f"Received answer from: {peer_id}")
-                        if peer_id in peer_connections:
-                            pc = peer_connections[peer_id]
-                            answer = RTCSessionDescription(
-                                sdp=data["payload"]["sdp"],
-                                type=data["payload"]["type"]
-                            )
-                            await pc.setRemoteDescription(answer)
-                            print(f"Set remote description with answer from {peer_id}")
-                            @pc.on("connectionstatechange")
-                            async def on_connectionstatechange():
-                                if pc.connectionState in ["failed", "disconnected", "closed"]:
-                                    print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Answer")
-                                    # await cleanup_peer_connection(peer_id)
+                        if peer_id in self.peer_connections:
+                            print(f"Received ICE candidate from {peer_id}")
+                            self.pc = self.peer_connections[peer_id]
+                            candidate_dict = parse_candidate(data["payload"]["candidate"])
+                            if data["payload"]:
+                                candidate = RTCIceCandidate(
+                                    foundation=candidate_dict['foundation'],
+                                    component=candidate_dict['component'],
+                                    protocol=candidate_dict['protocol'],
+                                    priority=candidate_dict['priority'],
+                                    ip=candidate_dict['ip'],
+                                    port=candidate_dict['port'],
+                                    type=candidate_dict['type'],
+                                    sdpMid=data["payload"]['sdpMid'],
+                                    sdpMLineIndex=data["payload"]['sdpMLineIndex']
+                                )
+                                await self.pc.addIceCandidate(candidate)
+                            else:
+                                print(f"No payload in ICE candidate from {peer_id}")
+                            
+                    if data['type'] == "answer":
+                        # print(f"Message for {data['type']} received: {data}")
+                        print(f"Peer Connections during answer: {self.peer_connections}")
+                        try:
+                            peer_id = data["from"]
+                            print(f"Received answer from: {peer_id}")
+                            if peer_id in self.peer_connections:
+                                self.pc = self.peer_connections[peer_id]
+                                answer = RTCSessionDescription(
+                                    sdp=data["payload"]["sdp"],
+                                    type=data["payload"]["type"]
+                                )
+                                await self.pc.setRemoteDescription(answer)
+                                print(f"Set remote description with answer from {peer_id}")
+                               
 
-                        else:
-                            print(f"No peer connection found for {peer_id}")
-                    except Exception as e:
-                        print(f"Error handling answer: {e}")
+                            else:
+                                print(f"No peer connection found for {peer_id}")
+                        except Exception as e:
+                            print(f"Error handling answer: {e}")
+             
 
-
-        # await webRTCChannel.subscribe(raspberry_pi_id, messageToMyID)
-        await webRTCChannel.subscribe('WebRTC-client-register', messageToMyID)
-        print("Listening for Commands")
-        
-        # while True:
-            #send data
-        # data={
-        #     'id': raspberry_pi_id,
-        #     'role':"Raspberry Pi",
-        #     'sessionID': raspberry_pi_id
-        # }
-        # await channel.publish(raspberry_pi_id, data)
-        await webRTCChannel.publish('WebRTC-client-register',{
-            'role': 'Raspberry Pi',
-            'id': raspberry_pi_id,
-            'type':"Connect",
-            'sessionID': raspberry_pi_id
-        })
-        global now_live
-        if now_live == True:
+            # await webRTCChannel.subscribe(raspberry_pi_id, messageToMyID)
+            await webRTCChannel.subscribe('WebRTC-client-register', messageToMyID)
+            print("Listening for Commands")
+            
+            # while True:
+                #send data
+            # data={
+            #     'id': raspberry_pi_id,
+            #     'role':"Raspberry Pi",
+            #     'sessionID': raspberry_pi_id
+            # }
+            # await channel.publish(raspberry_pi_id, data)
             await webRTCChannel.publish('WebRTC-client-register',{
                 'role': 'Raspberry Pi',
                 'id': raspberry_pi_id,
-                'type':"Now Live",
+                'type':"Connect",
                 'sessionID': raspberry_pi_id
             })
-        # print(f"Published data: {data}")
-        while True:
-            await asyncio.sleep(1)
-    # except ably.AblyException as e:
-    #     print(f"Ably Error: {e}")
-    except Exception as e:
-        print(f"General Error: {e}")
-    finally:
-        await ably_client.close()#Ensure the connection is closed on exit
+            global now_live
+            if now_live == True:
+                await webRTCChannel.publish('WebRTC-client-register',{
+                    'role': 'Raspberry Pi',
+                    'id': raspberry_pi_id,
+                    'type':"Now Live",
+                    'sessionID': raspberry_pi_id
+                })
+            # print(f"Published data: {data}")
+            while True:
+                await asyncio.sleep(1)
+        # except ably.AblyException as e:
+        #     print(f"Ably Error: {e}")
+        except Exception as e:
+            print(f"General Error: {e}")
+        finally:
+            await self.cleanup_peer_connection()
+            await ably_client.close()#Ensure the connection is closed on exit
 
 async def setup_stream():
     global stream, surveillance_running, surveillanceTask
@@ -1148,439 +1150,13 @@ async def setup_stream():
         surveillance_running = True
         surveillanceTask = asyncio.create_task(surveillance_loop())
 
-# async def websocket_communication():
-#     atexit.register(release_camera)
-#     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-#     global assigned_ownerId, websocket_status, pc, my_websocket, stream, peer_connections, camera, number_of_faces_registered, surveillance_running
-#     # frame_count = 0
-#     # base_folder = "saved_faces"
-#     # mtcnn_face_reg = MTCNN(margin=20, image_size = 360, min_face_size=100, select_largest=True, thresholds = [0.6, 0.7, 0.7], factor=0.709, post_process=False, device=device)
-#     # #  image_size = 160, margin = 14, min_face_size =18, keep_all = True,
-#     #         # thresholds = [0.6, 0.7, 0.7], factor=0.709, post_process=True,
-#     #         # device=self.device
-#     # label = None
-#     raspberry_pi_id = get_cpu_serial()
-#     auth_token = generate_token(raspberry_pi_id)
-#     surveillanceTask = None
-#     while True:
-#         try:
-#             current_wifi = get_wifi_ssid()
-#             print(f"Current WiFi SSID: {current_wifi}")
-#             # status, lastFineTuning, number_of_faces_registered = load_last_training_record()
 
-#             # if status == "Failed" or status == "To be trained":
-#             #     print(f"Last finetuning training: {lastFineTuning}, status: {status}. Will attempt to train now...")
-#             #     # await send_admin_logs(ws, f"Last finetuning training: {lastFineTuning}, status: {status}. Will attempt to train now...")
-#             #     await fine_tunining_training()
-#             # if stream is None:
-#                 # stream = SecuritySurveillanceStreamTrack()
-#                 # data_dir = './saved_faces'
-#                 # batch_size = count_immediate_folders(data_dir)
-#                 # if batch_size > number_of_faces_registered:
-#                 #     print("Detected larger dataset than last training, will retrain and fine-tune on updated dataset.")
-#                 #     await fine_tunining_training()
-#                 # print("Starting Surveillance Mode...")
-#                 # stream = CameraStreamTrack()
-#                 # surveillance_running = True
-#                 # surveillanceTask = asyncio.create_task(surveillance_loop())
-#                 # surveillanceTask = asyncio.create_task(stream.surveillance_loop())
-#             # async with websockets.connect(f"wss://{SERVER_URL}?token={auth_token}") as ws:
-#                 # my_websocket = ws
-                
-#                 # print(f"Connected to WebSocket server: {SERVER_URL}")
-#                 # await send_admin_logs(ws, f"{raspberry_pi_id} connected to websocket server: {SERVER_URL}")
-#                 # websocket_status = "Connected"
-#                 # auth_message = {
-#                 #     'type': 'auth',
-#                 #     'token': auth_token
-#                 # }
-#                 # await ws.send(json.dumps(auth_message))
-#                 # print(f'Sent: {auth_message}')
-                
-#                 # checkUpdateTask = asyncio.create_task(checkTime(ws))
-#                 # ping_task = asyncio.create_task(send_ping(ws))#ping pong mechanism with websocket server to maintain connection
-#                 # ir_led_task = asyncio.create_task(controlIRLeds())
-#                 # pc = None
-#                 # if assigned_ownerId is None:
-#                 #     print("Waiting for configuration.")
-#                 # status, lastFineTuning, number_of_faces_registered = load_last_training_record()
-#                 # if status == "Failed":
-#                 #     print(f"Last finetuning training: {lastFineTuning}, status: {status}. Will attempt to train now...")
-#                 #     await send_admin_logs(ws, f"Last finetuning training: {lastFineTuning}, status: {status}. Will attempt to train now...")
-#                 #     await fine_tunining_training(ws)
-
-#                 # try:
-#                 #     # print("no error")
-#                 #     # async for message in ws:
-#                 #         data = json.loads(message)
-#                 #         # if started_training != "started training..." and camera is None:
-#                 #         #     print(f"Message received from server: {data}")
-
-                        
-#                 #         if data['type'] == "start_live_stream":#websocket signaling message
-#                 #             global now_live
-#                 #             try:
-#                 #                 # global peer_connections
-#                 #                 peer_id = data["from"]
-#                 #                 # await send_admin_logs(ws, (f"{raspberry_pi_id} received start_live_stream_security from {peer_id}"))
-#                 #                 print(f"received start_live_stream_security from {peer_id}")
-#                 #                 # create webrtc offer and send to the data["from"] and when the webrtc connection is established between the two, send the camera stream...
-                                
-#                 #                 if peer_id in peer_connections:
-#                 #                     await cleanup_peer_connection(peer_id)
-#                 #                 # if pc:
-#                 #                     # await pc.close()
-#                 #                 pc = RTCPeerConnection()
-#                 #                 peer_connections[peer_id] = pc
-
-#                 #                 if data.get('camera_stream', False):
-#                 #                     # stream = None
-                                    
-#                 #                     if stream is None:
-#                 #                         stream = CameraStreamTrack()
-#                 #                     elif surveillance_running:
-#                 #                         print('stream is running, now stopping...')
-#                 #                         # stream.cleanup()
-#                 #                         surveillance_running = False
-#                 #                         print("Paused surveillance mode...")
-#                 #                         # surveillanceTask.cancel()
-#                 #                     # stream = None
-#                 #                     # stream = CameraStreamTrack()
-#                 #                     print("Starting WEBRTC Mode...")
-#                 #                     camera_track = stream#media_relay().subscribe(stream)
-#                 #                     # camera_track = CameraStreamTrack()
-#                 #                     pc.addTrack(camera_track)
-#                 #                     # pc.addTrack(stream)
-#                 #                     now_live = True
-
-#                 #                 @pc.on("icecandidate")
-#                 #                 async def on_icecandidate(candidate):
-#                 #                     if candidate:
-#                 #                         print('sending candidate')
-#                 #                         await ws.send(json.dumps({
-#                 #                             "type": "ice-candidate",
-#                 #                             "payload": {
-#                 #                                 "candidate": candidate.candidate,
-#                 #                                 "sdpMid": candidate.sdpMid,
-#                 #                                 "sdpMLineIndex": candidate.sdpMLineIndex,
-#                 #                             },
-#                 #                             "target": peer_id,
-#                 #                             "from": raspberry_pi_id
-#                 #                         }))
-#                 #                 offer = await pc.createOffer()
-#                 #                 await pc.setLocalDescription(offer)
-                                
-#                 #                 print(f"Will send offer to {peer_id} for start_live_stream")
-#                 #                 await ws.send(json.dumps({
-#                 #                     "type": "offer",
-#                 #                     "payload":{
-#                 #                         "sdp": pc.localDescription.sdp,
-#                 #                         "type": pc.localDescription.type
-#                 #                     },
-#                 #                     # "sdp": pc.localDescription.sdp,
-#                 #                     "from": raspberry_pi_id,
-#                 #                     "target": peer_id
-#                 #                 }))
-#                 #                 @pc.on("connectionstatechange")
-#                 #                 async def on_connectionstatechange():
-#                 #                     if pc.connectionState in ["failed", "disconnected", "closed"]:
-#                 #                         print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Live stream")
-#                 #                         await cleanup_peer_connection(peer_id)
-#                 #                         now_live = False
-#                 #                         print("Resumed surveillance mode...")
-#                 #                         surveillance_running = True
-#                 #                         # exit(1)
-
-#                 #             except Exception as ex:
-#                 #                 print(f"Error during start_live_stream_security setup: {ex}")
-#                 #                 logging.error(f"Error during start_live_stream_security setup: {ex}")
-#                 #                 now_live = False
-                            
-
-#                         # if data.get('type') == "offer":
-#                         #     # global peer_connections
-#                         #     print(f'received offer from {data["from"]}')
-#                         #     # await handle_offer(data)
-#                         #     peer_id = data["from"]["id"]
-                            
-#                         #     if peer_id in peer_connections:
-#                         #         await cleanup_peer_connection(peer_id)
-
-#                         #     pc = RTCPeerConnection()
-#                         #     peer_connections[peer_id] = pc
-#                         #     @pc.on("track")
-#                         #     async def on_track(track):
-#                         #         global isFaceRegDone
-#                         #         frame_count = 1
-#                         #         frame_num = 1
-#                         #         rand_angle = -24
-#                         #         print(f"{frame_count}")
-#                         #         print(f"Receiving {track.kind} track")
-#                         #         @track.on("ended")
-#                         #         async def on_track_ended():
-#                         #             print("Track has ended. Cleaning up resources.")
-#                         #             await cleanup_peer_connection(peer_id)
-
-#                         #         while True:
-#                         #             try:
-#                         #                 frame = await track.recv() 
-#                         #                 rgb_frame = frame.to_rgb()
-#                         #                 print(f'frame format name: {rgb_frame.format.name} height: {rgb_frame.height} width: {rgb_frame.width}')
-#                         #                 if frame:
-#                         #                     image = rgb_frame.to_image()#rgb pillow image
-#                         #                     # np_frame = rgb_frame.to_ndarray(format="bgr24")
-#                         #                 # if frame is not None:
-#                         #                     # frame_rgb = cv2.cvtColor(np_frame, cv2.COLOR_BGR2RGB)
-#                         #                     # pil_image = Image.fromarray(frame_rgb)
-#                         #                     folder_path = os.path.join(base_folder, label)
-#                         #                     print(f"frame count: {frame_count} - {frame_num}")
-#                         #                     if frame_num > 45 and frame_num % 11 == 0 and frame_count <= 5:
-#                         #                         img_cropped_list, probs = mtcnn_face_reg(image, return_prob=True)
-#                         #                         print(f'probabilities of face: {probs}')
-                                                
-                            
-#                         #                         if img_cropped_list is not None:
-#                         #                             if probs > 0.9995:
-#                         #                                 rand_angle = rand_angle + random.randint(6, 10)
-#                         #                                 # image = Image.fromarray(rgb_frame)
-#                         #                                 rotated_image = image.rotate(rand_angle)
-#                         #                                 rotated_frame = np.array(rotated_image)
-#                         #                                 save_paths=[f'{folder_path}/{str(frame_count).zfill(2)}.jpeg']
-#                         #                                 faces = mtcnn_face_reg(image, save_path=save_paths)
-#                         #                                 for path in save_paths:
-#                         #                                     if frame_count <= 5:
-#                         #                                         save_paths_rot=[f'{folder_path}/{str(frame_count+15).zfill(2)}.jpeg']
-#                         #                                         faces_rotated = mtcnn_face_reg(rotated_frame, save_path=save_paths_rot)
-#                         #                                     faceImage = Image.open(path)
-#                         #                                     enhancer = ImageEnhance.Brightness(faceImage)
-#                         #                                     factor = 1.2
-#                         #                                     brightImage = enhancer.enhance(factor)
-#                         #                                     brightImage.save(f'{folder_path}/{str(frame_count+5).zfill(2)}.jpeg')
-#                         #                                     factor = 0.8
-#                         #                                     darkImage = enhancer.enhance(factor)
-#                         #                                     darkImage.save(f'{folder_path}/{str(frame_count+10).zfill(2)}.jpeg')
-#                         #                                 if frame_count >= 5 and isFaceRegDone is None:
-#                         #                                     global faceScanProcess
-#                         #                                     faceScanProcessResult = 'None'
-#                         #                                     if faceScanProcess == "Updating face data":
-#                         #                                         faceScanProcessResult = "Face data updated successfully!"
-#                         #                                     elif faceScanProcess == "Processing new face data":
-#                         #                                         faceScanProcessResult = "Face registered successfully!"
-#                         #                                     isFaceRegDone = True
-#                         #                                     print(faceScanProcessResult)
-#                         #                                     if isFaceRegDone:
-#                         #                                         print("Sending face reg result")
-#                         #                                         await send_face_reg_result(faceScanProcessResult, ws, data["from"], raspberry_pi_id)
-#                         #                                         break
-#                         #                                 elif frame_count > 5 and isFaceRegDone:
-#                         #                                     print("STOP FACE REGISTRATION")
-#                         #                                     break
-#                         #                                 if frame_count == 6:
-#                         #                                     print("STOP FACE REGISTRATION")
-#                         #                                     break
-#                         #                                 frame_count += 1
-                                                        
-#                         #                             else:
-#                         #                                 print("Face registration failed.")
-#                         #                     frame_num += 1    
-#                         #                     if frame_count == 6:
-#                         #                         print("STOP FACE REGISTRATION")
-#                         #                         print("Sending face reg result")
-#                         #                         await send_face_reg_result(faceScanProcessResult, ws, data["from"], raspberry_pi_id)
-#                         #                         break    
-
-#                         #             except Exception as e:
-#                         #                 # print(f"Error processing frame: {e}")
-#                         #                 continue
-#                         #     @pc.on("icecandidate")
-#                         #     async def on_icecandidate(candidate):
-#                         #         if candidate:
-#                         #             target = data["from"]
-
-#                         #             await ws.send(json.dumps({
-#                         #                 "type": "ice-candidate",
-#                         #                 "payload": {
-#                         #                     "candidate": candidate.candidate,
-#                         #                     "sdpMid": candidate.sdpMid,
-#                         #                     "sdpMLineIndex": candidate.sdpMLineIndex,
-#                         #                 },
-#                         #                 "target": target["id"],
-#                         #                 "from": raspberry_pi_id
-#                         #             }))
-#                         #     offer = RTCSessionDescription(sdp=data["payload"]["sdp"], type=data["payload"]["type"])
-#                         #     await pc.setRemoteDescription(offer)
-#                         #     answer = await pc.createAnswer()
-#                         #     await pc.setLocalDescription(answer)
-#                         #     target = data["from"]
-#                         #     print(f'will send answer to {target["id"]}')
-#                         #     await ws.send(json.dumps({
-#                         #         "type": "answer",
-#                         #         "payload": {
-#                         #             "sdp": pc.localDescription.sdp,
-#                         #             "type": pc.localDescription.type
-#                         #         },
-#                         #         "target": target["id"],
-#                         #         "from": raspberry_pi_id
-#                         #     }))
-#                         #     @pc.on("connectionstatechange")
-#                         #     async def on_connectionstatechange():
-#                         #         if pc.connectionState in ["failed", "disconnected", "closed"]:
-#                         #             print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Face registration")
-#                         #             await cleanup_peer_connection(peer_id)
-
-
-#                         if data["type"] == "ice-candidate":
-#                             # global peer_connections
-#                             peer_id = data["from"]["id"]
-#                             if peer_id in peer_connections:
-#                                 pc = peer_connections[peer_id]
-                                
-#                                 candidate_dict = parse_candidate(data["payload"]["candidate"])
-#                                 if data["payload"]:
-#                                     candidate = RTCIceCandidate(
-#                                         foundation=candidate_dict['foundation'],
-#                                         component=candidate_dict['component'],
-#                                         protocol=candidate_dict['protocol'],
-#                                         priority=candidate_dict['priority'],
-#                                         ip=candidate_dict['ip'],
-#                                         port=candidate_dict['port'],
-#                                         type=candidate_dict['type'],
-#                                         sdpMid=data["payload"]['sdpMid'],
-#                                         sdpMLineIndex=data["payload"]['sdpMLineIndex']
-#                                     )
-#                                     await pc.addIceCandidate(candidate)
-#                                 else:
-#                                     print(f"No payload in ICE candidate from {peer_id}")
-
-#                                 @pc.on("connectionstatechange")
-#                                 async def on_connectionstatechange():
-#                                     if pc.connectionState in ["failed", "disconnected", "closed"]:
-#                                         print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Ice-candidate")
-#                                         await cleanup_peer_connection(peer_id)
-
-#                             # else:
-#                             #     print(f"No peer connection found for {peer_id}")
-
-#                         if data.get('type') == "answer":
-#                             # global peer_connections
-#                             try:
-#                                 peer_id = data["from"]["id"]
-#                                 print(f"Received answer from: {peer_id}")
-#                                 if peer_id in peer_connections:
-#                                     pc = peer_connections[peer_id]
-#                                     answer = RTCSessionDescription(
-#                                         sdp=data["payload"]["sdp"],
-#                                         type=data["payload"]["type"]
-#                                     )
-#                                     await pc.setRemoteDescription(answer)
-#                                     print(f"Set remote description with answer from {peer_id}")
-#                                     @pc.on("connectionstatechange")
-#                                     async def on_connectionstatechange():
-#                                         if pc.connectionState in ["failed", "disconnected", "closed"]:
-#                                             print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Answer")
-#                                             # await cleanup_peer_connection(peer_id)
-
-#                                 else:
-#                                     print(f"No peer connection found for {peer_id}")
-#                             except Exception as e:
-#                                 print(f"Error handling answer: {e}")
-
-#                         # if data['type'] == 'stream-ready':
-#                         #     os.makedirs('saved_faces', exist_ok=True)
-#                         #     label = f'{data["label"]}'
-#                         #     label = label.replace("'", "")
-#                         #     label = label.replace("ñ", "n")
-#                         #     folderName = f'saved_faces/{label}'
-#                         #     folderName = folderName.replace("'", "")
-#                         #     target = data["from"]
-#                         #     global faceScanProcess
-#                         #     if not os.path.exists(folderName):
-#                         #         # global number_of_faces_registered
-#                         #         global newUser
-#                         #         faceScanProcess = "Processing new face data"
-#                         #         number_of_faces_registered += 1
-#                         #         print(f"2. Number of faces registered: {number_of_faces_registered}")
-#                         #         newUser = True
-#                         #         os.makedirs(folderName, exist_ok=True)
-#                         #         print(f'Created a folder: {folderName}')
-#                         #         await ws.send(json.dumps({
-#                         #             "type": "user-face-reg-status",
-#                         #             "target": target,
-#                         #             "from": raspberry_pi_id,
-#                         #             "message": "Processing new face data"
-#                         #         }))
-#                         #     else: 
-#                         #         global updateFace
-#                         #         faceScanProcess = "Updating face data"
-#                         #         updateFace = True
-#                         #         print(f"{folderName} already exists")
-#                         #         await ws.send(json.dumps({
-#                         #             "type": "user-face-reg-status",
-#                         #             "target": target,
-#                         #             "from": raspberry_pi_id,
-#                         #             "message": "Updating face data"
-#                         #         }))
-                            
-#                         #     print(f'target: {target}')
-#                         #     await ws.send(json.dumps({
-#                         #         "type": "request-stream",
-#                         #         "target": target,
-#                         #         "from": raspberry_pi_id
-#                         #     }))
-
-#                         # if data.get('type') == 'config' and 'ownerId' in data:
-#                         #     save_assigned_owner(data['ownerId'])
-#                         #     assigned_ownerId = data['ownerId']
-#                         #     print(f"Raspberry Pi configured with ownerId: {assigned_ownerId}")
-#                         #     await ws.send(json.dumps({
-#                         #         'type': 'register',
-#                         #         'role': 'raspberry-pi',
-#                         #         'id': raspberry_pi_id,
-#                         #         'userID': raspberry_pi_id,
-#                         #         'wifiSSID': current_wifi
-#                         #     }))
-#                         #     print('sent registration message')
-#                         #     await send_admin_logs(ws, f"{raspberry_pi_id} sent registration message.")
-#                         if data.get('type') == 'pong':
-#                             if websocket_status != "Connected":
-#                                 websocket_status = "Connected"
-
-#                         if data.get('type') == 'start-finetuning-after-delay':
-#                             global trainingMin, trainingHour
-#                             global startTraining
-#                             time_obj = datetime.strptime(data['delay'], '%m/%d/%Y %H:%M:%S')
-#                             trainingMin = int(time_obj.strftime('%M'))
-#                             trainingHour = int(time_obj.strftime('%H'))
-#                             print(f"Will start training in: {data['delay']}")
-#                             startTraining = True
-
-#                     while True:
-#                         if assigned_ownerId is None:
-#                             print(".")
-#                         await asyncio.sleep(1)
-
-#                 except websockets.exceptions.ConnectionClosed:
-#                     print("Websocket connection closed. Attempting to reconnect...")
-#                     websocket_status = "Disconnected"
-
-#                 finally:
-#                     # checkUpdateTask.cancel()
-#                     ping_task.cancel()
-#                     # ir_led_task.cancel()
-#                     # GPIO_Cleanup()
-
-#         except Exception as e:
-#             print(f"Error in WebSocket communication: {e}")
-#             websocket_status = "Error"
-
-#         print("waiting before attempting to reconnect...")
-#         # Wait before attempting to reconnect
-#         await asyncio.sleep(5)
 
 async def main():
     # load_assigned_owner()
     # await websocket_communication()
-    await ably_connection()
+    webrtc_connection = WebRTCConnection()
+    await webrtc_connection.ably_connection()
 
 if __name__ == "__main__":
     try:
