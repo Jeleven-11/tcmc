@@ -18,6 +18,7 @@ const AblyConnectionComponent = () => {
   const piID = useRef<string>('');
   const [piIDState, setPiIDState] = useState<string>('');
   const [sessionData, setSessionData] = useState<SessionData>(null);
+  // const [isRemoteStreamSet, setIsRemoteStreamSet] = useState<boolean>(false);
 
   useEffect(() => {
     // Initialize Ably instance
@@ -51,10 +52,7 @@ const AblyConnectionComponent = () => {
         //     iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
         //   });
 
-        //   remoteStream.current = new MediaStream();
-        //   if (videoRef.current) {
-        //     videoRef.current.srcObject = remoteStream.current;
-        //   }
+          
 
         //   peerConnection.current.ontrack = (event) => {
         //     event.streams[0].getTracks().forEach((track) => {
@@ -89,6 +87,7 @@ const AblyConnectionComponent = () => {
               iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
             })
             peerConnection.current.onicecandidate = async (event) => {
+              console.log('Received ICE candidate:', event.candidate);
               if (event.candidate) {
                 await channel.current?.publish('WebRTC-client-register', {
                   type: 'ice-candidate',
@@ -98,10 +97,19 @@ const AblyConnectionComponent = () => {
                 });
               }
             };
+            remoteStream.current = new MediaStream();
+            if (videoRef.current) {
+              videoRef.current.srcObject = remoteStream.current;
+            }
             peerConnection.current.ontrack = (event) => {
+              console.log('Received tracks:', event.streams[0].getTracks());
               event.streams[0].getTracks().forEach((track) => {
-                remoteStream.current?.addTrack(track);
+                remoteStream.current!.addTrack(track);
               });
+              // if (videoRef.current) {
+              //   videoRef.current.srcObject = event.streams[0]; // Directly assign the stream
+              // }
+              videoRef.current?.play().catch((e) => console.error('Error playing video:', e));
             }
             await peerConnection.current.setRemoteDescription(new RTCSessionDescription(payload));
             const answer = await peerConnection.current.createAnswer();
@@ -157,7 +165,12 @@ const AblyConnectionComponent = () => {
       channel.current?.unsubscribe('WebRTC-client-register');
     };
   }, [piIDState]);
-
+  // useEffect(() => {
+  //   if (videoRef.current && remoteStream.current) {
+  //     videoRef.current.srcObject = remoteStream.current;
+  //     videoRef.current.play().catch((e) => console.error('Error playing video:', e));
+  //   }
+  // }, [remoteStream.current]);
   useEffect(() => {
     if (sessionData !== null) return;
 
