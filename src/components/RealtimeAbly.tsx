@@ -36,168 +36,6 @@ const AblyConnectionComponent = () => {
   }, []);
 
   useEffect(() => {
-    // if (!channel.current) return;
-
-    async function InitWebRTC() {
-      if (!channel.current){
-        console.log('channel.current is null');
-        return;
-      };
-
-      const handleSignalingMessage = async (message: Ably.Message) => {
-        const { type, from, payload, role, sessionID } = message.data;
-        
-        if (role !== 'Raspberry Pi') return;
-        console.log('Received message from Raspberry Pi:', message.data);
-
-        // if (!peerConnection.current) {
-        //   peerConnection.current = new RTCPeerConnection({
-        //     iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-        //   });
-
-          
-
-        //   peerConnection.current.ontrack = (event) => {
-        //     event.streams[0].getTracks().forEach((track) => {
-        //       remoteStream.current?.addTrack(track);
-        //     });
-        //   };
-
-        //   peerConnection.current.onicecandidate = async (event) => {
-        //     if (event.candidate) {
-        //       await channel.current?.publish('WebRTC-client-register', {
-        //         type: 'ice-candidate',
-        //         payload: event.candidate,
-        //         from: myID.current,
-        //         target: piID.current,
-        //       });
-        //     }
-        //   };
-        // }
-
-        if (type === 'offer' && from !== myID.current) {
-          
-          console.log('Received WebRTC offer from:', from);
-          piID.current = sessionID;
-          // setPiIDState(sessionID);
-          // if(piID.current==='')piID.current=piIDState;
-
-          try {
-            if(peerConnection.current){
-              peerConnection.current.close();
-              peerConnection.current = null;
-            }
-            peerConnection.current = new RTCPeerConnection({
-              iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-            })
-            peerConnection.current.onicecandidate = async (event) => {
-              console.log('Received ICE candidate:', event.candidate);
-              if (!channel.current){
-                console.log('channel.current is null in icecandidate');
-                return;
-              };
-              if (event.candidate) {
-                await channel.current.publish('WebRTC-client-register', {
-                  type: 'ice-candidate',
-                  payload: event.candidate,
-                  from: myID.current,
-                  target: piID.current,
-                  role: 'Admin'
-                });
-              }
-            };
-            remoteStream.current = new MediaStream();
-            // if (videoRef.current) {
-            //   videoRef.current.srcObject = remoteStream.current;
-            // }
-            peerConnection.current.ontrack = (event) => {
-              console.log('Received tracks:', event.streams[0].getTracks());
-              event.streams[0].getTracks().forEach((track) => {
-                if(remoteStream.current)
-                remoteStream.current.addTrack(track);
-              });
-              if (videoRef.current) {
-                videoRef.current.srcObject = remoteStream.current;
-                // videoRef.current.srcObject = event.streams[0]; // Directly assign the stream
-              }
-              // videoRef.current?.play().catch((e) => console.error('Error playing video:', e));
-            }
-            await peerConnection.current.setRemoteDescription(new RTCSessionDescription(payload));
-            const answer = await peerConnection.current.createAnswer();
-            await peerConnection.current.setLocalDescription(answer);
-            if (!channel.current){
-              console.log('channel.current is null in answer');
-              return;
-            };
-            await channel.current.publish('WebRTC-client-register', {
-              type: 'answer',
-              payload: answer,
-              from: myID.current,
-              target: piID.current,
-              role: 'Admin'
-            });
-            console.log('Sent WebRTC answer:', {
-              type: 'answer',
-              payload: answer,
-              from: myID.current,
-              target: piID.current,
-              role: 'Admin'
-            });
-          } catch (error) {
-            console.error('Error handling offer:', error);
-          }
-        }
-
-        if (type === 'ice-candidate' && peerConnection.current && from !== myID.current) {
-          try {
-            await peerConnection.current.addIceCandidate(new RTCIceCandidate(payload));
-          } catch (error) {
-            console.error('Error adding ICE candidate:', error);
-          }
-        }
-
-        if (type === 'answer' && peerConnection.current && from !== myID.current) {
-          try {
-            await peerConnection.current.setRemoteDescription(new RTCSessionDescription(payload));
-          } catch (error) {
-            console.error('Error setting remote description:', error);
-          }
-        }
-      };
-
-      await channel.current.subscribe('WebRTC-client-register', handleSignalingMessage);
-
-      const registrationMessage = {
-        role: 'Admin',
-        id: myID.current,
-        type: 'Connect',
-        from: myID.current,
-        camera_stream: true,
-      };
-
-      await channel.current.publish('WebRTC-client-register', registrationMessage);
-      console.log('Sent registration message:', registrationMessage);
-    }
-
-    InitWebRTC();
-
-    return () => {
-      console.log('Cleaning up WebRTC...');
-      peerConnection.current?.close();
-      if (channel.current){
-        channel.current.unsubscribe('WebRTC-client-register');
-        
-      };
-      
-    };
-  }, []);
-  // useEffect(() => {
-  //   if (videoRef.current && remoteStream.current) {
-  //     videoRef.current.srcObject = remoteStream.current;
-  //     videoRef.current.play().catch((e) => console.error('Error playing video:', e));
-  //   }
-  // }, [remoteStream.current]);
-  useEffect(() => {
     if (sessionData !== null) return;
 
     getSession().then(async (session) => {
@@ -209,6 +47,133 @@ const AblyConnectionComponent = () => {
       setSessionData({ sessionID: session.sessionID });
       myID.current = session.sessionID;
       console.log('User ID:', myID.current);
+      async function InitWebRTC() {
+        if (!channel.current){
+          console.log('channel.current is null');
+          return;
+        };
+  
+        const handleSignalingMessage = async (message: Ably.Message) => {
+          const { type, from, payload, role, sessionID } = message.data;
+          
+          if (role !== 'Raspberry Pi') return;
+          console.log('Received message from Raspberry Pi:', message.data);
+  
+          if (type === 'offer' && from !== myID.current) {
+            
+            console.log('Received WebRTC offer from:', from);
+            piID.current = sessionID;
+            // setPiIDState(sessionID);
+            // if(piID.current==='')piID.current=piIDState;
+  
+            try {
+              if(peerConnection.current){
+                peerConnection.current.close();
+                peerConnection.current = null;
+              }
+              peerConnection.current = new RTCPeerConnection({
+                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+              })
+              peerConnection.current.onicecandidate = async (event) => {
+                console.log('Received ICE candidate:', event.candidate);
+                if (!channel.current || !event.candidate) {
+                  console.log('channel.current or event.candidate is null in icecandidate');
+                  return;
+                };
+                console.log('Sending ICE candidate:', event.candidate);
+                await channel.current.publish('WebRTC-client-register', {
+                  type: 'ice-candidate',
+                  payload: event.candidate,
+                  from: myID.current,
+                  target: piID.current,
+                  role: 'Admin'
+                });
+              };
+              remoteStream.current = new MediaStream();
+              if (videoRef.current) {
+                videoRef.current.srcObject = remoteStream.current;
+              }
+              peerConnection.current.ontrack = (event) => {
+                console.log('Received tracks:', event.streams[0].getTracks());
+                event.streams[0].getTracks().forEach((track) => {
+                  if(remoteStream.current)
+                  remoteStream.current.addTrack(track);
+                });
+                // if (videoRef.current) {
+                //   videoRef.current.srcObject = remoteStream.current;
+                //   // videoRef.current.srcObject = event.streams[0]; // Directly assign the stream
+                // }
+                // videoRef.current?.play().catch((e) => console.error('Error playing video:', e));
+              }
+              await peerConnection.current.setRemoteDescription(new RTCSessionDescription(payload));
+              const answer = await peerConnection.current.createAnswer();
+              await peerConnection.current.setLocalDescription(answer);
+              if (!channel.current){
+                console.log('channel.current is null in answer');
+                return;
+              };
+              await channel.current.publish('WebRTC-client-register', {
+                type: 'answer',
+                payload: answer,
+                from: myID.current,
+                target: piID.current,
+                role: 'Admin'
+              });
+              console.log('Sent WebRTC answer:', {
+                type: 'answer',
+                payload: answer,
+                from: myID.current,
+                target: piID.current,
+                role: 'Admin'
+              });
+            } catch (error) {
+              console.error('Error handling offer:', error);
+            }
+          }
+  
+          if (type === 'ice-candidate' && peerConnection.current && from !== myID.current) {
+            try {
+              await peerConnection.current.addIceCandidate(new RTCIceCandidate(payload));
+            } catch (error) {
+              console.error('Error adding ICE candidate:', error);
+            }
+          }
+  
+          if (type === 'answer' && peerConnection.current && from !== myID.current) {
+            try {
+              await peerConnection.current.setRemoteDescription(new RTCSessionDescription(payload));
+            } catch (error) {
+              console.error('Error setting remote description:', error);
+            }
+          }
+        };
+  
+        await channel.current.subscribe('WebRTC-client-register', handleSignalingMessage);
+  
+        const registrationMessage = {
+          role: 'Admin',
+          id: myID.current,
+          type: 'Connect',
+          from: myID.current,
+          camera_stream: true,
+        };
+  
+        await channel.current.publish('WebRTC-client-register', registrationMessage);
+        console.log('Sent registration message:', registrationMessage);
+      }
+  
+      InitWebRTC();
+  
+      return () => {
+        console.log('Cleaning up WebRTC...');
+        peerConnection.current?.close();
+        peerConnection.current = null;
+        remoteStream.current = null;
+        if (channel.current){
+          channel.current.unsubscribe('WebRTC-client-register');
+        };
+      };
+
     });
   }, [sessionData]);
 

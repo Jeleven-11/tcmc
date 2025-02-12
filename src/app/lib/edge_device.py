@@ -678,12 +678,6 @@ async def surveillance_loop():
         if surveillance_running:
             stream.surveillanceMode
             await asyncio.sleep(0.04)
-    # if not self.running:
-    #     print("Started processing frames")
-    #     self.running = True
-    # while self.running:
-    #     await self.surveillanceMode()
-    #     await asyncio.sleep(0.04)
 def setup_model():
     model_path = "YOLOv11/runs/detect/train5/weights/best.pt"  # Path to the best model
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -696,98 +690,18 @@ class CameraStreamTrack(VideoStreamTrack):
         global isCameraConfigured
         # self.camera = camera
         self.camera = None
-        self.workers = 0 if os.name == 'nt' else 4
-        # self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        # if self.device == 'cpu':
-        #     # Use OpenCL for Intel UHD Graphics (iGPU) if available
-        #     try:
-        #         self.device = torch.device('opencl:0')
-        #         print(f'Running on device: {self.device}')
-        #     except RuntimeError:
-        #         print('No OpenCL device found. Running on CPU.')
-        # else:
-        #     print(f'Running on device: {self.device}')
-        
-        # Initialize AI Model for Face Detection
-        # self.mtcnn = MTCNN(
-        #     image_size = 160, margin = 14, min_face_size = 20, keep_all = True,
-        #     thresholds = [0.6, 0.7, 0.7], factor=0.709, post_process=True,
-        #     device=self.device
-        # )
-        
-        # self.mtcnn, self.mtcnn_live, self.resnet = setup_models(self.device)
-        # self.saved_faces_path = 'saved_faces'
-        # self.saved_embeddings, self.saved_names = load_saved_embeddings(
-        #     self.saved_faces_path,
-        #     self.mtcnn,
-        #     self.resnet,
-        #     self.device
-        # )
-        #Define the directory where the models are saved
-        # self.models_dir = "models"
-        # self.model_files = os.listdir(self.models_dir)
-        #Find the model file with latest date
-        # self.latest_model_file = None
-        # self.latest_date = None
-        # for filename in self.model_files:
-        #     if filename.endswith(".pt"):
-        #         self.date = extract_date_from_filename(filename)
-        #         if self.latest_date is None or self.date > self.latest_date:
-        #             self.latest_model_file = filename
-        #             self.latest_date = self.date
-        # self.data_dir = 'saved_faces'            
-        # self.dataset = datasets.ImageFolder(self.data_dir, transform=transforms.Resize((512, 512)))
-                    
-        # if self.latest_model_file:
-        #     self.model_path = os.path.join(self.models_dir, self.latest_model_file)
-        #     self.model = InceptionResnetV1(
-        #         classify = True,
-        #         pretrained='vggface2',
-        #         num_classes=len(self.dataset.class_to_idx)
-        #     )
-        #     self.model.load_state_dict(torch.load(f=self.model_path))
-        #     self.model.eval().to(self.device)
-        #     print(f"Loaded model {self.model_path} to {self.device}")
-        # else:
-        #     print("No model found in the specified directory")
-            
-        # try:
-        #     self.load_data = torch.load('data.pt')
-        #     self.embedding_list = self.load_data[0]
-        #     self.names = self.load_data[1]
-        # except IndexError as e:
-        #     print(f"Error accessing data.pt: {e}")
-        # print(f"")
-        # print(f"self.names: {self.names}")
-        # print("Loaded data.pt")
+        self.workers = 0 if os.name == 'nt' else 4 
         # --- Camera Setup ---
         # Camera initialize
         atexit.register(self.cleanup)
-        # if not isCameraConfigured:
-        #     print("Camera not yet configured, will now configure...")
-        # if camera is None:
         self.initializeCamera()
         self.frame_count = 0
         self.rec_frame_count = 0
         self.rec_flag = False
         self.rec_frames = []
         print("Set frame count to 0")
-        # self.dist_list=[]
-        # print("Set list to empty")
-        # self.min_dist = float('inf')
-        # # self.min_dist_idx=-1
-        # print("Set min dist to -1")
-        # self.detectedFacePrev = False
-        # self.name=''
-        # self.color=(0, 0, 0)
-        # self.boxes = []
-        # self.detectedFace = False
         self.running = False
-        # start_date = datetime(2024, 11, 24, tzinfo=pytz.timezone('Asia/Manila'))
-        # now = datetime.now(pytz.timezone('Asia/Manila'))
-        # self.current_day = get_day_count(start_date, now)
-        # self.output_folder = f"DetectedFaces/Day_{self.current_day:02d}"
-        # os.makedirs(self.output_folder, exist_ok=True)
+        self.start_time = time.time() 
         print("Initialize complete")
 
     def initializeCamera(self):
@@ -799,25 +713,7 @@ class CameraStreamTrack(VideoStreamTrack):
             if self.camera is None:
                 try:
                     print("Setting camera to Picamera2")
-                    # camera = Picamera2()
-                    # self.camera = camera
-                    # self.camera = Picamera2()
                     self.camera = get_camera()
-                    # camera = self.camera
-                    #Load tuning file
-                    # print("Loading camera tuning file")
-                    # tuning_file_path = "/home/valdepenas/myBoardHub/Arducam-477P-Pi5.json"
-                    # print("Loaded camera tuning file")
-                    # self.camera.load_tuning_file(tuning_file_path)
-                    # # Create video configuration with resolution set to 640x480 and 180-degree rotation
-                    # print("Creating camera config")
-                    # self.config = self.camera.create_video_configuration(
-                    #     transform=libcamera.Transform(rotation=180),
-                    #     buffer_count=10,
-                    #     main={"size": (854, 480), "stride": 3416},#main={"size": (640, 480)},  (640, 360), (1280, 720)
-                    # )
-                    # self.camera.configure(self.config)
-                    # print("Loaded camera config")
                     self.camera.start()
                     print("Started camera")
                     isCameraConfigured = True
@@ -831,63 +727,20 @@ class CameraStreamTrack(VideoStreamTrack):
                         time.sleep(2)
                     else:
                         print("Failed to initialize camera after multiple attempts.")
-                        # logging.error("Failed to initialize camera after multiple attempts.")
                         raise
-            # elif camera is not None:
-            #     self.camera = camera
     
-    # @staticmethod    
-    # async def send_fps(fps):
-    #     global my_websocket
-    #     await my_websocket.send(json.dumps({"type":"currentFPS","fps":fps, 'AssignedOwnerID': assigned_ownerId}))
-
-    # @staticmethod    
-    # async def send_name(name):
-    #     global my_websocket, lasttime_sendname
-    #     now = datetime.now(pytz.timezone('Asia/Manila'))
-    #     if lasttime_sendname is None:
-    #         lasttime_sendname = now
-    #         # await my_websocket.send(json.dumps({"Name": name, "time": now.strftime("%m/%d/%Y %H:%M:%S")}))
-    #         print(f"Sent security_alert with name: {name}")
-    #         await my_websocket.send(json.dumps({"type":"security_alert",'AssignedOwnerID': assigned_ownerId,"Name": name, "time": now.strftime("%m/%d/%Y %H:%M:%S")}))
-            
-        
-        # elif lasttime_sendname.minute < now.minute and lasttime_sendname.hour == now.hour:
-        #     lasttime_sendname = now
-        #     # await my_websocket.send(json.dumps({"Name": name, "time": now.strftime("%m/%d/%Y %H:%M:%S")}))
-        #     print(f"Sent security_alert with name: {name}")
-        #     await my_websocket.send(json.dumps({"type":"security_alert",'AssignedOwnerID': assigned_ownerId,"Name": name, "time": now.strftime("%m/%d/%Y %H:%M:%S")}))
-    # @staticmethod
-    # async def send_frame_error(message):
-    #     global my_websocket
-    #     await my_websocket.send(json.dumps({"type":"frame_error",'message': message}))
-
+    
     def cleanup(self):
         """Release camera resources."""
         try:
-            # global camera
-            # camera.stop()
-            # camera=None
             if hasattr(self, 'camera') and self.camera is not None:
                 print("Stopping and releasing camera resources")
                 self.camera.stop()
-                # camera.stop()
                 self.camera = None
-                # camera = None
                 
         except Exception as e:
             print("Failed to initialize camera after multiple attempts.")
-            # logging.error(f"Error during camera cleanup: {e}")
-        # Release model resources
-        # try:
-        #     if hasattr(self, 'mtcnn') and self.mtcnn is not None:
-        #         print("Releasing MTCNN resources")
-        #         del self.mtcnn
-        #         self.mtcnn = None
-        # except Exception as e:
-        #     print(f"Error during MTCNN cleanup: {e}")
-        #     logging.error(f"Error during MTCNN cleanup: {e}")
-
+       
         try:
             if hasattr(self, 'model') and self.model is not None:
                 print("Releasing Plate Detection Model resources")
@@ -895,7 +748,6 @@ class CameraStreamTrack(VideoStreamTrack):
                 self.model = None
         except Exception as e:
             print(f"Error during Plate Detection Model cleanup: {e}")
-            # logging.error(f"Error during InceptionResnetV1 cleanup: {e}")
 
     async def stopClass(self):
         """Release resources and stop the stream."""
@@ -914,40 +766,7 @@ class CameraStreamTrack(VideoStreamTrack):
                 return
             
             img = Image.fromarray(frame)
-            # results = self.model.predict(source=img)
-            
-            
-            # for result in results:
-            #     # Extract predictions
-            #     detections = result.boxes.xywh.cpu().numpy()  # xywh format: [x_center, y_center, width, height]
-            #     confidences = result.boxes.conf.cpu().numpy()
-            #     class_ids = result.boxes.cls.cpu().numpy()  # class id = 0: plant, 1: pot
-                
-            #     for detection, confidence, class_id in zip(detections, confidences, class_ids):
-            #         x_center, y_center, width, height = detection
-            #         conf = confidence
-            #         print(f"X: {x_center:.2f}, Y: {y_center:.2f}, "
-            #               f"W: {width:.2f}, H: {height:.2f}, Confidence: {conf:.2f}")
-            #         if class_id == 1 and conf > 0.5:  # Pot
-            #             pot_detected = True
-            #             x_pot, x_pot = x_center, y_center
-            #             w_pot, h_pot = width, height
-            #             condition = w_pot * 2
-            #             # print(f"Pot -> X: {x_pot:.2f}, Y: {y_pot:.2f}, "
-            #             #       f"W: {width:.2f}, H: {height:.2f}, Confidence: {conf:.2f}")
-
-            #         elif class_id == 0 and conf > 0.5 and width < condition:  # Plant
-            #             plant_detected = True
-            #             x_plant, y_plant = x_center, y_center
-            #             # print(f"Plant -> X: {x_plant:.2f}, Y: {y_center:.2f}, "
-            #             #       f"W: {width:.2f}, H: {height:.2f}
-            # if plant_detected and pot_detected:
-            #     print("Detected potted plant!")
-            #     # picam2.stop()
-            #     # print("Camera stopped.")
-            #     combined_center_x, position = calculate_combined_center_x(x_pot, x_plant, 1280)
-            #     print(f"Combined Center X: {combined_center_x:.2f}, Position Relative to Frame Center: {position}")
-
+            # Pipeline here...
             if self.frame_count % 60 == 0:
                 fps = 1 / (time.time() - start_time)
                 print(f"\rCurrent FPS: {fps:.2f}")  
@@ -975,72 +794,35 @@ class CameraStreamTrack(VideoStreamTrack):
         global now_live
         try:
             # frame = camera.capture_array()
-            frame = self.camera.capture_array() 
+            frame = self.camera.capture_array() # A Picamera2
             self.frame_count += 1
             # await get_character_input()
-            start_time = time.time()
+            # start_time = time.time()
             
+            if frame.shape[2] == 4:
+                frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
             if self.frame_count % 3 != 0:
-                if frame.shape[2] == 4:
-                    # print(f'shape is: {frame.shape[2]}')
-                    frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
+                # if frame.shape[2] == 4:
+                #     # print(f'shape is: {frame.shape[2]}')
+                #     frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
                 video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
                 video_frame.pts, video_frame.time_base = await self.next_timestamp()
                 return video_frame
 
-            # img = Image.fromarray(frame)
-
-            # for result in results:
-            #     # Extract predictions
-            #     detections = result.boxes.xywh.cpu().numpy()  # xywh format: [x_center, y_center, width, height]
-            #     confidences = result.boxes.conf.cpu().numpy()
-            #     class_ids = result.boxes.cls.cpu().numpy()  # class id = 0: plant, 1: pot
-                
-            #     for detection, confidence, class_id in zip(detections, confidences, class_ids):
-            #         x_center, y_center, width, height = detection
-            #         conf = confidence
-            #         print(f"X: {x_center:.2f}, Y: {y_center:.2f}, "
-            #               f"W: {width:.2f}, H: {height:.2f}, Confidence: {conf:.2f}")
-            #         if class_id == 1 and conf > 0.5:  # Pot
-            #             pot_detected = True
-            #             x_pot, x_pot = x_center, y_center
-            #             w_pot, h_pot = width, height
-            #             condition = w_pot * 2
-            #             frame = cv2.rectangle(frame, 
-            #                 (int(x_center - width / 2), int(y_center - height / 2)),
-            #                 (int(x_center + width / 2), int(y_center + height / 2)),
-            #                 (0, 225, 0), 2)
-            #             # print(f"Pot -> X: {x_pot:.2f}, Y: {y_pot:.2f}, "
-            #             #       f"W: {width:.2f}, H: {height:.2f}, Confidence: {conf:.2f}")
-
-            #         elif class_id == 0 and conf > 0.5 and width < condition:  # Plant
-            #             plant_detected = True
-            #             x_plant, y_plant = x_center, y_center
-            #             frame = cv2.rectangle(frame, 
-            #                       (int(x_center - width / 2), int(y_center - height / 2)),
-            #                       (int(x_center + width / 2), int(y_center + height / 2)),
-            #                       (0, 0, 225), 2)
-            #             # print(f"Plant -> X: {x_plant:.2f}, Y: {y_center:.2f}, "
-            #             #       f"W: {width:.2f}, H: {height:.2f}
-            # if plant_detected and pot_detected:
-            #     print("Detected potted plant!")
-            #     # picam2.stop()
-            #     # print("Camera stopped.")
-            #     combined_center_x, position = calculate_combined_center_x(x_pot, x_plant, 1280)
-            #     print(f"Combined Center X: {combined_center_x:.2f}, Position Relative to Frame Center: {position}")
-        
-
-
+            
             if self.frame_count % 60 == 0:
-                fps = 1 / (time.time() - start_time)
-                print(f"\rCurrent FPS: {fps:.2f}")   
-                # await self.send_fps(fps) 
+                # fps = 1 / (time.time() - start_time)
+                # print(f"\rCurrent FPS: {fps:.2f}")   
+                # # await self.send_fps(fps) 
+                elapsed_time = time.time() - self.start_time
+                if elapsed_time == 1:
+                    fps = 60 / elapsed_time
+                    print(f"\rCurrent FPS: {fps:.2f}")
+                    self.start_time = time.time()  # Reset timer
            
             if self.frame_count >= 6000:
                 self.frame_count = 1 #Reset number
            
-            if frame.shape[2] == 4:
-                frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
             
             video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
             video_frame.pts, video_frame.time_base = await self.next_timestamp()
