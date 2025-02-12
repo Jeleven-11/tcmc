@@ -16,7 +16,7 @@ const AblyConnectionComponent = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const myID = useRef<string | null>(null);
   const piID = useRef<string>('');
-  const [piIDState, setPiIDState] = useState<string>('');
+  // const [piIDState, setPiIDState] = useState<string>('');
   const [sessionData, setSessionData] = useState<SessionData>(null);
   // const [isRemoteStreamSet, setIsRemoteStreamSet] = useState<boolean>(false);
 
@@ -36,7 +36,7 @@ const AblyConnectionComponent = () => {
   }, []);
 
   useEffect(() => {
-    if (!channel.current) return;
+    // if (!channel.current) return;
 
     async function InitWebRTC() {
       if (!channel.current) return;
@@ -75,8 +75,8 @@ const AblyConnectionComponent = () => {
         if (type === 'offer' && from !== myID.current) {
           console.log('Received WebRTC offer from:', from);
           piID.current = sessionID;
-          setPiIDState(sessionID);
-          if(piID.current==='')piID.current=piIDState;
+          // setPiIDState(sessionID);
+          // if(piID.current==='')piID.current=piIDState;
 
           try {
             if(peerConnection.current){
@@ -104,10 +104,12 @@ const AblyConnectionComponent = () => {
             peerConnection.current.ontrack = (event) => {
               console.log('Received tracks:', event.streams[0].getTracks());
               event.streams[0].getTracks().forEach((track) => {
-                remoteStream.current!.addTrack(track);
+                if(remoteStream.current)
+                remoteStream.current.addTrack(track);
               });
               if (videoRef.current) {
-                videoRef.current.srcObject = event.streams[0]; // Directly assign the stream
+                videoRef.current.srcObject = remoteStream.current;
+                // videoRef.current.srcObject = event.streams[0]; // Directly assign the stream
               }
               // videoRef.current?.play().catch((e) => console.error('Error playing video:', e));
             }
@@ -164,7 +166,7 @@ const AblyConnectionComponent = () => {
       peerConnection.current?.close();
       channel.current?.unsubscribe('WebRTC-client-register');
     };
-  }, [piIDState]);
+  }, []);
   // useEffect(() => {
   //   if (videoRef.current && remoteStream.current) {
   //     videoRef.current.srcObject = remoteStream.current;
