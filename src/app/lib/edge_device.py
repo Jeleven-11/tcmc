@@ -1003,6 +1003,7 @@ async def ably_connection():
 
                         @pc.on("icecandidate")
                         async def on_icecandidate(candidate):
+                            print("ICE candidate event triggered")
                             if candidate:
                                 candidatePayload = {
                                     "type": "ice-candidate",

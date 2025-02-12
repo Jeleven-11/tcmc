@@ -150,6 +150,7 @@ const AblyConnectionComponent = () => {
 
         if (type === 'ice-candidate' && peerConnection.current && from !== myID.current) {
           try {
+            console.log('Received ICE candidate from:', from);
             await peerConnection.current.addIceCandidate(new RTCIceCandidate(payload));
           } catch (error) {
             console.error('Error adding ICE candidate:', error);
@@ -158,6 +159,7 @@ const AblyConnectionComponent = () => {
 
         if (type === 'answer' && peerConnection.current && from !== myID.current) {
           try {
+            console.log('Received WebRTC answer from:', from);
             await peerConnection.current.setRemoteDescription(new RTCSessionDescription(payload));
           } catch (error) {
             console.error('Error setting remote description:', error);
