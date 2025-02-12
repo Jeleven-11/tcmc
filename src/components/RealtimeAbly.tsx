@@ -16,11 +16,16 @@ const AblyConnectionComponent = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const myID = useRef<string | null>(null);
   const piID = useRef<string>('');
+  const videoStreamSrc = useRef<MediaStream | null>(null);
   const [isClient, setIsClient] = useState<boolean>(false);
   const [sessionData, setSessionData] = useState<SessionData>(null);
   // const [isRemoteStreamSet, setIsRemoteStreamSet] = useState<boolean>(false);
   useEffect(() => {
     setIsClient(true);
+    if (videoRef.current && videoStreamSrc.current) {
+      videoRef.current.srcObject = videoStreamSrc.current;
+      console.log("📹 Video stream assigned in useEffect.");
+    }
   }, [isClient]);
   useEffect(() => {
     // Initialize Ably instance
@@ -123,13 +128,23 @@ const AblyConnectionComponent = () => {
                 console.log(`🔹 Track type: ${track.kind}, Enabled: ${track.enabled}`);
                 if (track.kind === "video") {
                   console.log("✅ Video track detected");
-                  if (videoRef.current) {
-                    videoRef.current.srcObject = event.streams[0];
+                  if (!videoRef.current) {
+                    console.error("❌ videoRef is NULL! Retry in 500ms...");
+                    setTimeout(() => {
+                      if (videoRef.current) {
+                        console.log("✅ Video stream assigned after delay.");
+                        videoStreamSrc.current = event.streams[0]; // Store in ref
+                        videoRef.current.srcObject = event.streams[0]; // Assign to video element
+                        console.log("📹 Video stream assigned after delay.");
+                      }
+                    }, 500);
+                  } else {
+                    console.log("✅ Video stream assigned immediately.");
+                    videoStreamSrc.current = event.streams[0]; // Store in ref
+                    videoRef.current.srcObject = event.streams[0]; // Assign to video element
                     console.log("📹 Video stream set to videoRef");
                     videoRef.current.load(); // Force a refresh
                     console.log("📹 Video stream refreshed.");
-                  } else {
-                    console.error("❌ videoRef is NULL!");
                   }
                 }
               });
