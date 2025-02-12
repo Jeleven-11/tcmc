@@ -18,9 +18,9 @@ interface newUser {
 
 export async function POST(req: NextRequest) {
   if (req.method === 'POST') {
-    const { username, name, role, contact_num, password, email }: newUser = await req.json();
-    const emailVerified : newUser['emailVerified'] = false
-    const fcmToken: newUser['fcmToken'] = ''
+    const { username, name, role, contact_num, password, email, emailVerified, fcmToken }: newUser = await req.json();
+    // const emailVerified : newUser['emailVerified'] = false
+    // const fcmToken: newUser['fcmToken'] = ''
     // Validate input data
     if (!username || !name || !role || !contact_num || !password || !email) {
       return NextResponse.json({ error: 'All fields are required' }, {status:400});
