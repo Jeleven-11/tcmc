@@ -976,9 +976,8 @@ async def ably_connection():
             if data['role'] == 'Admin':
                 # print(f"Data: {data}")
                 if data['type'] == 'Connect':
+                    global surveillanceTask
                     try:
-                        
-                        global surveillanceTask
                         peer_id = data["from"]
                         print(f"Received start_live_stream from {peer_id}")
                         if peer_id in peer_connections:
@@ -1074,7 +1073,6 @@ async def ably_connection():
                                 await cleanup_peer_connection(peer_id)
                 elif data['type'] == "answer":
                     # print(f"Message for {data['type']} received: {data}")
-                    # global peer_connections
                     try:
                         peer_id = data["from"]
                         print(f"Received answer from: {peer_id}")

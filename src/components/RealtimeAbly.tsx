@@ -16,25 +16,10 @@ const AblyConnectionComponent = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const myID = useRef<string | null>(null);
   const piID = useRef<string>('');
-  // const [sessionIDState, setSessionIDState] = useState<string>('');
+  // const [piIDState, setPiIDState] = useState<string>('');
   const [sessionData, setSessionData] = useState<SessionData>(null);
   // const [isRemoteStreamSet, setIsRemoteStreamSet] = useState<boolean>(false);
-  useEffect(() => {
-    if (sessionData !== null) return;
 
-    getSession().then(async (session) => {
-      if (!session?.isLoggedIn) {
-        alert('Please login again.');
-        return;
-      }
-
-      setSessionData({ sessionID: session.sessionID });
-      myID.current = session.sessionID;
-      console.log('User ID:', myID.current);
-      // setSessionIDState(session.sessionID);
-
-    });
-  }, [sessionData]);
   useEffect(() => {
     // Initialize Ably instance
     realtime.current = new Ably.Realtime({
@@ -51,6 +36,8 @@ const AblyConnectionComponent = () => {
   }, []);
 
   useEffect(() => {
+    // if (!channel.current) return;
+
     async function InitWebRTC() {
       if (!channel.current){
         console.log('channel.current is null');
@@ -63,13 +50,35 @@ const AblyConnectionComponent = () => {
         if (role !== 'Raspberry Pi') return;
         console.log('Received message from Raspberry Pi:', message.data);
 
+        // if (!peerConnection.current) {
+        //   peerConnection.current = new RTCPeerConnection({
+        //     iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+        //   });
+
+          
+
+        //   peerConnection.current.ontrack = (event) => {
+        //     event.streams[0].getTracks().forEach((track) => {
+        //       remoteStream.current?.addTrack(track);
+        //     });
+        //   };
+
+        //   peerConnection.current.onicecandidate = async (event) => {
+        //     if (event.candidate) {
+        //       await channel.current?.publish('WebRTC-client-register', {
+        //         type: 'ice-candidate',
+        //         payload: event.candidate,
+        //         from: myID.current,
+        //         target: piID.current,
+        //       });
+        //     }
+        //   };
+        // }
+
         if (type === 'offer' && from !== myID.current) {
           
           console.log('Received WebRTC offer from:', from);
-          if(sessionID){
-            piID.current = sessionID;
-          }
-          // piID.current = sessionID;
+          piID.current = sessionID;
           // setPiIDState(sessionID);
           // if(piID.current==='')piID.current=piIDState;
 
@@ -83,18 +92,11 @@ const AblyConnectionComponent = () => {
             })
             peerConnection.current.onicecandidate = async (event) => {
               console.log('Received ICE candidate:', event.candidate);
-              if (!channel.current) {
+              if (!channel.current){
                 console.log('channel.current is null in icecandidate');
                 return;
               };
-              if(event.candidate){
-                console.log('Sending ICE candidate payload:', {
-                  type: 'ice-candidate',
-                  payload: event.candidate,
-                  from: myID.current,
-                  target: piID.current,
-                  role: 'Admin'
-                });
+              if (event.candidate) {
                 await channel.current.publish('WebRTC-client-register', {
                   type: 'ice-candidate',
                   payload: event.candidate,
@@ -105,22 +107,19 @@ const AblyConnectionComponent = () => {
               }
             };
             remoteStream.current = new MediaStream();
-            if (videoRef.current) {
-              console.log("Setting videoRef.current.srcObject to remoteStream.current");
-              videoRef.current.srcObject = remoteStream.current;
-            }
+            // if (videoRef.current) {
+            //   videoRef.current.srcObject = remoteStream.current;
+            // }
             peerConnection.current.ontrack = (event) => {
               console.log('Received tracks:', event.streams[0].getTracks());
               event.streams[0].getTracks().forEach((track) => {
-                console.log('Adding track:', track);
                 if(remoteStream.current)
                 remoteStream.current.addTrack(track);
-                else videoRef.current!.srcObject = event.streams[0];
               });
-              // if (videoRef.current) {
-              //   videoRef.current.srcObject = remoteStream.current;
-              //   // videoRef.current.srcObject = event.streams[0]; // Directly assign the stream
-              // }
+              if (videoRef.current) {
+                videoRef.current.srcObject = remoteStream.current;
+                // videoRef.current.srcObject = event.streams[0]; // Directly assign the stream
+              }
               // videoRef.current?.play().catch((e) => console.error('Error playing video:', e));
             }
             await peerConnection.current.setRemoteDescription(new RTCSessionDescription(payload));
@@ -179,19 +178,39 @@ const AblyConnectionComponent = () => {
       await channel.current.publish('WebRTC-client-register', registrationMessage);
       console.log('Sent registration message:', registrationMessage);
     }
+
     InitWebRTC();
 
     return () => {
       console.log('Cleaning up WebRTC...');
       peerConnection.current?.close();
-      peerConnection.current = null;
-      remoteStream.current = null;
       if (channel.current){
         channel.current.unsubscribe('WebRTC-client-register');
+        
       };
+      
     };
   }, []);
-  
+  // useEffect(() => {
+  //   if (videoRef.current && remoteStream.current) {
+  //     videoRef.current.srcObject = remoteStream.current;
+  //     videoRef.current.play().catch((e) => console.error('Error playing video:', e));
+  //   }
+  // }, [remoteStream.current]);
+  useEffect(() => {
+    if (sessionData !== null) return;
+
+    getSession().then(async (session) => {
+      if (!session?.isLoggedIn) {
+        alert('Please login again.');
+        return;
+      }
+
+      setSessionData({ sessionID: session.sessionID });
+      myID.current = session.sessionID;
+      console.log('User ID:', myID.current);
+    });
+  }, [sessionData]);
 
   return (
     <div>
