@@ -819,6 +819,7 @@ class CameraStreamTrack(VideoStreamTrack):
                     fps = 60 / elapsed_time
                     print(f"\rCurrent FPS: {fps:.2f}")
                     self.start_time = time.time()  # Reset timer
+                    now_live = True
            
             if self.frame_count >= 6000:
                 self.frame_count = 1 #Reset number
@@ -977,7 +978,7 @@ async def ably_connection():
                 if data['type'] == 'Connect' and data["from"] is not None:
                     try:
                         
-                        global now_live, surveillanceTask
+                        global surveillanceTask
                         peer_id = data["from"]
                         print(f"Received start_live_stream from {peer_id}")
                         if peer_id in peer_connections:
@@ -997,7 +998,7 @@ async def ably_connection():
                             print("Starting WebRTC Mode...")
                             camera_track = stream
                             pc.addTrack(camera_track)
-                            now_live = True
+                            # now_live = True
                         # print("Still good 1")
                         offer = await pc.createOffer()
                         await pc.setLocalDescription(offer)
@@ -1110,9 +1111,17 @@ async def ably_connection():
         await webRTCChannel.publish('WebRTC-client-register',{
             'role': 'Raspberry Pi',
             'id': raspberry_pi_id,
-            'message':"Connect",
+            'type':"Connect",
             'sessionID': raspberry_pi_id
         })
+        global now_live
+        if now_live == True:
+            await webRTCChannel.publish('WebRTC-client-register',{
+                'role': 'Raspberry Pi',
+                'id': raspberry_pi_id,
+                'type':"Now Live",
+                'sessionID': raspberry_pi_id
+            })
         # print(f"Published data: {data}")
         while True:
             await asyncio.sleep(1)

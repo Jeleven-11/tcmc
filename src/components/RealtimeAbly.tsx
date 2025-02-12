@@ -66,7 +66,10 @@ const AblyConnectionComponent = () => {
         if (type === 'offer' && from !== myID.current) {
           
           console.log('Received WebRTC offer from:', from);
-          piID.current = sessionID;
+          if(sessionID){
+            piID.current = sessionID;
+          }
+          // piID.current = sessionID;
           // setPiIDState(sessionID);
           // if(piID.current==='')piID.current=piIDState;
 
