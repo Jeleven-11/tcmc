@@ -1013,7 +1013,7 @@ class WebRTCConnection():
                             print(f"Received start_live_stream from {peer_id}")
                             
                             if peer_id in self.peer_connections:
-                                await cleanup_peer_connection()
+                                await cleanup_peer_connection(peer_id, self.peer_connections)
                             self.pc = RTCPeerConnection()
                             # self.pc.log_level = logging.DEBUG
                             self.pc.on("connectionstatechange", lambda: on_connectionstatechange(peer_id))

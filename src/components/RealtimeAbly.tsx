@@ -151,6 +151,7 @@ const AblyConnectionComponent = () => {
                 videoStreamSrc.current = stream; // Store in ref
                 videoRef.current.srcObject = stream; // Assign to video element
                 videoRef.current.load(); // Force a refresh
+                videoRef.current.play().catch((e) => console.error('Error playing video:', e)); // Start playing the video
                 console.log("🔄 Video stream refreshed.");
               };
             
