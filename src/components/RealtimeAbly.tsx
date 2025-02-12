@@ -16,7 +16,7 @@ const AblyConnectionComponent = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const myID = useRef<string | null>(null);
   const piID = useRef<string>('');
-  const [sessionIDState, setSessionIDState] = useState<string>('');
+  // const [sessionIDState, setSessionIDState] = useState<string>('');
   const [sessionData, setSessionData] = useState<SessionData>(null);
   // const [isRemoteStreamSet, setIsRemoteStreamSet] = useState<boolean>(false);
 
@@ -150,7 +150,7 @@ const AblyConnectionComponent = () => {
       await channel.current.publish('WebRTC-client-register', registrationMessage);
       console.log('Sent registration message:', registrationMessage);
     }
-    if(sessionIDState!=='')InitWebRTC();
+    InitWebRTC();
 
     return () => {
       console.log('Cleaning up WebRTC...');
@@ -161,7 +161,7 @@ const AblyConnectionComponent = () => {
         channel.current.unsubscribe('WebRTC-client-register');
       };
     };
-  });
+  }, []);
   useEffect(() => {
     if (sessionData !== null) return;
 
@@ -174,7 +174,7 @@ const AblyConnectionComponent = () => {
       setSessionData({ sessionID: session.sessionID });
       myID.current = session.sessionID;
       console.log('User ID:', myID.current);
-      setSessionIDState(session.sessionID);
+      // setSessionIDState(session.sessionID);
 
     });
   }, [sessionData]);
