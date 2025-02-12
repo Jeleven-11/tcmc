@@ -13,12 +13,14 @@ interface newUser {
   user_id?: string;
   email?: string;
   emailVerified?: boolean;
+  fcmToken?: string
 }
 
 export async function POST(req: NextRequest) {
   if (req.method === 'POST') {
     const { username, name, role, contact_num, password, email }: newUser = await req.json();
-
+    const emailVerified : newUser['emailVerified'] = false
+    const fcmToken: newUser['fcmToken'] = ''
     // Validate input data
     if (!username || !name || !role || !contact_num || !password || !email) {
       return NextResponse.json({ error: 'All fields are required' }, {status:400});
@@ -46,7 +48,7 @@ export async function POST(req: NextRequest) {
       //const [result]: [newUser[], FieldPacket[]] = 
       await connection.query(
         'INSERT INTO users (username, name, role, contact_num, password, email, isEmailVerified, fcmToken) VALUES (?, ?, ?, ?, ?)',
-        [username, name, role, contact_num, hashedPassword, email, 0, '']
+        [username, name, role, contact_num, hashedPassword, email, emailVerified, fcmToken]
       )// as [newUser[], FieldPacket[]];
 
       // console.log('Database result:', result);
