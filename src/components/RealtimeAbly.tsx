@@ -161,7 +161,7 @@ const AblyConnectionComponent = () => {
         channel.current.unsubscribe('WebRTC-client-register');
       };
     };
-  }, [sessionIDState]);
+  });
   useEffect(() => {
     if (sessionData !== null) return;
 
