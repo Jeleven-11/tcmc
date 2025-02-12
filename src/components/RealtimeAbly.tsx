@@ -170,7 +170,7 @@ const AblyConnectionComponent = () => {
       const registrationMessage = {
         role: 'Admin',
         id: myID.current,
-        message: 'Connect',
+        type: 'Connect',
         from: myID.current,
         camera_stream: true,
       };

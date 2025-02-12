@@ -1191,9 +1191,10 @@ async def ably_connection():
             data = message.data
             
             if data['role'] == 'Admin':
-                if data['message'] == 'Connect':
+                print(f"Data: {data}")
+                if data['type'] == 'Connect':
                     try:
-                        print(f"Data: {data}")
+                        
                         global now_live, surveillanceTask
                         peer_id = data["from"]
                         print(f"Received start_live_stream from {peer_id}")
@@ -1259,8 +1260,7 @@ async def ably_connection():
                                     
                     except Exception as ex:
                         print("Exception error during start_live_stream setup: ", ex)
-                if data["type"] == "ice-candidate":
-                    print(f"Data: {data}")
+                elif data["type"] == "ice-candidate":
                     print(f"Message for {data['type']} received: {data}")
                     peer_id = data["from"]["id"]
                     if peer_id in peer_connections:
@@ -1286,7 +1286,7 @@ async def ably_connection():
                             if pc.connectionState in ["failed", "disconnected", "closed"]:
                                 print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Ice-candidate")
                                 await cleanup_peer_connection(peer_id)
-                if data['type'] == "answer":
+                elif data['type'] == "answer":
                     print(f"Message for {data['type']} received: {data}")
                     # global peer_connections
                     try:
