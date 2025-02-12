@@ -35,6 +35,9 @@ function MobileNav({ open, setOpen, pathname, onLogoutClick }: { open: boolean; 
         <Link href="/admin/watchlist" className={`text-xl font-medium my-4 ${getActiveClass("/admin/watchlist")}`} onClick={() => setTimeout(() => setOpen(!open), 100)}>
           Report Management
         </Link>
+        <Link href="/admin/camManagement" className={`text-xl font-medium my-4 ${getActiveClass("/admin/camManagement")}`} onClick={() => setTimeout(() => setOpen(!open), 100)}>
+          Camera Management
+        </Link>
         <Link href="/admin/profile" className={`text-xl font-medium my-4 ${getActiveClass("/admin/profile")}`} onClick={() => setTimeout(() => setOpen(!open), 100)}>
           My Profile
         </Link>
@@ -85,8 +88,11 @@ export default function Navbar() {
             <Link href="/admin/userManagement" className={`mx-4 text-white text-lg ${getActiveClass("/admin/userManagement")}`}>
               USER MANAGEMENT
             </Link>
-            <Link href="/admin/watchlist" className={`mx-4 text-white text-lg ${getActiveClass("/admin/watchlist")}`}>
+            <Link href="/admin/watchlist" className={`mx-4 text-white text-lg ${getActiveClass("/admin/camManagement")}`}>
               REPORT MANAGEMENT
+            </Link>
+            <Link href="/admin/camManagement" className={`mx-4 text-white text-lg ${getActiveClass("/admin/watchlist")}`}>
+              CAMERA MANAGEMENT
             </Link>
 
             {/* Profile Icon */}
