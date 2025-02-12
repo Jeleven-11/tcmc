@@ -22,11 +22,18 @@ const AblyConnectionComponent = () => {
   // const [isRemoteStreamSet, setIsRemoteStreamSet] = useState<boolean>(false);
   useEffect(() => {
     setIsClient(true);
+    // if (videoRef.current && videoStreamSrc.current) {
+    //   videoRef.current.srcObject = videoStreamSrc.current;
+    //   console.log("📹 Video stream assigned in useEffect.");
+    // }
+  }, [isClient]);
+  useEffect(() => {
+    // setIsClient(true);
     if (videoRef.current && videoStreamSrc.current) {
       videoRef.current.srcObject = videoStreamSrc.current;
       console.log("📹 Video stream assigned in useEffect.");
     }
-  }, [isClient]);
+  }, [videoStreamSrc]);
   useEffect(() => {
     // Initialize Ably instance
     realtime.current = new Ably.Realtime({
@@ -253,7 +260,7 @@ const AblyConnectionComponent = () => {
   return (
     <div>
       {isClient ? (
-        <video ref={videoRef} autoPlay playsInline style={{ width: "100%", height: "auto", backgroundColor: "black" }} />
+        <video ref={(videoRef) => { videoRef!.srcObject = videoStreamSrc.current;}} autoPlay playsInline style={{ width: "100%", height: "auto", backgroundColor: "black" }} />
       ) : (
         <p>Loading video...</p>
       )}
