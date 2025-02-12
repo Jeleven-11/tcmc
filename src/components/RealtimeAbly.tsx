@@ -12,7 +12,7 @@ const AblyConnectionComponent = () => {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const realtime = useRef<Ably.Realtime | null>(null);
   const channel = useRef<Ably.RealtimeChannel | null>(null);
-  const remoteStream = useRef<MediaStream | null>(null);
+  // const remoteStream = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const myID = useRef<string | null>(null);
   const piID = useRef<string>('');
@@ -107,16 +107,27 @@ const AblyConnectionComponent = () => {
                 });
               }
             };
-            remoteStream.current = new MediaStream();
-            if (videoRef.current) {
-              videoRef.current.srcObject = remoteStream.current;
-            }
+            // remoteStream.current = new MediaStream();
+            // if (videoRef.current) {
+            //   videoRef.current.srcObject = remoteStream.current;
+            // }
             peerConnection.current.ontrack = (event) => {
               console.log('Received tracks:', event.streams[0].getTracks());
-              console.log(peerConnection.current!.getReceivers());
+              console.log('Receivers: ', peerConnection.current!.getReceivers());
+              if (event.streams[0].getTracks().length === 0) {
+                console.error("⚠️ No tracks received! Check WebRTC sender.");
+              }
               event.streams[0].getTracks().forEach((track) => {
-                if(remoteStream.current)
-                remoteStream.current.addTrack(track);
+                console.log(`🔹 Track type: ${track.kind}, Enabled: ${track.enabled}`);
+                if (track.kind === "video") {
+                  console.log("✅ Video track detected");
+                  if (videoRef.current) {
+                    videoRef.current.srcObject = event.streams[0];
+                    console.log("📹 Video stream set to videoRef");
+                  } else {
+                    console.error("❌ videoRef is NULL!");
+                  }
+                }
               });
               // if (videoRef.current) {
               //   videoRef.current.srcObject = remoteStream.current;

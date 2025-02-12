@@ -811,7 +811,7 @@ class CameraStreamTrack(VideoStreamTrack):
                 return video_frame
 
             
-            if self.frame_count % 60 == 0:
+            if self.frame_count % 30 == 0:
                 # fps = 1 / (time.time() - start_time)
                 # print(f"\rCurrent FPS: {fps:.2f}")   
                 # # await self.send_fps(fps) 
@@ -960,9 +960,10 @@ class WebRTCConnection():
         self.pc = None
     async def cleanup_peer_connection(self):
         # self.pc = self.peer_connections[peer_id]
-        self.pc.on("connectionstatechange", None)  
-        self.pc.on("icecandidate", None)
-        await self.pc.close()  
+        if self.pc is not None:
+            self.pc.on("connectionstatechange", None)  
+            self.pc.on("icecandidate", None)
+            await self.pc.close()  
     async def ably_connection(self):
         print(f"ABLY_API_KEY: {ABLY_API_KEY}")
         secret_key = os.environ.get("AUTH_SECRETKEY")
@@ -971,7 +972,7 @@ class WebRTCConnection():
         try:
             
             raspberry_pi_id = get_cpu_serial()
-            await setup_stream()
+            # await setup_stream()
             
             # channel = ably_client.channels.get(raspberry_pi_id)
             webRTCChannel=ably_client.channels.get('webrtc-signaling-channel')
@@ -1022,7 +1023,7 @@ class WebRTCConnection():
                             if data.get('camera_stream', False):
                                 global stream, surveillance_running
                                 if stream is None:
-                                    stream = CameraStreamTrack()
+                                    # stream = CameraStreamTrack()
                                     print("Start CameraStreamTrack")
                                 elif surveillance_running:
                                     print('Stream is running, now stopping...')
@@ -1030,7 +1031,7 @@ class WebRTCConnection():
                                     print("Paused surveillance mode...")
                                     surveillanceTask.cancel()
                                 print("Starting WebRTC Mode...")
-                                camera_track = stream
+                                camera_track = CameraStreamTrack()#stream
                                 self.pc.addTrack(camera_track)
                                 # now_live = True
                             # print("Still good 1")
