@@ -94,6 +94,7 @@ const AblyConnectionComponent = () => {
                   payload: event.candidate,
                   from: myID.current,
                   target: piID.current,
+                  role: 'Admin'
                 });
               }
             };
@@ -122,6 +123,7 @@ const AblyConnectionComponent = () => {
               payload: answer,
               from: myID.current,
               target: piID.current,
+              role: 'Admin'
             });
           } catch (error) {
             console.error('Error handling offer:', error);

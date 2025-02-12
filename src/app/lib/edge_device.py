@@ -1180,7 +1180,7 @@ async def ably_connection():
         raspberry_pi_id = get_cpu_serial()
         await setup_stream()
         
-        channel = ably_client.channels.get(raspberry_pi_id)
+        # channel = ably_client.channels.get(raspberry_pi_id)
         webRTCChannel=ably_client.channels.get('webrtc-signaling-channel')
         async def on_message(msg):
             # data = json.loads(msg.data)
@@ -1189,7 +1189,7 @@ async def ably_connection():
         #     await messageToMyID(data)
         async def messageToMyID(message):
             data = message.data
-            
+            print(f"Data: {data}")
 
             if data['role'] == 'Admin' and data['message'] == 'Connect':
                 try:
@@ -1214,7 +1214,21 @@ async def ably_connection():
                         camera_track = stream
                         pc.addTrack(camera_track)
                         now_live = True
-                    print("Still good 1")
+                    # print("Still good 1")
+                    offer = await pc.createOffer()
+                    await pc.setLocalDescription(offer)
+                    print(f"Will send offer to: {peer_id}")
+                    await webRTCChannel.publish('WebRTC-client-register', {
+                        "type": "offer",
+                        "payload":{
+                            "sdp": pc.localDescription.sdp,
+                            "type": pc.localDescription.type
+                        },
+                        # "sdp": pc.localDescription.sdp,
+                        "from": raspberry_pi_id,
+                        "target": peer_id,
+                        "role": "Raspberry Pi"
+                    })
                     @pc.on("icecandidate")
                     async def on_icecandidate(candidate):
                         if candidate:
@@ -1230,21 +1244,8 @@ async def ably_connection():
                                 "from": raspberry_pi_id,
                                 "role": "Raspberry Pi"
                             })
-                    offer = await pc.createOffer()
-                    await pc.setLocalDescription(offer)
-                    print(f"Will send offer to: {peer_id}")
-                    await webRTCChannel.publish('WebRTC-client-register', {
-                        "type": "offer",
-                        "payload":{
-                            "sdp": pc.localDescription.sdp,
-                            "type": pc.localDescription.type
-                        },
-                        # "sdp": pc.localDescription.sdp,
-                        "from": raspberry_pi_id,
-                        "target": peer_id,
-                        "role": "Raspberry Pi"
-                    })
-                    print("Still good 2")
+                    
+                    # print("Still good 2")
                     @pc.on("connectionstatechange")
                     async def on_connectionstatechange():
                         if pc.connectionState in ["failed", "disconnected", "closed"]:
@@ -1257,7 +1258,7 @@ async def ably_connection():
                                 
                 except Exception as ex:
                     print("Exception error during start_live_stream setup: ", ex)
-            if data["type"] == "ice-candidate" and data["target"] == raspberry_pi_id:
+            if data["type"] == "ice-candidate" and data['role'] == 'Admin':
                 print(f"Message for {data['type']} received: {data}")
                 peer_id = data["from"]["id"]
                 if peer_id in peer_connections:
@@ -1283,7 +1284,7 @@ async def ably_connection():
                         if pc.connectionState in ["failed", "disconnected", "closed"]:
                             print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Ice-candidate")
                             await cleanup_peer_connection(peer_id)
-            if data.get('type') == "answer" and data["target"] == raspberry_pi_id:
+            if data.get('type') == "answer" and data['role'] == 'Admin':
                 print(f"Message for {data['type']} received: {data}")
                 # global peer_connections
                 try:
