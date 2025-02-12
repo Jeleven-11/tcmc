@@ -973,7 +973,7 @@ async def ably_connection():
             data = message.data
             
             if data['role'] == 'Admin':
-                print(f"Data: {data}")
+                # print(f"Data: {data}")
                 if data['type'] == 'Connect' and data["from"] is not None:
                     try:
                         
@@ -1013,9 +1013,6 @@ async def ably_connection():
                             "target": peer_id,
                             "role": "Raspberry Pi"
                         })
-                        @pc.on("track")
-                        async def on_track(track):
-                            print(f" Track attached: {track.kind}")
 
                         @pc.on("icecandidate")
                         async def on_icecandidate(candidate):

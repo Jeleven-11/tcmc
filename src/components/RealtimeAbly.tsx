@@ -80,18 +80,20 @@ const AblyConnectionComponent = () => {
             })
             peerConnection.current.onicecandidate = async (event) => {
               console.log('Received ICE candidate:', event.candidate);
-              if (!channel.current || !event.candidate) {
-                console.log('channel.current or event.candidate is null in icecandidate');
+              if (!channel.current) {
+                console.log('channel.current is null in icecandidate');
                 return;
               };
-              console.log('Sending ICE candidate:', event.candidate);
-              await channel.current.publish('WebRTC-client-register', {
-                type: 'ice-candidate',
-                payload: event.candidate,
-                from: myID.current,
-                target: piID.current,
-                role: 'Admin'
-              });
+              if(event.candidate){
+                console.log('Sending ICE candidate:', event.candidate);
+                await channel.current.publish('WebRTC-client-register', {
+                  type: 'ice-candidate',
+                  payload: event.candidate,
+                  from: myID.current,
+                  target: piID.current,
+                  role: 'Admin'
+                });
+              }
             };
             remoteStream.current = new MediaStream();
             if (videoRef.current) {
