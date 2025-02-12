@@ -98,18 +98,18 @@ const AblyConnectionComponent = () => {
               }
             };
             remoteStream.current = new MediaStream();
-            if (videoRef.current) {
-              videoRef.current.srcObject = remoteStream.current;
-            }
+            // if (videoRef.current) {
+            //   videoRef.current.srcObject = remoteStream.current;
+            // }
             peerConnection.current.ontrack = (event) => {
               console.log('Received tracks:', event.streams[0].getTracks());
               event.streams[0].getTracks().forEach((track) => {
                 remoteStream.current!.addTrack(track);
               });
-              // if (videoRef.current) {
-              //   videoRef.current.srcObject = event.streams[0]; // Directly assign the stream
-              // }
-              videoRef.current?.play().catch((e) => console.error('Error playing video:', e));
+              if (videoRef.current) {
+                videoRef.current.srcObject = event.streams[0]; // Directly assign the stream
+              }
+              // videoRef.current?.play().catch((e) => console.error('Error playing video:', e));
             }
             await peerConnection.current.setRemoteDescription(new RTCSessionDescription(payload));
             const answer = await peerConnection.current.createAnswer();
