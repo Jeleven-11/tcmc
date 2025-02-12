@@ -47,7 +47,7 @@ const AblyConnectionComponent = () => {
       const handleSignalingMessage = async (message: Ably.Message) => {
         const { type, from, payload, role, sessionID } = message.data;
         
-        if (role !== 'Raspberry Pi' || (type === 'ice-candidate' && from === myID.current)) return;
+        if (role !== 'Raspberry Pi') return;
         console.log('Received message from Raspberry Pi:', message.data);
 
         // if (!peerConnection.current) {
@@ -92,6 +92,7 @@ const AblyConnectionComponent = () => {
             })
             peerConnection.current.onicecandidate = async (event) => {
               console.log('Received ICE candidate:', event.candidate);
+              console.log('From:', from);
               if (!channel.current){
                 console.log('channel.current is null in icecandidate');
                 return;
@@ -107,19 +108,20 @@ const AblyConnectionComponent = () => {
               }
             };
             remoteStream.current = new MediaStream();
-            // if (videoRef.current) {
-            //   videoRef.current.srcObject = remoteStream.current;
-            // }
+            if (videoRef.current) {
+              videoRef.current.srcObject = remoteStream.current;
+            }
             peerConnection.current.ontrack = (event) => {
               console.log('Received tracks:', event.streams[0].getTracks());
+              console.log(peerConnection.current!.getReceivers());
               event.streams[0].getTracks().forEach((track) => {
                 if(remoteStream.current)
                 remoteStream.current.addTrack(track);
               });
-              if (videoRef.current) {
-                videoRef.current.srcObject = remoteStream.current;
-                // videoRef.current.srcObject = event.streams[0]; // Directly assign the stream
-              }
+              // if (videoRef.current) {
+              //   videoRef.current.srcObject = remoteStream.current;
+              //   // videoRef.current.srcObject = event.streams[0]; // Directly assign the stream
+              // }
               // videoRef.current?.play().catch((e) => console.error('Error playing video:', e));
             }
             await peerConnection.current.setRemoteDescription(new RTCSessionDescription(payload));

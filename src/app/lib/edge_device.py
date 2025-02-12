@@ -36,6 +36,7 @@ from pathlib import Path
 import atexit
 import logging
 from ably import AblyRealtime
+# logging.basicConfig(level=logging.DEBUG)
 # from gpiozero import PWMLED
 # --- LOGGING CONFIGURATION --- #
 # log_directory = '/home/myboardhub/mctc/YOLOv11/LOGS'
@@ -815,7 +816,7 @@ class CameraStreamTrack(VideoStreamTrack):
                 # print(f"\rCurrent FPS: {fps:.2f}")   
                 # # await self.send_fps(fps) 
                 elapsed_time = time.time() - self.start_time
-                if elapsed_time == 1:
+                if elapsed_time > 0:
                     fps = 60 / elapsed_time
                     print(f"\rCurrent FPS: {fps:.2f}")
                     self.start_time = time.time()  # Reset timer
@@ -831,7 +832,7 @@ class CameraStreamTrack(VideoStreamTrack):
             return video_frame
         except Exception as e:
             print(f"Error during camera capture: {e}")
-            logging.error(f"Error during camera capture: {e}")
+            # logging.error(f"Error during camera capture: {e}")
             self.cleanup()
             exit(1)
             raise
@@ -992,7 +993,7 @@ class WebRTCConnection():
             async def on_connectionstatechange(peer_id):
                 if self.pc.connectionState in ["failed", "disconnected", "closed"]:
                     print(f"Connection state {self.pc.connectionState} for peer {peer_id}. Cleaning up. Live stream")
-                    await cleanup_peer_connection()
+                    await cleanup_peer_connection(peer_id, self.peer_connections)
                     now_live = False
                     print("Resumed surveillance mode...")
                     surveillance_running = True
@@ -1013,7 +1014,10 @@ class WebRTCConnection():
                             if peer_id in self.peer_connections:
                                 await cleanup_peer_connection()
                             self.pc = RTCPeerConnection()
+                            # self.pc.log_level = logging.DEBUG
+                            self.pc.on("connectionstatechange", lambda: on_connectionstatechange(peer_id))
                             self.pc.on("icecandidate", lambda: on_icecandidate)
+                            # self.pc.log_event('ice_candidate_gathering', logging.DEBUG)
                             print(f"Peer Connections: {self.peer_connections}")
                             if data.get('camera_stream', False):
                                 global stream, surveillance_running
@@ -1067,6 +1071,7 @@ class WebRTCConnection():
                             print(f"Received ICE candidate from {peer_id}")
                             self.pc = self.peer_connections[peer_id]
                             candidate_dict = parse_candidate(data["payload"]["candidate"])
+                            print(f"Candidate dict: {candidate_dict}")
                             if data["payload"]:
                                 candidate = RTCIceCandidate(
                                     foundation=candidate_dict['foundation'],
@@ -1077,9 +1082,17 @@ class WebRTCConnection():
                                     port=candidate_dict['port'],
                                     type=candidate_dict['type'],
                                     sdpMid=data["payload"]['sdpMid'],
-                                    sdpMLineIndex=data["payload"]['sdpMLineIndex']
+                                    sdpMLineIndex=data["payload"]['sdpMLineIndex'],
+                                    relatedAddress=data["payload"]['relatedAddress'],
+                                    relatedPort=data["payload"]['relatedPort'],
+                                    tcpType=data["payload"]['tcpType']
                                 )
-                                await self.pc.addIceCandidate(candidate)
+                                try:
+                                    await self.pc.addIceCandidate(candidate)#I don't think this works, the flow stops here, it should continue on the eventlistener
+                                    print(f"Added ICE Candidate from {peer_id}")
+                                except Exception as e:
+                                    print(f"Error adding ICE candidate from {peer_id}: {e}")   
+                                
                             else:
                                 print(f"No payload in ICE candidate from {peer_id}")
                             
