@@ -119,41 +119,44 @@ const AblyConnectionComponent = () => {
             //   videoRef.current.srcObject = remoteStream.current;
             // }
             peerConnection.current.ontrack = (event) => {
-              console.log('Received tracks:', event.streams[0].getTracks());
-              console.log('Receivers: ', peerConnection.current!.getReceivers());
-              if (event.streams[0].getTracks().length === 0) {
+              const stream = event.streams[0];
+              const tracks = stream.getTracks();
+              const videoTrack = tracks.find((track) => track.kind === "video");
+            
+              console.log("🎥 Received MediaStream:", stream);
+              console.log("🎵 Tracks:", tracks);
+              console.log("📡 Receivers:", peerConnection.current?.getReceivers());
+            
+              if (!tracks.length) {
                 console.error("⚠️ No tracks received! Check WebRTC sender.");
+                return;
               }
-              event.streams[0].getTracks().forEach((track) => {
-                console.log(`🔹 Track type: ${track.kind}, Enabled: ${track.enabled}`);
-                if (track.kind === "video") {
-                  console.log("✅ Video track detected");
-                  if (!videoRef.current) {
-                    console.error("❌ videoRef is NULL! Retry in 500ms...");
-                    setTimeout(() => {
-                      if (videoRef.current) {
-                        console.log("✅ Video stream assigned after delay.");
-                        videoStreamSrc.current = event.streams[0]; // Store in ref
-                        videoRef.current.srcObject = event.streams[0]; // Assign to video element
-                        console.log("📹 Video stream assigned after delay.");
-                      }
-                    }, 500);
-                  } else {
-                    console.log("✅ Video stream assigned immediately.");
-                    videoStreamSrc.current = event.streams[0]; // Store in ref
-                    videoRef.current.srcObject = event.streams[0]; // Assign to video element
-                    console.log("📹 Video stream set to videoRef");
-                    videoRef.current.load(); // Force a refresh
-                    console.log("📹 Video stream refreshed.");
-                  }
+            
+              if (!videoTrack) {
+                console.error("❌ No video track received.");
+                return;
+              }
+            
+              console.log(`🔹 Track type: ${videoTrack.kind}, Enabled: ${videoTrack.enabled}`);
+              console.log("✅ Video track detected");
+            
+              const assignVideoStream = () => {
+                if (!videoRef.current) {
+                  console.error("❌ videoRef is NULL! Retrying in 500ms...");
+                  setTimeout(assignVideoStream, 500);
+                  return;
                 }
-              });
-              // if (videoRef.current) {
-              //   videoRef.current.srcObject = remoteStream.current;
-              //   // videoRef.current.srcObject = event.streams[0]; // Directly assign the stream
-              // }
-              // videoRef.current?.play().catch((e) => console.error('Error playing video:', e));
-            }
+            
+                console.log("📹 Video stream assigned.");
+                videoStreamSrc.current = stream; // Store in ref
+                videoRef.current.srcObject = stream; // Assign to video element
+                videoRef.current.load(); // Force a refresh
+                console.log("🔄 Video stream refreshed.");
+              };
+            
+              assignVideoStream();
+            };
+            
             await peerConnection.current.setRemoteDescription(new RTCSessionDescription(payload));
             const answer = await peerConnection.current.createAnswer();
             await peerConnection.current.setLocalDescription(answer);
