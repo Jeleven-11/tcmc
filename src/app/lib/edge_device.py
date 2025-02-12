@@ -1189,125 +1189,127 @@ async def ably_connection():
         #     await messageToMyID(data)
         async def messageToMyID(message):
             data = message.data
-            print(f"Data: {data}")
-
-            if data['role'] == 'Admin' and data['message'] == 'Connect':
-                try:
-                    global now_live, surveillanceTask
-                    peer_id = data["from"]
-                    print(f"Received start_live_stream from {peer_id}")
-                    if peer_id in peer_connections:
-                        await cleanup_peer_connection(peer_id)
-                    pc = RTCPeerConnection()
-                    peer_connections[peer_id] = pc
-                    if data.get('camera_stream', False):
-                        global stream, surveillance_running
-                        if stream is None:
-                            stream = CameraStreamTrack()
-                            print("Start CameraStreamTrack")
-                        elif surveillance_running:
-                            print('Stream is running, now stopping...')
-                            surveillance_running = False
-                            print("Paused surveillance mode...")
-                            surveillanceTask.cancel()
-                        print("Starting WebRTC Mode...")
-                        camera_track = stream
-                        pc.addTrack(camera_track)
-                        now_live = True
-                    # print("Still good 1")
-                    offer = await pc.createOffer()
-                    await pc.setLocalDescription(offer)
-                    print(f"Will send offer to: {peer_id}")
-                    await webRTCChannel.publish('WebRTC-client-register', {
-                        "type": "offer",
-                        "payload":{
-                            "sdp": pc.localDescription.sdp,
-                            "type": pc.localDescription.type
-                        },
-                        # "sdp": pc.localDescription.sdp,
-                        "from": raspberry_pi_id,
-                        "target": peer_id,
-                        "role": "Raspberry Pi"
-                    })
-                    @pc.on("icecandidate")
-                    async def on_icecandidate(candidate):
-                        if candidate:
-                            print('sending candidate')
-                            await webRTCChannel.publish('WebRTC-client-register',{
-                                "type": "ice-candidate",
-                                "payload": {
-                                    "candidate": candidate.candidate,
-                                    "sdpMid": candidate.sdpMid,
-                                    "sdpMLineIndex": candidate.sdpMLineIndex,
-                                },
-                                "target": peer_id,
-                                "from": raspberry_pi_id,
-                                "role": "Raspberry Pi"
-                            })
-                    
-                    # print("Still good 2")
-                    @pc.on("connectionstatechange")
-                    async def on_connectionstatechange():
-                        if pc.connectionState in ["failed", "disconnected", "closed"]:
-                            print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Live stream")
+            
+            if data['role'] == 'Admin':
+                if data['message'] == 'Connect':
+                    try:
+                        print(f"Data: {data}")
+                        global now_live, surveillanceTask
+                        peer_id = data["from"]
+                        print(f"Received start_live_stream from {peer_id}")
+                        if peer_id in peer_connections:
                             await cleanup_peer_connection(peer_id)
-                            now_live = False
-                            print("Resumed surveillance mode...")
-                            surveillance_running = True
-                            # exit(1)
-                                
-                except Exception as ex:
-                    print("Exception error during start_live_stream setup: ", ex)
-            if data["type"] == "ice-candidate" and data['role'] == 'Admin':
-                print(f"Message for {data['type']} received: {data}")
-                peer_id = data["from"]["id"]
-                if peer_id in peer_connections:
-                    pc = peer_connections[peer_id]
-                    candidate_dict = parse_candidate(data["payload"]["candidate"])
-                    if data["payload"]:
-                        candidate = RTCIceCandidate(
-                            foundation=candidate_dict['foundation'],
-                            component=candidate_dict['component'],
-                            protocol=candidate_dict['protocol'],
-                            priority=candidate_dict['priority'],
-                            ip=candidate_dict['ip'],
-                            port=candidate_dict['port'],
-                            type=candidate_dict['type'],
-                            sdpMid=data["payload"]['sdpMid'],
-                            sdpMLineIndex=data["payload"]['sdpMLineIndex']
-                        )
-                        await pc.addIceCandidate(candidate)
-                    else:
-                        print(f"No payload in ICE candidate from {peer_id}")
-                    @pc.on("connectionstatechange")
-                    async def on_connectionstatechange():
-                        if pc.connectionState in ["failed", "disconnected", "closed"]:
-                            print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Ice-candidate")
-                            await cleanup_peer_connection(peer_id)
-            if data.get('type') == "answer" and data['role'] == 'Admin':
-                print(f"Message for {data['type']} received: {data}")
-                # global peer_connections
-                try:
-                    peer_id = data["from"]["id"]
-                    print(f"Received answer from: {peer_id}")
-                    if peer_id in peer_connections:
-                        pc = peer_connections[peer_id]
-                        answer = RTCSessionDescription(
-                            sdp=data["payload"]["sdp"],
-                            type=data["payload"]["type"]
-                        )
-                        await pc.setRemoteDescription(answer)
-                        print(f"Set remote description with answer from {peer_id}")
+                        pc = RTCPeerConnection()
+                        peer_connections[peer_id] = pc
+                        if data.get('camera_stream', False):
+                            global stream, surveillance_running
+                            if stream is None:
+                                stream = CameraStreamTrack()
+                                print("Start CameraStreamTrack")
+                            elif surveillance_running:
+                                print('Stream is running, now stopping...')
+                                surveillance_running = False
+                                print("Paused surveillance mode...")
+                                surveillanceTask.cancel()
+                            print("Starting WebRTC Mode...")
+                            camera_track = stream
+                            pc.addTrack(camera_track)
+                            now_live = True
+                        # print("Still good 1")
+                        offer = await pc.createOffer()
+                        await pc.setLocalDescription(offer)
+                        print(f"Will send offer to: {peer_id}")
+                        await webRTCChannel.publish('WebRTC-client-register', {
+                            "type": "offer",
+                            "payload":{
+                                "sdp": pc.localDescription.sdp,
+                                "type": pc.localDescription.type
+                            },
+                            # "sdp": pc.localDescription.sdp,
+                            "from": raspberry_pi_id,
+                            "target": peer_id,
+                            "role": "Raspberry Pi"
+                        })
+                        @pc.on("icecandidate")
+                        async def on_icecandidate(candidate):
+                            if candidate:
+                                print('sending candidate')
+                                await webRTCChannel.publish('WebRTC-client-register',{
+                                    "type": "ice-candidate",
+                                    "payload": {
+                                        "candidate": candidate.candidate,
+                                        "sdpMid": candidate.sdpMid,
+                                        "sdpMLineIndex": candidate.sdpMLineIndex,
+                                    },
+                                    "target": peer_id,
+                                    "from": raspberry_pi_id,
+                                    "role": "Raspberry Pi"
+                                })
+                        
+                        # print("Still good 2")
                         @pc.on("connectionstatechange")
                         async def on_connectionstatechange():
                             if pc.connectionState in ["failed", "disconnected", "closed"]:
-                                print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Answer")
-                                # await cleanup_peer_connection(peer_id)
+                                print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Live stream")
+                                await cleanup_peer_connection(peer_id)
+                                now_live = False
+                                print("Resumed surveillance mode...")
+                                surveillance_running = True
+                                # exit(1)
+                                    
+                    except Exception as ex:
+                        print("Exception error during start_live_stream setup: ", ex)
+                if data["type"] == "ice-candidate":
+                    print(f"Data: {data}")
+                    print(f"Message for {data['type']} received: {data}")
+                    peer_id = data["from"]["id"]
+                    if peer_id in peer_connections:
+                        pc = peer_connections[peer_id]
+                        candidate_dict = parse_candidate(data["payload"]["candidate"])
+                        if data["payload"]:
+                            candidate = RTCIceCandidate(
+                                foundation=candidate_dict['foundation'],
+                                component=candidate_dict['component'],
+                                protocol=candidate_dict['protocol'],
+                                priority=candidate_dict['priority'],
+                                ip=candidate_dict['ip'],
+                                port=candidate_dict['port'],
+                                type=candidate_dict['type'],
+                                sdpMid=data["payload"]['sdpMid'],
+                                sdpMLineIndex=data["payload"]['sdpMLineIndex']
+                            )
+                            await pc.addIceCandidate(candidate)
+                        else:
+                            print(f"No payload in ICE candidate from {peer_id}")
+                        @pc.on("connectionstatechange")
+                        async def on_connectionstatechange():
+                            if pc.connectionState in ["failed", "disconnected", "closed"]:
+                                print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Ice-candidate")
+                                await cleanup_peer_connection(peer_id)
+                if data['type'] == "answer":
+                    print(f"Message for {data['type']} received: {data}")
+                    # global peer_connections
+                    try:
+                        peer_id = data["from"]["id"]
+                        print(f"Received answer from: {peer_id}")
+                        if peer_id in peer_connections:
+                            pc = peer_connections[peer_id]
+                            answer = RTCSessionDescription(
+                                sdp=data["payload"]["sdp"],
+                                type=data["payload"]["type"]
+                            )
+                            await pc.setRemoteDescription(answer)
+                            print(f"Set remote description with answer from {peer_id}")
+                            @pc.on("connectionstatechange")
+                            async def on_connectionstatechange():
+                                if pc.connectionState in ["failed", "disconnected", "closed"]:
+                                    print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Answer")
+                                    # await cleanup_peer_connection(peer_id)
 
-                    else:
-                        print(f"No peer connection found for {peer_id}")
-                except Exception as e:
-                    print(f"Error handling answer: {e}")
+                        else:
+                            print(f"No peer connection found for {peer_id}")
+                    except Exception as e:
+                        print(f"Error handling answer: {e}")
 
 
         # await webRTCChannel.subscribe(raspberry_pi_id, messageToMyID)

@@ -39,11 +39,14 @@ const AblyConnectionComponent = () => {
     // if (!channel.current) return;
 
     async function InitWebRTC() {
-      if (!channel.current) return;
+      if (!channel.current){
+        console.log('channel.current is null');
+        return;
+      };
 
       const handleSignalingMessage = async (message: Ably.Message) => {
         const { type, from, payload, role, sessionID } = message.data;
-
+        
         if (role !== 'Raspberry Pi') return;
         console.log('Received message from Raspberry Pi:', message.data);
 
@@ -73,6 +76,7 @@ const AblyConnectionComponent = () => {
         // }
 
         if (type === 'offer' && from !== myID.current) {
+          
           console.log('Received WebRTC offer from:', from);
           piID.current = sessionID;
           // setPiIDState(sessionID);
@@ -88,8 +92,12 @@ const AblyConnectionComponent = () => {
             })
             peerConnection.current.onicecandidate = async (event) => {
               console.log('Received ICE candidate:', event.candidate);
+              if (!channel.current){
+                console.log('channel.current is null in icecandidate');
+                return;
+              };
               if (event.candidate) {
-                await channel.current?.publish('WebRTC-client-register', {
+                await channel.current.publish('WebRTC-client-register', {
                   type: 'ice-candidate',
                   payload: event.candidate,
                   from: myID.current,
@@ -117,8 +125,18 @@ const AblyConnectionComponent = () => {
             await peerConnection.current.setRemoteDescription(new RTCSessionDescription(payload));
             const answer = await peerConnection.current.createAnswer();
             await peerConnection.current.setLocalDescription(answer);
-
-            await channel.current!.publish('WebRTC-client-register', {
+            if (!channel.current){
+              console.log('channel.current is null in answer');
+              return;
+            };
+            await channel.current.publish('WebRTC-client-register', {
+              type: 'answer',
+              payload: answer,
+              from: myID.current,
+              target: piID.current,
+              role: 'Admin'
+            });
+            console.log('Sent WebRTC answer:', {
               type: 'answer',
               payload: answer,
               from: myID.current,
@@ -166,7 +184,11 @@ const AblyConnectionComponent = () => {
     return () => {
       console.log('Cleaning up WebRTC...');
       peerConnection.current?.close();
-      channel.current?.unsubscribe('WebRTC-client-register');
+      if (channel.current){
+        channel.current.unsubscribe('WebRTC-client-register');
+        
+      };
+      
     };
   }, []);
   // useEffect(() => {
