@@ -1036,7 +1036,7 @@ class CameraStreamTrack(VideoStreamTrack):
                 print(f"\rCurrent FPS: {fps:.2f}")   
                 # await self.send_fps(fps) 
            
-            if self.frame_count >= 600:
+            if self.frame_count >= 6000:
                 self.frame_count = 1 #Reset number
            
             if frame.shape[2] == 4:
@@ -1192,7 +1192,7 @@ async def ably_connection():
             
             if data['role'] == 'Admin':
                 print(f"Data: {data}")
-                if data['type'] == 'Connect':
+                if data['type'] == 'Connect' and data["from"] is not None:
                     try:
                         
                         global now_live, surveillanceTask
@@ -1231,6 +1231,10 @@ async def ably_connection():
                             "target": peer_id,
                             "role": "Raspberry Pi"
                         })
+                        @pc.on("track")
+                        async def on_track(track):
+                            print(f" Track attached: {track.kind}")
+
                         @pc.on("icecandidate")
                         async def on_icecandidate(candidate):
                             if candidate:
@@ -1260,9 +1264,9 @@ async def ably_connection():
                                     
                     except Exception as ex:
                         print("Exception error during start_live_stream setup: ", ex)
-                elif data["type"] == "ice-candidate":
+                elif data["type"] == "ice-candidate" and data["from"] is not None:
                     print(f"Message for {data['type']} received: {data}")
-                    peer_id = data["from"]["id"]
+                    peer_id = data["from"]
                     if peer_id in peer_connections:
                         pc = peer_connections[peer_id]
                         candidate_dict = parse_candidate(data["payload"]["candidate"])
@@ -1286,11 +1290,11 @@ async def ably_connection():
                             if pc.connectionState in ["failed", "disconnected", "closed"]:
                                 print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Ice-candidate")
                                 await cleanup_peer_connection(peer_id)
-                elif data['type'] == "answer":
+                elif data['type'] == "answer" and data["from"] is not None:
                     print(f"Message for {data['type']} received: {data}")
                     # global peer_connections
                     try:
-                        peer_id = data["from"]["id"]
+                        peer_id = data["from"]
                         print(f"Received answer from: {peer_id}")
                         if peer_id in peer_connections:
                             pc = peer_connections[peer_id]
