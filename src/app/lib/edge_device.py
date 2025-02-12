@@ -52,10 +52,7 @@ from ably import AblyRealtime
 # --- CONFIGURATION --- #
 SERVER_URL = "tcmc.vercel.app"
 ABLY_API_KEY = os.environ.get("ABLY_API_KEY")
-# CONFIG_FILE = "config.json"
-# TRAIN_LOG = "training.json"
-# assigned_ownerId = None
-# number_of_faces_registered = 0
+
 websocket_status = "Disconnected"
 camera = None
 stream = None
@@ -63,63 +60,19 @@ pc = None
 executor = ThreadPoolExecutor(max_workers=2)
 
 # --- WebRTC Data Configurations --- #
-
-# startTraining = False
-# trainingMin = 0
-# trainingHour = 0
-# --- IR LEDS --- #
-# ir_led1 = PWMLED(17)
-# ir_led2 = PWMLED(27)
-# ir_led3 = PWMLED(22)
-# ir_led4 = PWMLED(23)
-# brightness = 0.75 # 75%
 local_tz = pytz.timezone("Asia/Manila")
 # media_relay = MediaRelay()
-# newUser = False
-# updateFace = False
-# faceScanProcess = None
-# isFaceRegDone = None
-# needToTrain = False
-# my_websocket = None
-# started_training = None
+
 now_live = False
 isCameraConfigured = False
 surveillanceTask = None
-# def IR_LED_ON():
-#     ir_led1.value = brightness
-#     ir_led2.value = brightness
-#     print(f"IR LEDs are running at {brightness * 100}% brightness.")
 
-# def IR_LED_OFF():
-#     ir_led1.off()
-#     ir_led2.off()
-#     print("IR LEDs are OFF")
-
-# def GPIO_Cleanup():
-#     ir_led1.close()
-#     ir_led2.close()
-#     print (f"GPIO resources released.")
 
 def get_wifi_ssid():
     result = subprocess.run(['iwgetid'], stdout=subprocess.PIPE)
     ssid = result.stdout.decode().strip()
     return ssid
 
-# def isNightTime():
-#     now = datetime.now(local_tz).time()
-#     start_time = 18
-#     end_time = 6
-#     return now.hour >= start_time or now.hour < end_time
-
-# async def controlIRLeds ():
-#     print("IR led task is on")
-#     while True:
-#         if isNightTime():
-#             IR_LED_ON()
-#         else:
-#             print("currently morning")
-#             IR_LED_OFF()
-#         await asyncio.sleep(60)
 def count_immediate_folders(parent_folder):
     try:
         # List all entries in the parent_folder
@@ -136,365 +89,7 @@ def count_immediate_folders(parent_folder):
     except Exception as e:
         print(f"An error occurred: {e}")
         return 0
-# Function for fine-tuning and training Inception-ResNet-V1 model
-# batch_count = 2
-# async def fine_tunining_training(ws = None):
-#     # global batch_count
-#     # print(f"Batch count: {batch_count}")
-#     status = "Failed"
-#     start = datetime.now(pytz.timezone('Asia/Manila')).strftime("%m/%d/%Y %H:%M:%S")
-#     try:
-#         global started_training
-#         started_training = "started training..."
-#         print(started_training)
-#         if ws is not None:
-#             await send_admin_logs(ws, started_training)
-#         global startTraining
-#         global needToTrain
-#         raspberry_pi_id = get_cpu_serial()
-#         now = datetime.now()
-#         formatted_date = now.strftime("%m-%d-%Y")
-#         model_filename = f"model_trained_{formatted_date}.pt"
-#         model_path = Path("models")
-#         model_path.mkdir(parents=True, exist_ok=True)
-#         model_save_path = model_path / model_filename
-#         data_dir = './saved_faces'
-#         batch_size = 32#count_immediate_folders(data_dir)#32
-#         epochs = 32#count_immediate_folders(data_dir)*3#32
-#         workers = 0 if os.name == 'nt' else 2
-#         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-#         if device == 'cpu':
-#             # Use OpenCL for Intel UHD Graphics (iGPU) if available
-#             try:
-#                 device = torch.device('opencl:0')
-#                 print(f'Running on device: {device}')
-#             except RuntimeError:
-#                 print('No OpenCL device found. Running on CPU.')
-#         else:
-#             print(f'Running on device: {device}')
-#         #print('Running on device: {}'.format(device))
-#         mtcnn = MTCNN(
-#             image_size=160, margin=14, min_face_size=100,
-#             thresholds=[0.6, 0.7, 0.7], factor=0.709, post_process=True,
-#             device=device
-#         )
-#         dataset = datasets.ImageFolder(data_dir, transform=transforms.Resize((512, 512)))
-#         dataset.samples = [
-#             (p, p.replace(data_dir, data_dir + '_cropped'))
-#             for p, _ in dataset.samples
-#         ]
-#         loader = DataLoader(
-#             dataset,
-#             num_workers=workers,
-#             batch_size=batch_size,
-#             collate_fn=training.collate_pil
-#         )
-#         for i, (x, y) in enumerate(loader):
-#             mtcnn(x, save_path=y)
-#             print('\rBatch {} of {}'.format(i+1, len(loader)), end='')
-#             # print(f"Image {i+1} - Filename: {dataset.samples[i][0]}")
-#         #Remove mtcnn to reduce GPU memory usage
-#         del mtcnn
 
-#         resnet = InceptionResnetV1(
-#             classify = True,
-#             pretrained='vggface2',
-#             num_classes=len(dataset.class_to_idx)
-#         ).to(device)
-#         print(f"number of classes: {dataset.class_to_idx}")
-#         optimizer = optim.Adam(resnet.parameters(), lr=0.001)
-#         scheduler = MultiStepLR(optimizer, [5, 10])
-
-#         trans = transforms.Compose([
-#             np.float32,
-#             transforms.ToTensor(),
-#             fixed_image_standardization
-#         ])
-#         dataset = datasets.ImageFolder(data_dir + '_cropped', transform=trans)
-#         img_inds = np.arange(len(dataset))
-#         np.random.shuffle(img_inds)
-#         train_inds = img_inds[:int(0.8 * len(img_inds))]
-#         val_inds = img_inds[int(0.8 * len(img_inds)):]
-#         train_loader = DataLoader(
-#             dataset,
-#             num_workers = workers,
-#             batch_size = batch_size,
-#             sampler = SubsetRandomSampler(train_inds)
-#         )
-#         # for i, (inputs, targets) in enumerate(train_loader):
-#         #     print(f"Batch {i+1} - Targets: {targets}")
-#         val_loader = DataLoader(
-#             dataset,
-#             num_workers = workers,
-#             batch_size = batch_size,
-#             sampler = SubsetRandomSampler(val_inds)
-#         )
-
-#         loss_fn = torch.nn.CrossEntropyLoss()
-#         metrics = {
-#             'fps': training.BatchTimer(),
-#             'acc': training.accuracy
-#         }
-#         #Train model
-#         writer = SummaryWriter()
-#         writer.iteration, writer.interval = 0, 10
-#         time_now = datetime.now()
-#         formatted_time = time_now.strftime("%H-%M-%S")
-#         log_filename = f'fine-tuning-training-logs-{formatted_date}_{formatted_time}.txt'
-#         log_path = Path("Training-Logs")
-#         log_path.mkdir(parents=True, exist_ok=True)
-#         log_save_path = log_path / log_filename
-#         sys.stdout = open(log_save_path, 'w')     
-#         # time_now = datetime.now()
-#         # formatted_time = time_now.strftime("%H-%M-%S")
-#         if ws is not None:
-#             await send_admin_logs(ws, "Training Start time: " + formatted_time)
-#         print("\nTraining Start time: ", formatted_time)
-
-#         print('\n\nInitial')
-#         print('-' * 10)
-
-#         print('Training Parameters:')
-#         print(f"batch_size = {batch_size}")
-#         print(f"epochs = {epochs}")
-#         print(f"workers = {workers}")
-#         print(f"device = {device}\n")
-#         print('-' * 10)
-
-#         resnet.eval()
-
-#         training.pass_epoch(
-#             resnet, loss_fn, val_loader,
-#             batch_metrics = metrics, show_running = True, device = device,
-#             writer = writer
-#         )
-#         for epoch in range(epochs):
-#             print('\nEpoch {}/{}'.format(epoch + 1, epochs))
-#             print('-' * 10)
-#             #training mode
-#             resnet.train()
-#             training.pass_epoch(
-#                 resnet, loss_fn, train_loader, optimizer, scheduler,
-#                 batch_metrics = metrics, show_running = True, device = device,
-#                 writer = writer
-#             )
-#             #evaluation mode
-#             resnet.eval()
-#             training.pass_epoch(
-#                 resnet, loss_fn, val_loader,
-#                 batch_metrics = metrics, show_running = True, device = device,
-#                 writer = writer
-#             )
-#         time_now = datetime.now()
-#         formatted_time = time_now.strftime("%H-%M-%S")
-#         print("\nTraining time finished: ", formatted_time)    
-#         sys.stdout.close()
-#         sys.stdout = sys.__stdout__
-#         writer.close()
-#         if ws is not None:
-#             await send_admin_logs(ws, "Training time finished: " + formatted_time)
-#         #Saving our finetuned model
-#         torch.save(obj=resnet.state_dict(), f=model_save_path)
-#         print(f'\nModel state dictionary saved to {model_save_path}')
-#         if ws is not None:
-#             await send_admin_logs(ws, f"Model state dictionary saved to {model_save_path}")
-#         mtcnn = MTCNN(
-#             image_size = 160, margin = 14, min_face_size = 20,
-#             thresholds = [0.6, 0.7, 0.7], factor=0.709, post_process=True,
-#             device=device
-#         )
-#         started_training = None
-
-#         def collate_fn(x):
-#             return x[0]
-
-#         data = datasets.ImageFolder('saved_faces')
-#         data.idx_to_class = {i:c for c, i in data.class_to_idx.items()}
-#         data_loader = DataLoader(data, collate_fn = collate_fn, num_workers = workers)
-#         aligned = []
-#         names = []
-#         for x, y in data_loader:
-#             x_aligned, prob = mtcnn(x, return_prob=True)
-#             if x_aligned is not None:
-#                 emb = resnet(x_aligned.unsqueeze(0))
-#                 aligned.append(emb)
-#                 names.append(data.idx_to_class[y])
-
-#         save_data = [aligned, names]
-#         torch.save(save_data, 'data.pt')
-#         print('Data saved as data.pt')
-#         if ws is not None:
-#             await send_admin_logs(ws, "Data saved as data.pt")
-#             await ws.send(json.dumps({
-#                 "type": "trainingResult",
-#                 "message": "Training Finished",
-#                 "names": names,
-#                 "faceRegStatus": "registered"
-#             }))
-#         startTraining = False
-#         needToTrain = False
-#         print("finished training...")
-#         if ws is not None:
-#             await send_admin_logs(ws, "finished training...")
-#         status = "Successful"
-#         global number_of_faces_registered
-#         number_of_faces_registered = count_immediate_folders(data_dir)
-#         save_training_record(start,status)
-#     except Exception as e:
-#         print(f"Error encountered during training: {e}")
-#         if ws is not None:
-#             await send_admin_logs(ws, f"Error encountered during training: {e}")
-#         logging.error(f"Error encountered during training: {e}")
-        # batch_count += 1
-        # if batch_count < 20:
-        #     await fine_tunining_training()
-
-
-# Function that allows auto update
-# def download_file(token, repo_owner, repo_name, branch, file_path, local_file_path):
-#     url = f"https://raw.githubusercontent.com/{repo_owner}/{repo_name}/{branch}/{file_path}"
-#     headers = {"Authorization": f"token {token}"}
-#     response = requests.get(url, headers=headers)
-    
-#     if response.status_code == 200:
-#         with open(local_file_path, 'wb') as file:
-#             file.write(response.content)
-#         print(f"File downloaded successfully: {local_file_path}")
-#     else:
-#         print(f"Failed to download file: {response.status_code}")
-
-# def get_latest_commit_sha(token, repo_owner, repo_name, branch, file_path):
-#     url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/commits"
-#     params = {
-#         "path": file_path,#python_scripts/security_system_v1.py
-#         "sha": branch, #main
-#         "per_page": 1
-#     }
-#     headers = {"Authorization": f"token {token}"}
-#     response = requests.get(url, headers=headers, params=params)
-    
-#     if response.status_code == 200:
-#         commits = response.json()
-#         if commits:
-#             return commits[0]['sha']
-#     return 
-
-# def check_updates(last_update, current_check):
-#     global github_token, repo_owner, repo_name, branch, file_path
-#     latest_commit_sha = get_latest_commit_sha(github_token, repo_owner, repo_name, branch, file_path)
-#     sha_file_path = f"{local_file_path}.sha"
-
-#     if latest_commit_sha:
-#         if os.path.exists(sha_file_path):
-#             with open(sha_file_path, 'r') as sha_file:
-#                 saved_sha = sha_file.read().strip()
-            
-#             if saved_sha != latest_commit_sha:
-#                 print("New commit detected. Downloading updated file...")
-#                 download_file(github_token, repo_owner, repo_name, branch, file_path, local_file_path)
-#                 save_last_update_time(current_check, current_check)
-#                 with open(sha_file_path, 'w') as sha_file:
-#                     sha_file.write(latest_commit_sha)
-#                 print("System will Reboot to apply updates")
-#                 exit(1)
-#             else:
-#                 save_last_update_time(last_update, current_check)
-#                 print("No new updates found.")
-#         else:
-#             print("No previous commit SHA found. Downloading file for the first time...")
-#             download_file(github_token, repo_owner, repo_name, branch, file_path, local_file_path)
-#             save_last_update_time(current_check, current_check)
-#             with open(sha_file_path, 'w') as sha_file:
-#                 sha_file.write(latest_commit_sha)
-#     else:
-#         print("Failed to get the latest commit SHA.")
-
-# def save_last_update_time(last_update, last_update_check):
-#     """Saves the configuration data to last_update.json."""
-#     config_data = {
-#         "last_update": last_update, #date and time when the file is updated (downloaded a new commit)
-#         "last_update_check" : last_update_check#date and time last checked if there's a new commit
-#     }
-
-#     with open("last_update.json", "w") as config_file:
-#         json.dump(config_data, config_file, indent=4)
-    
-#     print("Configuration saved to last_update.json")
-    # ADD system reboot (send message first to server that says it will apply updated software code and reboot)
-
-# def save_training_record(fineTuningStartTime, status):
-#     global number_of_faces_registered
-
-#     training_record = {
-#         "Last_Finetuning": fineTuningStartTime,
-#         "Status": status,
-#         "FaceCount": number_of_faces_registered
-#     }
-#     with open(TRAIN_LOG, "w") as train_conf:
-#         json.dump(training_record, train_conf, indent=4)
-#     print("Saved training log in json file")
-
-# def load_last_training_record():
-#     if os.path.exists(TRAIN_LOG):
-#         with open(TRAIN_LOG, 'r') as config_file:
-#             config_data = json.load(config_file)
-#             return config_data.get('Status'), config_data.get('Last_Finetuning'), config_data.get('FaceCount')
-    # return None, None
-
-# def load_last_update_time():
-#     if os.path.exists(lastUpdateConfig):
-#         with open(lastUpdateConfig, 'r') as config_file:
-#             config_data = json.load(config_file)
-#             return config_data.get('last_update'), config_data.get('last_update_check')
-    # return None, None
-
-# async def checkTime(ws):
-#     global startTraining, trainingMin, trainingHour, stream, now_live
-#     canSleepForThirtyMin = False
-#     sleepTime = 60
-#     while True:
-#         now = datetime.now(pytz.timezone('Asia/Manila'))
-#         current_check = now.strftime("%m/%d/%Y %H:%M:%S")
-#         # print(current_check)
-#         # print(now.hour)
-#         # print(now.minute)
-#         last_update, last_update_check = load_last_update_time()
-#         if now.hour == 00 and now.minute == 00: 
-#             print("Checking for updates...")
-#             if stream is not None and now_live:
-#                 await stream.close()
-#                 stream = None
-#             await send_admin_logs(ws, "Checking for updates...")
-#             check_updates(last_update, current_check)
-#             if now_live:
-#                 stream = CameraStreamTrack()
-#             # else:
-#             #     stream = SecuritySurveillanceStreamTrack()
-            
-#         if now.hour == 12 and now.minute == 00: 
-#             print("Checking for updates...")
-#             if stream is not None and now_live:
-#                 await stream.close()
-#                 stream = None
-#             await send_admin_logs(ws, "Checking for updates...")
-#             check_updates(last_update, current_check)
-#             if now_live:
-#                 stream = CameraStreamTrack()
-#             # else:
-#             #     stream = SecuritySurveillanceStreamTrack()
-#         if now.minute == 0 or now.minute == 30:
-#             print("Can now sleep for 30 minutes.")
-#             canSleepForThirtyMin = True
-#         if canSleepForThirtyMin:
-#             sleepTime = 1800
-#         if needToTrain and now.minute == trainingMin and now.hour == trainingHour:
-#             await fine_tunining_training(ws)
-#         if startTraining and now.minute == trainingMin and now.hour == trainingHour:
-#             await fine_tunining_training(ws)
-#         if needToTrain and startTraining and now.hour == trainingHour and now.minute == trainingMin:
-#             await fine_tunining_training(ws)
-#         await asyncio.sleep(sleepTime)
-        
 def get_cpu_serial():
     try:
         with open('/proc/cpuinfo', 'r') as f:
@@ -519,121 +114,6 @@ def generate_token(device_id):
     print("Generated token.")
     return token#.decode()
 
-# def extract_date_from_filename(filename):
-#     #Split filename and extract the date part based on (mm-dd-yyyy)
-#     parts = filename.split("_")
-#     date_str = parts[2]
-#     date_str = date_str.split(".")[0]
-#     return datetime.strptime(date_str, "%m-%d-%Y")
-
-# def load_assigned_owner():
-#     """Loads the assigned owner ID from the file."""
-#     global assigned_ownerId, number_of_faces_registered
-#     try:
-#         with open('config.json', 'r') as f:
-#             config = json.load(f)
-#             assigned_ownerId = config['assigned_ownerId']
-#             number_of_faces_registered = config['number_of_faces_registered']
-#         # with open(CONFIG_FILE, 'r') as f:
-#         #     assigned_ownerId = f.read().strip()
-#         print(f"Loaded assigned owner ID: {assigned_ownerId}")
-#         print(f"Current number of faces registered: {number_of_faces_registered}")
-#     except FileNotFoundError:
-#         print("No assigned owner ID found.")
-#         assigned_ownerId = None
-
-# def save_assigned_owner(owner_id):
-#     global number_of_faces_registered
-#     """Saves the configuration data to config.json."""
-#     config_data = {
-#         "assigned_ownerId": owner_id,
-#         "number_of_faces_registered" : number_of_faces_registered
-#     }
-
-#     with open("config.json", "w") as config_file:
-#         json.dump(config_data, config_file, indent=4)
-    
-#     print("Configuration saved to config.json")
-
-# def save_num_faces_registered(number_of_faces_registered):
-#     global assigned_ownerId
-#     config_data = {
-#         "assigned_ownerId" : assigned_ownerId,
-#         "number_of_faces_registered" : number_of_faces_registered
-#     }
-#     with open("config.json", "w") as config_file:
-#         json.dump(config_data, config_file, indent=4)
-
-#     print("Updated Configuration file with an additional face registered")
-
-# camera = None
-# lasttime_sendname = None
-# def load_saved_embeddings(saved_faces_path, mtcnn, resnet, device):
-#     # Load the saved faces dataset
-#     dataset = datasets.ImageFolder(saved_faces_path)
-#     idx_to_class = {i: c for c, i in dataset.class_to_idx.items()}
-    
-#     # Create embeddings for saved faces
-#     saved_embeddings = []
-#     saved_names = []
-    
-#     for img_path, class_idx in dataset.samples:
-#         img = datasets.folder.default_loader(img_path)
-#         face = mtcnn(img)
-        
-#         if face is not None:
-#             face = face.to(device)
-#             embedding = resnet(face.unsqueeze(0))
-#             saved_embeddings.append(embedding.detach().cpu())
-#             saved_names.append(idx_to_class[class_idx])
-    
-#     return torch.cat(saved_embeddings), saved_names
-
-# def setup_models(device):
-#     # Initialize MTCNN for face detection
-#     mtcnn = MTCNN(
-#         image_size=160, 
-#         margin=14, 
-#         min_face_size=48,
-#         thresholds=[0.6, 0.7, 0.7], 
-#         factor=0.709, 
-#         post_process=True,
-#         device=device
-#     )
-#     mtcnn_live = MTCNN(
-#         image_size=160, 
-#         margin=14, 
-#         min_face_size=48,
-#         thresholds=[0.6, 0.7, 0.7], 
-#         keep_all= True,
-#         factor=0.709, 
-#         post_process=True,
-#         device=device
-#     )
-    
-#     # Initialize InceptionResnetV1 model for face recognition
-#     resnet = InceptionResnetV1(pretrained='vggface2').eval().to(device)
-    
-#     return mtcnn, mtcnn_live, resnet
-
-# def find_best_match(embedding, saved_embeddings, saved_names, threshold=1.0):
-#     # Calculate distances between the detected face and all saved faces
-#     distances = [(e - embedding).norm().item() for e in saved_embeddings]
-#     min_dist_idx = np.argmin(distances)
-#     min_dist = distances[min_dist_idx]
-    
-#     if min_dist < threshold:
-#         name = saved_names[min_dist_idx]
-#         accuracy = 1 - (min_dist / 2)  # Convert distance to a similarity score
-#         return (0, 225, 0), name, accuracy, min_dist
-    
-#     return (225, 0, 0), "Unknown", 0, min_dist
-# def get_day_count(start_date, current_date):
-#         delta = current_date - start_date
-#         logging.debug(f"delta: {delta.days}, +1 : {delta.days + 1}")
-#         return delta.days + 1
-
-# Global camera variable
 myCamera = None
 def get_camera():
     global myCamera
@@ -647,31 +127,6 @@ def get_camera():
         # myCamera.start()
     return myCamera
 
-# def check_frame_channels(frame):
-#     text =""
-#     # Check the shape of the frame to determine the number of channels
-#     if len(frame.shape) == 2:
-#         # Grayscale image, only one channel
-#         print("The frame is grayscale with only one channel.")
-#         text = "The frame is grayscale with only one channel."
-#     elif len(frame.shape) == 3:
-#         height, width, channels = frame.shape
-#         if channels == 1:
-#             print("The frame has only one channel (likely grayscale).")
-#             text = "The frame has only one channel (likely grayscale)."
-#         elif channels == 3:
-#             print("The frame has three channels: Red, Green, Blue.")
-#             text = "The frame has three channels: Red, Green, Blue."
-#         elif channels == 4:
-#             print("The frame has four channels: Red, Green, Blue, Alpha.")
-#             text = "The frame has four channels: Red, Green, Blue, Alpha."
-#         else:
-#             print(f"The frame has an unexpected number of channels: {channels}")
-#             text = "The frame has an unexpected number of channels."
-#     else:
-#         print("The frame has an unexpected shape.")
-#         text = "The frame has an unexpected shape."
-#     return text
 surveillance_running = True
 async def surveillance_loop():
     global surveillance_running, stream
@@ -757,9 +212,7 @@ class CameraStreamTrack(VideoStreamTrack):
         self.cleanup()
 
     def surveillanceMode(self):
-        # global camera
         try:
-            # frame = camera.capture_array()
             frame = self.camera.capture_array() 
             self.frame_count += 1
             start_time = time.time()
@@ -797,24 +250,16 @@ class CameraStreamTrack(VideoStreamTrack):
             # frame = camera.capture_array()
             frame = self.camera.capture_array() # A Picamera2
             self.frame_count += 1
-            # await get_character_input()
-            # start_time = time.time()
             
             if frame.shape[2] == 4:
                 frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
             if self.frame_count % 3 != 0:
-                # if frame.shape[2] == 4:
-                #     # print(f'shape is: {frame.shape[2]}')
-                #     frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
                 video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
                 video_frame.pts, video_frame.time_base = await self.next_timestamp()
                 return video_frame
 
             
             if self.frame_count % 30 == 0:
-                # fps = 1 / (time.time() - start_time)
-                # print(f"\rCurrent FPS: {fps:.2f}")   
-                # # await self.send_fps(fps) 
                 elapsed_time = time.time() - self.start_time
                 if elapsed_time > 0:
                     fps = 60 / elapsed_time
@@ -844,25 +289,6 @@ def release_camera():
         myCamera = None
         print("Camera released.")
 
-
-# async def send_ping(ws):
-#     while True:
-#         try:
-#             await ws.send(json.dumps({"type": "ping"}))
-#             # print('Sent ping to server')
-#             await asyncio.sleep(30)  # Send a ping every 30 seconds
-#         except websockets.exceptions.ConnectionClosed:
-#             print('ping not sent, websocket connection closed, will restart')
-#             break
-
-# async def send_admin_logs(ws, message):
-#     rpi_id = get_cpu_serial()
-#     try:
-#         await ws.send(json.dumps({"type": "logs", "RaspberryPiID": rpi_id, "log": message}))
-#     except websockets.exceptions.ConnectionClosed:
-#         print("Unable to send log message to admin, websocket connection closed.")
-#         logging.error("Unable to send log message to admin, websocket connection closed.")
-
 def parse_candidate(candidate_str):
     parts = candidate_str.split(" ")
     candidate = {
@@ -880,43 +306,6 @@ def parse_candidate(candidate_str):
         "tcpType": None
     }
     return candidate
-# async def send_face_reg_result(message, ws, target, id):
-#     global number_of_faces_registered
-#     global newUser
-#     global updateFace
-#     global needToTrain
-#     print(target["id"])
-#     await ws.send(json.dumps({
-#         "type": "registrationResult",
-#         "message": message,
-#         "target": target["id"],
-#         "faceRegStatus": "training",
-#         "from": id
-#     }))
-#     if message == "Face registered successfully!":
-#         # number_of_faces_registered += 1
-#         print(f"1. Number of faces registered: {number_of_faces_registered}")
-#         save_num_faces_registered(number_of_faces_registered)
-#         newUser = False
-#         updateFace = False
-#         # fine_tunining_training(ws)
-#     elif message == "Face data updated successfully!":
-#         print(f"2. Number of faces registered: {number_of_faces_registered}")
-#         # save_num_faces_registered(number_of_faces_registered)
-#     needToTrain = True
-#     if needToTrain:
-#         global trainingMin, trainingHour
-#         now = datetime.now(pytz.timezone('Asia/Manila'))
-#         if now.minute < 50:
-#             trainingMin = now.minute + 10
-#             trainingHour = now.hour
-#         else:
-#             trainingMin = 0
-#             trainingHour = now.hour + 1
-#         print("Needs to train AI model, dataset has been updated...")
-#         save_training_record(f"{trainingHour}:{trainingMin}","To be trained")
-#         print(f"will train in {trainingHour}:{trainingMin}")
-#     await close_web_rtc_session(target["id"])
         
 async def close_web_rtc_session(peer_id, peer_connections):
     global pc
@@ -970,10 +359,8 @@ class WebRTCConnection():
         print(f"AUTH_SECRETKEY: {secret_key}")
         ably_client = AblyRealtime(ABLY_API_KEY)
         try:
-            
             raspberry_pi_id = get_cpu_serial()
             # await setup_stream()
-            
             # channel = ably_client.channels.get(raspberry_pi_id)
             webRTCChannel=ably_client.channels.get('webrtc-signaling-channel')
             async def on_icecandidate(candidate):
@@ -1033,12 +420,6 @@ class WebRTCConnection():
                                 print("Starting WebRTC Mode...")
                                 camera_track = CameraStreamTrack()#stream
                                 self.pc.addTrack(camera_track)
-                                # now_live = True
-                            # print("Still good 1")
-                            
-                            
-                            
-                            
                             
                             offer = await self.pc.createOffer()
                             await self.pc.setLocalDescription(offer)
@@ -1048,7 +429,6 @@ class WebRTCConnection():
                                     "sdp": self.pc.localDescription.sdp,
                                     "type": self.pc.localDescription.type
                                 },
-                                # "sdp": pc.localDescription.sdp,
                                 "from": raspberry_pi_id,
                                 "target": peer_id,
                                 "role": "Raspberry Pi"
@@ -1056,12 +436,10 @@ class WebRTCConnection():
                             print(f"Will send offer to: {peer_id}")
                             await webRTCChannel.publish('WebRTC-client-register', offerPayload)
                             
-                            # print("Still good 2")
                             self.peer_connections[peer_id] = self.pc
                             print(f"Peer Connections after sending offer: {self.peer_connections}")
                             self.pc.on("connectionstatechange", lambda: on_connectionstatechange(peer_id))
                             
-                                        
                         except Exception as ex:
                             print("Exception error during start_live_stream setup: ", ex)
                     if data["type"] == "ice-candidate":
@@ -1111,8 +489,6 @@ class WebRTCConnection():
                                 )
                                 await self.pc.setRemoteDescription(answer)
                                 print(f"Set remote description with answer from {peer_id}")
-                               
-
                             else:
                                 print(f"No peer connection found for {peer_id}")
                         except Exception as e:
@@ -1121,16 +497,8 @@ class WebRTCConnection():
 
             # await webRTCChannel.subscribe(raspberry_pi_id, messageToMyID)
             await webRTCChannel.subscribe('WebRTC-client-register', messageToMyID)
-            print("Listening for Commands")
+            print("Listening for messages from  channel: WebRTC-client-register")
             
-            # while True:
-                #send data
-            # data={
-            #     'id': raspberry_pi_id,
-            #     'role':"Raspberry Pi",
-            #     'sessionID': raspberry_pi_id
-            # }
-            # await channel.publish(raspberry_pi_id, data)
             await webRTCChannel.publish('WebRTC-client-register',{
                 'role': 'Raspberry Pi',
                 'id': raspberry_pi_id,
@@ -1148,8 +516,6 @@ class WebRTCConnection():
             # print(f"Published data: {data}")
             while True:
                 await asyncio.sleep(1)
-        # except ably.AblyException as e:
-        #     print(f"Ably Error: {e}")
         except Exception as e:
             print(f"General Error: {e}")
         finally:
@@ -1167,8 +533,6 @@ async def setup_stream():
 
 
 async def main():
-    # load_assigned_owner()
-    # await websocket_communication()
     webrtc_connection = WebRTCConnection()
     await webrtc_connection.ably_connection()
 
