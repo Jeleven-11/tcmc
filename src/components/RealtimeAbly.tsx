@@ -72,7 +72,7 @@ const AblyConnectionComponent = () => {
         //   };
         // }
 
-        if (type === 'offer') {
+        if (type === 'offer' && from !== myID.current) {
           console.log('Received WebRTC offer from:', from);
           piID.current = sessionID;
           setPiIDState(sessionID);
@@ -126,7 +126,7 @@ const AblyConnectionComponent = () => {
           }
         }
 
-        if (type === 'ice-candidate' && peerConnection.current) {
+        if (type === 'ice-candidate' && peerConnection.current && from !== myID.current) {
           try {
             await peerConnection.current.addIceCandidate(new RTCIceCandidate(payload));
           } catch (error) {
@@ -134,7 +134,7 @@ const AblyConnectionComponent = () => {
           }
         }
 
-        if (type === 'answer' && peerConnection.current) {
+        if (type === 'answer' && peerConnection.current && from !== myID.current) {
           try {
             await peerConnection.current.setRemoteDescription(new RTCSessionDescription(payload));
           } catch (error) {

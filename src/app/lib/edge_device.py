@@ -1175,6 +1175,7 @@ async def ably_connection():
     secret_key = os.environ.get("AUTH_SECRETKEY")
     print(f"AUTH_SECRETKEY: {secret_key}")
     ably_client = AblyRealtime(ABLY_API_KEY)
+    global peer_connections
     try:
         raspberry_pi_id = get_cpu_serial()
         await setup_stream()
@@ -1188,8 +1189,7 @@ async def ably_connection():
         #     await messageToMyID(data)
         async def messageToMyID(message):
             data = message.data
-            print(f"Message for {raspberry_pi_id} received: {data}")
-            print(f"data: {data}")
+            
 
             if data['role'] == 'Admin' and data['message'] == 'Connect':
                 try:
@@ -1257,7 +1257,8 @@ async def ably_connection():
                                 
                 except Exception as ex:
                     print("Exception error during start_live_stream setup: ", ex)
-            if data["type"] == "ice-candidate":
+            if data["type"] == "ice-candidate" and data["target"] == raspberry_pi_id:
+                print(f"Message for {data['type']} received: {data}")
                 peer_id = data["from"]["id"]
                 if peer_id in peer_connections:
                     pc = peer_connections[peer_id]
@@ -1282,7 +1283,8 @@ async def ably_connection():
                         if pc.connectionState in ["failed", "disconnected", "closed"]:
                             print(f"Connection state {pc.connectionState} for peer {peer_id}. Cleaning up. Ice-candidate")
                             await cleanup_peer_connection(peer_id)
-            if data.get('type') == "answer":
+            if data.get('type') == "answer" and data["target"] == raspberry_pi_id:
+                print(f"Message for {data['type']} received: {data}")
                 # global peer_connections
                 try:
                     peer_id = data["from"]["id"]
