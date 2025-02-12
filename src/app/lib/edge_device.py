@@ -1003,24 +1003,24 @@ async def ably_connection():
                             # now_live = True
                         # print("Still good 1")
                         
-
-                        # @pc.on("icecandidate")
-                        # async def on_icecandidate(candidate):
-                        #     print("ICE candidate event triggered")
-                        #     if candidate:
-                        #         candidatePayload = {
-                        #             "type": "ice-candidate",
-                        #             "payload": {
-                        #                 "candidate": candidate.candidate,
-                        #                 "sdpMid": candidate.sdpMid,
-                        #                 "sdpMLineIndex": candidate.sdpMLineIndex,
-                        #             },
-                        #             "target": peer_id,
-                        #             "from": raspberry_pi_id,
-                        #             "role": "Raspberry Pi"
-                        #         }
-                                # print('sending candidate to {peer_id} with {candidatePayload}')
-                                # await webRTCChannel.publish('WebRTC-client-register', candidatePayload)
+                        async def on_icecandidate(candidate):
+                            print("ICE candidate event triggered")
+                            if candidate:
+                                candidatePayload = {
+                                    "type": "ice-candidate",
+                                    "payload": {
+                                        "candidate": candidate.candidate,
+                                        "sdpMid": candidate.sdpMid,
+                                        "sdpMLineIndex": candidate.sdpMLineIndex,
+                                    },
+                                    "target": peer_id,
+                                    "from": raspberry_pi_id,
+                                    "role": "Raspberry Pi"
+                                }
+                                print('sending candidate to {peer_id} with {candidatePayload}')
+                                await webRTCChannel.publish('WebRTC-client-register', candidatePayload)
+                        pc.on("icecandidate", on_icecandidate)
+                        
                         offer = await pc.createOffer()
                         await pc.setLocalDescription(offer)
                         offerPayload = {
@@ -1055,6 +1055,7 @@ async def ably_connection():
                     print(f"Peer Connections during ice-candidate: {peer_connections}")
                     peer_id = data["from"]
                     if peer_id in peer_connections:
+                        print(f"Received ICE candidate from {peer_id}")
                         pc = peer_connections[peer_id]
                         candidate_dict = parse_candidate(data["payload"]["candidate"])
                         if data["payload"]:
