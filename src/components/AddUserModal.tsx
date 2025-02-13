@@ -14,6 +14,7 @@ interface AddUserModalProps {
     user_id?: string;
     email?: string;
     emailVerified?: boolean;
+    fcmToken?: string
   }) => void;
 }
 const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onAddUser }) => {
@@ -25,6 +26,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onAddUser }) => {
     password: '',
     email: '',
     emailVerified: false,
+    fcmToken: ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
