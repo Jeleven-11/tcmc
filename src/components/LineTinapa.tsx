@@ -64,7 +64,7 @@ const DailyReports = () =>
                         },
                     ],
                 })
-            })
+            }).catch(e => console.log(e))
         }
 
         fetchChartData()
