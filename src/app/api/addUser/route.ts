@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       // Insert new user into the database
       //const [result]: [newUser[], FieldPacket[]] = 
       await connection.query(
-        'INSERT INTO users (username, name, role, contact_num, password, email, isEmailVerified, fcmToken) VALUES (?, ?, ?, ?, ?)',
+        'INSERT INTO users (username, name, role, contact_num, password, email, isEmailVerified, fcmToken) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         [username, name, role, contact_num, hashedPassword, email, emailVerified, fcmToken]
       )// as [newUser[], FieldPacket[]];
 

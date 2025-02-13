@@ -96,7 +96,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onAddUser }) => {
             autoComplete="new-password" // Auto-fill suggestion for password
           />
           <input
-            type="text"
+            type="email"
             name="email"
             value={newUser.email}
             onChange={handleChange}
