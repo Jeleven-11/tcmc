@@ -7,7 +7,7 @@ import base64
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
-from aiortc import VideoStreamTrack, RTCPeerConnection, RTCSessionDescription, RTCIceCandidate
+from aiortc import VideoStreamTrack, RTCPeerConnection, RTCSessionDescription, RTCIceCandidate, RTCConfiguration, RTCIceServer
 from aiortc.contrib.media import MediaRecorder, MediaPlayer, MediaRelay
 from av import VideoFrame
 import os
@@ -118,8 +118,8 @@ myCamera = None
 def get_camera():
     global myCamera
     if myCamera is None:
-        frame_width = 1280
-        frame_height = 720
+        frame_width = 640#1280
+        frame_height = 360#720
         # Initialize Picamera2
         myCamera = Picamera2()
         camera_config = myCamera.create_preview_configuration(main={"size": (frame_width, frame_height)})
@@ -351,6 +351,16 @@ class WebRTCConnection():
         self.newPeerId = None
         self.stream = None
         self.relayed_stream = None
+        self.rtc_config = RTCConfiguration(
+        iceServers=[
+            RTCIceServer("stun:stun.l.google.com:19302"),
+            RTCIceServer(
+                "turn:relay1.expressturn.com:3478",
+                username="efQSLPKFVR1ANJGAHL",
+                credential="p1CPPouohCkB1MO2"
+            )
+        ]
+    )
     async def on_icecandidate(self, candidate):
         raspberry_pi_id = get_cpu_serial()
         print("ICE candidate event triggered")
@@ -397,7 +407,8 @@ class WebRTCConnection():
         raspberry_pi_id = get_cpu_serial()
         self.newPeerId = peer_id
         if peer_id not in self.peer_connections:
-            self.peer_connections[peer_id] = RTCPeerConnection()
+            self.peer_connections[peer_id] = RTCPeerConnection(self.rtc_config)
+            # print(f"Using transport: {self.rtc_config.iceTransportPolicy}")
             self.peer_connections[peer_id].on("connectionstatechange", lambda: self.on_connectionstatechange(peer_id))
             self.peer_connections[peer_id].on("icecandidate", lambda: self.on_icecandidate)
             print(f"Peer Connections: {self.peer_connections}")
@@ -416,7 +427,8 @@ class WebRTCConnection():
                     self.stream = CameraStreamTrack()
                     if self.relayed_stream is None:
                         self.relayed_stream = self.media_relay.subscribe(self.stream)
-                self.peer_connections[peer_id].addTrack(self.relayed_stream)
+                self.peer_connections[peer_id].addTrack(self.stream)##swapped out self.relayed_stream to test if media_relay is the cause of lag
+                # self.peer_connections[peer_id].addTrack(self.relayed_stream)#
             await self.createOfferPayload(peer_id)
             
     async def cleanup_peer_connection(self, peer_id):
