@@ -102,7 +102,14 @@ const AblyConnectionComponent = () => {
               peerConnection.current = null;
             }
             peerConnection.current = new RTCPeerConnection({
-              iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+              iceServers: [{ 
+                urls: 'stun:stun.l.google.com:19302' },
+                {
+                  urls: 'turn:relay1.expressturn.com:3478',
+                  username: 'efQSLPKFVR1ANJGAHL',
+                  credential: 'p1CPPouohCkB1MO2'
+                }
+              ],
             })
             peerConnection.current.onicecandidate = async (event) => {
               console.log('Received ICE candidate:', event.candidate);
