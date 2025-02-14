@@ -61,7 +61,7 @@ executor = ThreadPoolExecutor(max_workers=2)
 
 # --- WebRTC Data Configurations --- #
 local_tz = pytz.timezone("Asia/Manila")
-# media_relay = MediaRelay()
+
 
 now_live = False
 isCameraConfigured = False
@@ -346,13 +346,84 @@ async def cleanup_peer_connection(peer_id, peer_connections):
 class WebRTCConnection():
     def __init__(self):
         self.peer_connections = {}
-        self.pc = None
-    async def cleanup_peer_connection(self):
+        self.media_relay = MediaRelay()
+        self.webRTCChannel = None
+        self.stream = None
+    async def on_icecandidate(self, candidate, peer_id):
+        raspberry_pi_id = get_cpu_serial()
+        print("ICE candidate event triggered")
+        if candidate:
+            candidatePayload = {
+                "type": "ice-candidate",
+                "payload": {
+                    "candidate": candidate.candidate,
+                    "sdpMid": candidate.sdpMid,
+                    "sdpMLineIndex": candidate.sdpMLineIndex,
+                },
+                "from": raspberry_pi_id,
+                "target": peer_id,
+                "role": "Raspberry Pi"
+            }
+            # print('sending candidate to {peer_id} : {candidatePayload}')
+            await self.webRTCChannel.publish('WebRTC-client-register', candidatePayload)
+    async def on_connectionstatechange(self, peer_id):
+        if self.peer_connections[peer_id].connectionState in ["failed", "disconnected", "closed"]:
+            print(f"Connection state {self.peer_connections[peer_id].connectionState} for peer {peer_id}. Cleaning up. Live stream")
+            await cleanup_peer_connection(peer_id)
+            now_live = False
+            print("Resumed surveillance mode...")
+    async def createOfferPayload(self, peer_id):
+        raspberry_pi_id = get_cpu_serial()
+        offer = await self.peer_connections[peer_id].createOffer()
+        await self.peer_connections[peer_id].setLocalDescription(offer)
+        offerPayload = {
+            "type": "offer",
+            "payload":{
+                "sdp": self.peer_connections[peer_id].localDescription.sdp,
+                "type": self.peer_connections[peer_id].localDescription.type
+            },
+            "from": raspberry_pi_id,
+            "target": peer_id,
+            "role": "Raspberry Pi"
+        }
+        print(f"Will send offer to: {peer_id}")
+        await self.webRTCChannel.publish('WebRTC-client-register', offerPayload)
+        print(f"Sent offer to: {peer_id}")
+    async def add_peer(self, peer_id, data=None):
+        raspberry_pi_id = get_cpu_serial()
+        if peer_id not in self.peer_connections:
+            self.peer_connections[peer_id] = RTCPeerConnection()
+            self.peer_connections[peer_id].on("connectionstatechange", lambda: self.on_connectionstatechange(peer_id))
+            self.peer_connections[peer_id].on("icecandidate", lambda: self.on_icecandidate(peer_id))
+            print(f"Peer Connections: {self.peer_connections}")
+            if data.get('camera_stream', False):
+                global stream, surveillance_running
+                if stream is None:
+                    # stream = CameraStreamTrack()
+                    print("Start CameraStreamTrack")
+                elif surveillance_running:
+                    print('Stream is running, now stopping...')
+                    surveillance_running = False
+                    print("Paused surveillance mode...")
+                    surveillanceTask.cancel()
+                print("Starting WebRTC Mode...")
+                if self.stream is None:
+                    self.stream = CameraStreamTrack()
+                self.peer_connections[peer_id].addTrack(self.media_relay.subscribe(self.stream))
+            await self.createOfferPayload(peer_id)
+            
+    async def cleanup_peer_connection(self, peer_id):
         # self.pc = self.peer_connections[peer_id]
-        if self.pc is not None:
-            self.pc.on("connectionstatechange", None)  
-            self.pc.on("icecandidate", None)
-            await self.pc.close()  
+        if peer_id == 'all':
+            for peer_id in list(self.peer_connections.keys()):
+                await cleanup_peer_connection(peer_id, self.peer_connections)
+        elif peer_id in self.peer_connections:
+            pc = self.peer_connections.pop[peer_id]
+            if pc:
+                pc.on("connectionstatechange", None)  
+                pc.on("icecandidate", None)
+                await pc.close()  
+            print(f"Cleaned up peer connection for {peer_id}")
     async def ably_connection(self):
         print(f"ABLY_API_KEY: {ABLY_API_KEY}")
         secret_key = os.environ.get("AUTH_SECRETKEY")
@@ -360,32 +431,7 @@ class WebRTCConnection():
         ably_client = AblyRealtime(ABLY_API_KEY)
         try:
             raspberry_pi_id = get_cpu_serial()
-            # await setup_stream()
-            # channel = ably_client.channels.get(raspberry_pi_id)
-            webRTCChannel=ably_client.channels.get('webrtc-signaling-channel')
-            async def on_icecandidate(candidate):
-                print("ICE candidate event triggered")
-                if candidate:
-                    candidatePayload = {
-                        "type": "ice-candidate",
-                        "payload": {
-                            "candidate": candidate.candidate,
-                            "sdpMid": candidate.sdpMid,
-                            "sdpMLineIndex": candidate.sdpMLineIndex,
-                        },
-                        "from": raspberry_pi_id,
-                        "role": "Raspberry Pi"
-                    }
-                    print('sending candidate to {peer_id} with {candidatePayload}')
-                    await webRTCChannel.publish('WebRTC-client-register', candidatePayload)
-            async def on_connectionstatechange(peer_id):
-                if self.pc.connectionState in ["failed", "disconnected", "closed"]:
-                    print(f"Connection state {self.pc.connectionState} for peer {peer_id}. Cleaning up. Live stream")
-                    await cleanup_peer_connection(peer_id, self.peer_connections)
-                    now_live = False
-                    print("Resumed surveillance mode...")
-                    surveillance_running = True
-                    # exit(1)       
+            self.webRTCChannel=ably_client.channels.get('webrtc-signaling-channel')
                 
             async def messageToMyID(message):
                 data = message.data
@@ -393,62 +439,24 @@ class WebRTCConnection():
                 if data['role'] == 'Admin':
                     # print(f"Data: {data}")
                     
-                    if data['type'] == 'Connect':
+                    if data['type'] == 'Connect' and data['from'] is not None:
                         global surveillanceTask
                         try:
                             peer_id = data["from"]
                             print(f"Received start_live_stream from {peer_id}")
-                            
                             if peer_id in self.peer_connections:
-                                await cleanup_peer_connection(peer_id, self.peer_connections)
-                            self.pc = RTCPeerConnection()
-                            # self.pc.log_level = logging.DEBUG
-                            self.pc.on("connectionstatechange", lambda: on_connectionstatechange(peer_id))
-                            self.pc.on("icecandidate", lambda: on_icecandidate)
-                            # self.pc.log_event('ice_candidate_gathering', logging.DEBUG)
-                            print(f"Peer Connections: {self.peer_connections}")
-                            if data.get('camera_stream', False):
-                                global stream, surveillance_running
-                                if stream is None:
-                                    # stream = CameraStreamTrack()
-                                    print("Start CameraStreamTrack")
-                                elif surveillance_running:
-                                    print('Stream is running, now stopping...')
-                                    surveillance_running = False
-                                    print("Paused surveillance mode...")
-                                    surveillanceTask.cancel()
-                                print("Starting WebRTC Mode...")
-                                camera_track = CameraStreamTrack()#stream
-                                self.pc.addTrack(camera_track)
-                            
-                            offer = await self.pc.createOffer()
-                            await self.pc.setLocalDescription(offer)
-                            offerPayload = {
-                                "type": "offer",
-                                "payload":{
-                                    "sdp": self.pc.localDescription.sdp,
-                                    "type": self.pc.localDescription.type
-                                },
-                                "from": raspberry_pi_id,
-                                "target": peer_id,
-                                "role": "Raspberry Pi"
-                            }
-                            print(f"Will send offer to: {peer_id}")
-                            await webRTCChannel.publish('WebRTC-client-register', offerPayload)
-                            
-                            self.peer_connections[peer_id] = self.pc
-                            print(f"Peer Connections after sending offer: {self.peer_connections}")
-                            self.pc.on("connectionstatechange", lambda: on_connectionstatechange(peer_id))
+                                await self.cleanup_peer_connection(peer_id)
+                            await self.add_peer(peer_id, data)
                             
                         except Exception as ex:
                             print("Exception error during start_live_stream setup: ", ex)
-                    if data["type"] == "ice-candidate":
+                    if data["type"] == "ice-candidate" and data["target"] == raspberry_pi_id:
                         print(f"Received ICE candidate.")
                         print(f"Peer Connections during ice-candidate: {self.peer_connections}")
                         peer_id = data["from"]
                         if peer_id in self.peer_connections:
                             print(f"Received ICE candidate from {peer_id}")
-                            self.pc = self.peer_connections[peer_id]
+                            # self.pc = self.peer_connections[peer_id]
                             candidate_dict = parse_candidate(data["payload"]["candidate"])
                             print(f"Candidate dict: {candidate_dict}")
                             if data["payload"]:
@@ -467,7 +475,7 @@ class WebRTCConnection():
                                     tcpType=data["payload"]['tcpType']
                                 )
                                 try:
-                                    await self.pc.addIceCandidate(candidate)#I don't think this works, the flow stops here, it should continue on the eventlistener
+                                    await self.peer_connections[peer_id].addIceCandidate(candidate)#I don't think this works, the flow stops here, it should continue on the eventlistener
                                     print(f"Added ICE Candidate from {peer_id}")
                                 except Exception as e:
                                     print(f"Error adding ICE candidate from {peer_id}: {e}")   
@@ -475,19 +483,19 @@ class WebRTCConnection():
                             else:
                                 print(f"No payload in ICE candidate from {peer_id}")
                             
-                    if data['type'] == "answer":
+                    if data['type'] == "answer" and data['target'] == raspberry_pi_id:
                         # print(f"Message for {data['type']} received: {data}")
                         print(f"Peer Connections during answer: {self.peer_connections}")
                         try:
                             peer_id = data["from"]
                             print(f"Received answer from: {peer_id}")
                             if peer_id in self.peer_connections:
-                                self.pc = self.peer_connections[peer_id]
+                                # self.pc = self.peer_connections[peer_id]
                                 answer = RTCSessionDescription(
                                     sdp=data["payload"]["sdp"],
                                     type=data["payload"]["type"]
                                 )
-                                await self.pc.setRemoteDescription(answer)
+                                await self.peer_connections[peer_id].setRemoteDescription(answer)
                                 print(f"Set remote description with answer from {peer_id}")
                             else:
                                 print(f"No peer connection found for {peer_id}")
@@ -496,10 +504,10 @@ class WebRTCConnection():
              
 
             # await webRTCChannel.subscribe(raspberry_pi_id, messageToMyID)
-            await webRTCChannel.subscribe('WebRTC-client-register', messageToMyID)
+            await self.webRTCChannel.subscribe('WebRTC-client-register', messageToMyID)
             print("Listening for messages from  channel: WebRTC-client-register")
             
-            await webRTCChannel.publish('WebRTC-client-register',{
+            await self.webRTCChannel.publish('WebRTC-client-register',{
                 'role': 'Raspberry Pi',
                 'id': raspberry_pi_id,
                 'type':"Connect",
@@ -507,7 +515,7 @@ class WebRTCConnection():
             })
             global now_live
             if now_live == True:
-                await webRTCChannel.publish('WebRTC-client-register',{
+                await self.webRTCChannel.publish('WebRTC-client-register',{
                     'role': 'Raspberry Pi',
                     'id': raspberry_pi_id,
                     'type':"Now Live",
@@ -519,7 +527,7 @@ class WebRTCConnection():
         except Exception as e:
             print(f"General Error: {e}")
         finally:
-            await self.cleanup_peer_connection()
+            await self.cleanup_peer_connection('all')
             await ably_client.close()#Ensure the connection is closed on exit
 
 async def setup_stream():

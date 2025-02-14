@@ -59,7 +59,7 @@ const AblyConnectionComponent = () => {
       };
 
       const handleSignalingMessage = async (message: Ably.Message) => {
-        const { type, from, payload, role, sessionID } = message.data;
+        const { type, from, target, payload, role, sessionID } = message.data;
         
         if (role !== 'Raspberry Pi') return;
         console.log('Received message from Raspberry Pi:', message.data);
@@ -89,7 +89,7 @@ const AblyConnectionComponent = () => {
         //   };
         // }
 
-        if (type === 'offer' && from !== myID.current) {
+        if (type === 'offer' && from !== myID.current && target === myID.current) {
           
           console.log('Received WebRTC offer from:', from);
           piID.current = sessionID;
@@ -191,7 +191,7 @@ const AblyConnectionComponent = () => {
           }
         }
 
-        if (type === 'ice-candidate' && peerConnection.current) {
+        if (type === 'ice-candidate' && peerConnection.current && target === myID.current) {
           try {
             console.log('Received ICE candidate from:', from);
             await peerConnection.current.addIceCandidate(new RTCIceCandidate(payload));
@@ -200,7 +200,7 @@ const AblyConnectionComponent = () => {
           }
         }
 
-        if (type === 'answer' && peerConnection.current && from !== myID.current) {
+        if (type === 'answer' && peerConnection.current && from !== myID.current && target === myID.current) {
           try {
             console.log('Received WebRTC answer from:', from);
             await peerConnection.current.setRemoteDescription(new RTCSessionDescription(payload));
