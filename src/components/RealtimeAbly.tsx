@@ -61,7 +61,7 @@ const AblyConnectionComponent = () => {
       const handleSignalingMessage = async (message: Ably.Message) => {
         const { type, from, target, payload, role, sessionID } = message.data;
         
-        if (role !== 'Raspberry Pi') return;
+        if (role !== 'Raspberry Pi' || videoStreamSrc.current !== null) return;
         console.log('Received message from Raspberry Pi:', message.data);
 
         // if (!peerConnection.current) {
@@ -191,7 +191,7 @@ const AblyConnectionComponent = () => {
           }
         }
 
-        if (type === 'ice-candidate' && peerConnection.current && target === myID.current) {
+        if (type === 'ice-candidate' && peerConnection.current) {
           try {
             console.log('Received ICE candidate from:', from);
             await peerConnection.current.addIceCandidate(new RTCIceCandidate(payload));

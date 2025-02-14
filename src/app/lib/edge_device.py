@@ -349,7 +349,7 @@ class WebRTCConnection():
         self.media_relay = MediaRelay()
         self.webRTCChannel = None
         self.stream = None
-    async def on_icecandidate(self, candidate, peer_id):
+    async def on_icecandidate(self, candidate):
         raspberry_pi_id = get_cpu_serial()
         print("ICE candidate event triggered")
         if candidate:
@@ -361,7 +361,7 @@ class WebRTCConnection():
                     "sdpMLineIndex": candidate.sdpMLineIndex,
                 },
                 "from": raspberry_pi_id,
-                "target": peer_id,
+                # "target": peer_id,
                 "role": "Raspberry Pi"
             }
             # print('sending candidate to {peer_id} : {candidatePayload}')
@@ -369,7 +369,7 @@ class WebRTCConnection():
     async def on_connectionstatechange(self, peer_id):
         if self.peer_connections[peer_id].connectionState in ["failed", "disconnected", "closed"]:
             print(f"Connection state {self.peer_connections[peer_id].connectionState} for peer {peer_id}. Cleaning up. Live stream")
-            await cleanup_peer_connection(peer_id)
+            await self.cleanup_peer_connection(peer_id)
             now_live = False
             print("Resumed surveillance mode...")
     async def createOfferPayload(self, peer_id):
@@ -394,7 +394,7 @@ class WebRTCConnection():
         if peer_id not in self.peer_connections:
             self.peer_connections[peer_id] = RTCPeerConnection()
             self.peer_connections[peer_id].on("connectionstatechange", lambda: self.on_connectionstatechange(peer_id))
-            self.peer_connections[peer_id].on("icecandidate", lambda: self.on_icecandidate(peer_id))
+            self.peer_connections[peer_id].on("icecandidate", lambda: self.on_icecandidate)
             print(f"Peer Connections: {self.peer_connections}")
             if data.get('camera_stream', False):
                 global stream, surveillance_running
@@ -416,7 +416,7 @@ class WebRTCConnection():
         # self.pc = self.peer_connections[peer_id]
         if peer_id == 'all':
             for peer_id in list(self.peer_connections.keys()):
-                await cleanup_peer_connection(peer_id, self.peer_connections)
+                await self.cleanup_peer_connection(peer_id)
         elif peer_id in self.peer_connections:
             pc = self.peer_connections.pop[peer_id]
             if pc:
