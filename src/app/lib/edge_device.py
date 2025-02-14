@@ -348,6 +348,7 @@ class WebRTCConnection():
         self.peer_connections = {}
         self.media_relay = MediaRelay()
         self.webRTCChannel = None
+        self.newPeerId = None
         self.stream = None
     async def on_icecandidate(self, candidate):
         raspberry_pi_id = get_cpu_serial()
@@ -361,7 +362,7 @@ class WebRTCConnection():
                     "sdpMLineIndex": candidate.sdpMLineIndex,
                 },
                 "from": raspberry_pi_id,
-                # "target": peer_id,
+                "target": self.newPeerId,
                 "role": "Raspberry Pi"
             }
             # print('sending candidate to {peer_id} : {candidatePayload}')
@@ -391,6 +392,7 @@ class WebRTCConnection():
         print(f"Sent offer to: {peer_id}")
     async def add_peer(self, peer_id, data=None):
         raspberry_pi_id = get_cpu_serial()
+        self.newPeerId = peer_id
         if peer_id not in self.peer_connections:
             self.peer_connections[peer_id] = RTCPeerConnection()
             self.peer_connections[peer_id].on("connectionstatechange", lambda: self.on_connectionstatechange(peer_id))
@@ -409,6 +411,8 @@ class WebRTCConnection():
                 print("Starting WebRTC Mode...")
                 if self.stream is None:
                     self.stream = CameraStreamTrack()
+                print(type(self.media_relay.subscribe))
+                print(type(self.stream))
                 self.peer_connections[peer_id].addTrack(self.media_relay.subscribe(self.stream))
             await self.createOfferPayload(peer_id)
             
@@ -418,11 +422,12 @@ class WebRTCConnection():
             for peer_id in list(self.peer_connections.keys()):
                 await self.cleanup_peer_connection(peer_id)
         elif peer_id in self.peer_connections:
-            pc = self.peer_connections.pop[peer_id]
+            pc = self.peer_connections[peer_id]
             if pc:
                 pc.on("connectionstatechange", None)  
                 pc.on("icecandidate", None)
-                await pc.close()  
+                await pc.close()
+                del self.peer_connections[peer_id]
             print(f"Cleaned up peer connection for {peer_id}")
     async def ably_connection(self):
         print(f"ABLY_API_KEY: {ABLY_API_KEY}")
@@ -444,8 +449,8 @@ class WebRTCConnection():
                         try:
                             peer_id = data["from"]
                             print(f"Received start_live_stream from {peer_id}")
-                            if peer_id in self.peer_connections:
-                                await self.cleanup_peer_connection(peer_id)
+                            # if peer_id in self.peer_connections:
+                            #     await self.cleanup_peer_connection(peer_id)
                             await self.add_peer(peer_id, data)
                             
                         except Exception as ex:
