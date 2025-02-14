@@ -353,7 +353,7 @@ class WebRTCConnection():
         self.relayed_stream = None
         self.rtc_config = RTCConfiguration(
         iceServers=[
-            RTCIceServer("stun:stun.l.google.com:19302"),
+            # RTCIceServer("stun:stun.l.google.com:19302"),
             RTCIceServer(
                 "turn:relay1.expressturn.com:3478",
                 username="efQSLPKFVR1ANJGAHL",
