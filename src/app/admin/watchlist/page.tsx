@@ -13,7 +13,7 @@ export default function AdminReportManagement()
       <Navbar />
       <div className="container lg my-auto mx-auto px-4 py-8 bg-gray-50 mt-50">
         <div className="admin-report-management">
-          <h1 className="header">Admin Report Management</h1>
+          <h1>Admin Report Management</h1>
           <DataTableReports />
         </div>
       </div>
