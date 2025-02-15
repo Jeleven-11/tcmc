@@ -80,7 +80,7 @@ export default function AdminReportManagement()
       const response = await axios.get("/api/reports")
       console.log("response.data:", response.data);
       console.log(typeof response.data)//object
-      setReports(response.data)
+      //setReports(response.data)
 
       const statusCounts: Record<string, number> = response.data.reduce((acc: Record<string, number>, report: Report) =>
       {
@@ -88,7 +88,7 @@ export default function AdminReportManagement()
         return acc
       }, {})
 
-      setCounts(statusCounts)
+      // setCounts(statusCounts)
     } catch (error) {
       console.error("Error fetching reports:", error)
     }
