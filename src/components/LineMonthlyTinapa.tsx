@@ -31,12 +31,12 @@ interface MonthlyData
 
 const MonthlyChart = () =>
 {
-    const initDate = new Date()
     const [chartData, setChartData] = useState<MonthlyData>({ labels: [], datasets: [] })
     const [totalReports, setTotalReports] = useState(0)
 
     useEffect(() =>
     {
+        const initDate = new Date()
         const fetchChartData = async () =>
         {
             try

@@ -10,7 +10,7 @@ export async function middleware(request: NextRequest)
   const { pathname } = request.nextUrl
   if (pathname.startsWith("/admin") && !session.isLoggedIn)
   {
-      session.destroy()
+      // session.destroy()
       return NextResponse.redirect(new URL("/adminlogin", request.url))
   }
   // {
