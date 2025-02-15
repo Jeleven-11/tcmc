@@ -13,7 +13,8 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  timezone: '+08:00'
+  timezone: '+08:00',
+  connectTimeout: 60000,
 });
 
 export const getConnection = promisify(pool.getConnection).bind(pool);
