@@ -36,6 +36,10 @@ from pathlib import Path
 import atexit
 import logging
 from ably import AblyRealtime
+# import the InferencePipeline interface
+from inference_sdk import InferenceHTTPClient
+# import a built in sink called render_boxes (sinks are the logic that happens after inference)
+from inference.core.interfaces.stream.sinks import render_boxes
 # logging.basicConfig(level=logging.DEBUG)
 # from gpiozero import PWMLED
 # --- LOGGING CONFIGURATION --- #
@@ -66,6 +70,8 @@ local_tz = pytz.timezone("Asia/Manila")
 now_live = False
 isCameraConfigured = False
 surveillanceTask = None
+
+
 
 
 def get_wifi_ssid():
@@ -118,8 +124,8 @@ myCamera = None
 def get_camera():
     global myCamera
     if myCamera is None:
-        frame_width = 640#1280
-        frame_height = 360#720
+        frame_width = 640#480#640#1280
+        frame_height = 360#270#360#720
         # Initialize Picamera2
         myCamera = Picamera2()
         camera_config = myCamera.create_preview_configuration(main={"size": (frame_width, frame_height)})
@@ -149,8 +155,25 @@ class CameraStreamTrack(VideoStreamTrack):
         self.workers = 0 if os.name == 'nt' else 4 
         # --- Camera Setup ---
         # Camera initialize
+        # create an inference pipeline object
+        # self.pipeline = InferencePipeline.init(
+        #     model_id="local-vehicles-opjyd/10", # set the model id to a yolov8x model with in put size 1280
+        #     video_reference=None, # set the video reference (source of video), it can be a link/path to a video file, an RTSP stream url, or an integer representing a device id (usually 0 for built in webcams)
+        #     on_prediction=self.process_prediction, # tell the pipeline object what to do with each set of inference by passing a function
+        #     api_key="YdtoLOJufCKAjGZC1IkJ", # provide your roboflow api key for loading models from the roboflow api
+        # )
+        self.inference_client = InferenceHTTPClient(api_url="https://detect.roboflow.com", api_key="YdtoLOJufCKAjGZC1IkJ")
+        # self.model = self.inference_client.get_model("local-vehicles-opjyd/10")
+        self.model_id = "local-vehicles-opjyd/10"
+        # self.client
+        # wait for the pipeline to finish
+        # pipeline.join()
         atexit.register(self.cleanup)
         self.initializeCamera()
+        # start the pipeline
+        # self.pipeline.start()
+        self.latest_frame = None
+        self.latest_predictions = []
         self.frame_count = 0
         self.rec_frame_count = 0
         self.rec_flag = False
@@ -159,6 +182,39 @@ class CameraStreamTrack(VideoStreamTrack):
         self.running = False
         self.start_time = time.time() 
         print("Initialize complete")
+    
+    def process_prediction(self, result, frame):
+        # Print the result structure
+        print("Result structure:", result)
+
+        # Process the result (draw bounding boxes)
+        if isinstance(result, list) and len(result) > 0:
+            predictions = result[0].get('predictions', [])
+        elif isinstance(result, dict):
+            predictions = result.get('predictions', [])
+        else:
+            predictions = []
+        for prediction in predictions:
+            # Extract bounding box coordinates
+            x1 = int(prediction['x'] - prediction['width'] / 2)
+            y1 = int(prediction['y'] - prediction['height'] / 2)
+            x2 = int(prediction['x'] + prediction['width'] / 2)
+            y2 = int(prediction['y'] + prediction['height'] / 2)
+            
+            # Draw bounding box
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            
+            # Prepare label text
+            label = f"{prediction['class']} {prediction['confidence']:.2f}"
+            
+            # Draw label background
+            (label_width, label_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+            cv2.rectangle(frame, (x1, y1 - label_height - 10), (x1 + label_width, y1), (0, 255, 0), -1)
+            
+            # Draw label text
+            cv2.putText(frame, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+        return frame
+
 
     def initializeCamera(self):
         # global camera, isCameraConfigured
@@ -195,7 +251,7 @@ class CameraStreamTrack(VideoStreamTrack):
                 self.camera = None
                 
         except Exception as e:
-            print("Failed to initialize camera after multiple attempts.")
+            print(f"Failed to initialize camera after multiple attempts. Cleaning failed: {e}")
        
         try:
             if hasattr(self, 'model') and self.model is not None:
@@ -204,6 +260,13 @@ class CameraStreamTrack(VideoStreamTrack):
                 self.model = None
         except Exception as e:
             print(f"Error during Plate Detection Model cleanup: {e}")
+        
+        # try:
+        #     if hasattr(self, 'pipeline'):
+        #         self.pipeline.join()
+        # except Exception as e:
+        #     print(f"Failed to stop pipeline: {e}")
+
 
     async def stopClass(self):
         """Release resources and stop the stream."""
@@ -253,12 +316,15 @@ class CameraStreamTrack(VideoStreamTrack):
             
             if frame.shape[2] == 4:
                 frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
-            if self.frame_count % 3 != 0:
+            if self.frame_count % 6 != 0: # skip frames (This is OPTIONAL and can be removed)
                 video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
                 video_frame.pts, video_frame.time_base = await self.next_timestamp()
                 return video_frame
 
-            
+            result = self.inference_client.infer(frame, model_id = self.model_id)
+            # Is it possible to pass variables from this class to another class? I want to publish result to the ably channel
+            vehicles_frame = self.process_prediction(result, frame)
+
             if self.frame_count % 30 == 0:
                 elapsed_time = time.time() - self.start_time
                 if elapsed_time > 0:
@@ -270,8 +336,8 @@ class CameraStreamTrack(VideoStreamTrack):
             if self.frame_count >= 6000:
                 self.frame_count = 1 #Reset number
            
-            
-            video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
+            # Temporarily preview vehicle detection
+            video_frame = VideoFrame.from_ndarray(vehicles_frame, format="bgr24")
             video_frame.pts, video_frame.time_base = await self.next_timestamp()
 
             return video_frame
