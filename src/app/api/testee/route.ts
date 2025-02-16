@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 
 export async function GET()
 {
-    const checker: [ResultSetHeader, FieldPacket[]] = await query('SELECT * FROM reports', []) as [ResultSetHeader, FieldPacket[]]
+    const checker: [ResultSetHeader, FieldPacket[]] = await query('SELECT * FROM users', []) as [ResultSetHeader, FieldPacket[]]
 
     return NextResponse.json(checker)
 

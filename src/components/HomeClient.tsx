@@ -28,8 +28,7 @@ const HomeClient = () => {
   // const { status } = useSession();
   const [currentDate, setCurrentDate] = useState('');
   const [reportCount, setReportCount] = useState(0);
-  const [pendingCount, setPendingCount] = useState(0);
-  const [acceptedCount, setAcceptedCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [droppedCount, setDroppedCount] = useState(0);
   const [solvedCount, setSolvedCount] = useState(0);
  
@@ -48,11 +47,8 @@ const HomeClient = () => {
         if (data.total) {
           setReportCount(data.total);  // Total report count
         }
-        if (data.pending) {
-          setPendingCount(data.pending);  // Active report count
-        }
-        if (data.accepted) {
-          setAcceptedCount(data.accepted);  // Active report count
+        if (data.unread) {
+          setUnreadCount(data.unread);  // Active report count
         }
         if (data.dropped) {
           setDroppedCount(data.dropped);  // Active report count
@@ -98,15 +94,7 @@ const HomeClient = () => {
             <GoReport className="h-8 w-8 text-yellow-600 mr-4" />
             <div>
               <h2 className="text-xl font-semibold mb-2">Pending Reports</h2>
-              <p className="text-gray-700">{pendingCount}</p>
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded shadow-md flex items-center">
-            <GoReport className="h-8 w-8 text-green-600 mr-4" />
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Accepted Reports</h2>
-              <p className="text-gray-700">{acceptedCount}</p>
+              <p className="text-gray-700">{unreadCount}</p>
             </div>
           </div>
 

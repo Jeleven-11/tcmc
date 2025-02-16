@@ -8,7 +8,8 @@ interface AddUserModalProps {
     id?: string
     username: string;
     name: string;
-    role: string;
+    // role: string;
+    team: number;
     contact_num?: string;
     password?: string;
     user_id?: string;
@@ -17,11 +18,13 @@ interface AddUserModalProps {
     fcmToken?: string
   }) => void;
 }
+
 const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onAddUser }) => {
   const [newUser, setNewUser] = useState({
     username: '',
     name: '',
-    role: '',
+    // role: '',
+    team: 0,
     contact_num: '',
     password: '',
     email: '',
@@ -33,7 +36,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onAddUser }) => {
     const { name, value } = e.target;
     setNewUser((prevUser) => ({
       ...prevUser,
-      [name]: value,
+      [name]: name === "team" ? Number(value) : value,
     }));
   };
 
@@ -66,15 +69,14 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onAddUser }) => {
             autoComplete="name" // Auto-fill suggestion for full name
           />
           <select
-            name="role"
-            value={newUser.role}
+            name="team"
             onChange={handleChange}
             className="w-full p-2 mb-2 border border-gray-300 rounded"
-            autoComplete="off" // Turn off autofill for role
+            required
           >
-            <option value="">Select Role</option>
-            <option value="admin">Admin</option>
-            <option value="user">User</option>
+            <option value="">- Select Role -</option>
+            <option value="0">Help Desk</option>
+            <option value="1">Task Force</option>
           </select>
           <input
             type="text"

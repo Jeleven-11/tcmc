@@ -11,7 +11,7 @@ interface User {
   id?: string;
   username: string;
   name: string;
-  role: string;
+  team: number;
   contact_num?: string;
   password?: string;
   user_id?: string;

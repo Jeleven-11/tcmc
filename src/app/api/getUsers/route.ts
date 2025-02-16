@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
             password,
             name,
             role, 
+            team, 
             email,
             contact_num                  
                 FROM 
@@ -29,3 +30,5 @@ export async function GET(req: NextRequest) {
     return new NextResponse('Method Not Allowed', { status: 405, headers: { 'Allow': 'GET' } });
   }
 }
+
+export const dynamic = 'force-dynamic'

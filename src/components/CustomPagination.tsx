@@ -43,12 +43,23 @@ const CustomPagination: React.FC<CustomPaginationProps> = (
         showLastButton
         siblingCount={1}
         boundaryCount={1}
+        variant="outlined"
+        shape="rounded"
+        size="small"
         renderItem={(item) => (
           <PaginationItem
             {...item}
             slots={{ first: FirstPage, last: LastPage, previous: KeyboardArrowLeft, next: KeyboardArrowRight }}
           />
         )}
+        sx={{
+          "& .MuiPaginationItem-root": {
+            minWidth: "30px", // Reduce button width
+            height: "30px", // Reduce button height
+            fontSize: "12px", // Reduce font size
+            margin: "2px", // Reduce spacing
+          }
+        }}
       />
     </Box>
   )

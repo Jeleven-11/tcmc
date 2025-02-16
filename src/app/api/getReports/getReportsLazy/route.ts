@@ -11,8 +11,6 @@ export async function GET(req: NextRequest)
         const search = searchParams.get('search') || ''
         const offset = (page - 1) * pageSize
 
-        console.log("SEARCH: ", search)
-
         let whereClause = ''
         let queryParams: (string | number)[] = [pageSize, offset]
         if (search) {
