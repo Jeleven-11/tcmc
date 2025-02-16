@@ -1,6 +1,6 @@
 'use client';
 
-import Nav from '@/components/Nav';
+import Nav from '@/components/AdNav2';
 // import RealtimeDisplay from '@/components/RealtimeAbly';
 import AblyConnectionComponent from '@/components/RealtimeAbly';
 import { useState } from 'react';

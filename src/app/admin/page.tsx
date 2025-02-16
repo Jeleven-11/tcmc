@@ -1,7 +1,7 @@
 import { DocumentTextIcon, TruckIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import { GoReport } from "react-icons/go";
 import { MdFileDownloadDone } from "react-icons/md";
-import Navbar from '@/components/adminNav';
+import Navbar from '@/components/AdNav2';
 import Footer from '@/components/Footer';
 // import RequestNotificationPermission from '@/components/RequestNotificationPermission';
 import LineTinapa from '@/components/LineTinapa';

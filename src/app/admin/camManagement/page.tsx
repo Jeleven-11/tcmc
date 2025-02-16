@@ -1,7 +1,7 @@
 "use client";
 
 import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
-import Nav from "@/components/adminNav";
+import Nav from "@/components/AdNav2";
 import { useState } from "react";
 
 // Import modals

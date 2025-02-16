@@ -1,6 +1,6 @@
 'use client'
 
-import Nav from '@/components/adminNav';
+import Nav from '@/components/AdNav2';
 import { UserCircleIcon } from '@heroicons/react/24/outline';
 import { getSession } from '@/app/lib/actions';
 import { useState, useEffect } from 'react';

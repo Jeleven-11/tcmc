@@ -1,6 +1,6 @@
 'use client'
 
-import Navbar from "@/components/adminNav";
+import Navbar from "@/components/AdNav2";
 import Footer from "@/components/Footer";
 import DateTimeComponent from '@/components/DateTimeComponent';
 import DataTableReports from "@/components/DataTableReports";

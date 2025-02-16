@@ -7,6 +7,22 @@ import Footer from './Footer';
 import Homebody from './Homebody';
 import { GoReport } from "react-icons/go";
 import { MdFileDownloadDone } from "react-icons/md";
+import FAQAccordion from './Accordion';
+
+const faqs = [
+  {
+    question: "What is the most important field to be filled?",
+    answer: "The plate number is the most crucial since it will be used in spotting that reported vehicle"
+  },
+  {
+    question: "How do I get in touch with my reported case?",
+    answer: "Remember to take a picture of your report ID and type it in check update page. Also, our police officers will provide additional updates from time to time."
+  },
+  {
+    question: "Do I need an account to submit a report?",
+    answer: "Thankfully, no. To avoid hassles, no account is needed to submit a report."
+  }
+];
 
 const HomeClient = () => {
   // const { status } = useSession();
@@ -60,7 +76,10 @@ const HomeClient = () => {
     <>
       <Nav />
       <Homebody />
-      
+      <div className='px-2 mx-auto'>
+      <h1 className="text-2xl font-bold mt-2 ml-6">Frequently Asked Questions</h1>
+      <FAQAccordion faqs={faqs} />
+      </div>
       <div className="bg-gray-100 min-h-screen p-6">
         <header className="bg-blue-600 text-white p-4 rounded mb-6">
           <h1 className="text-2xl font-bold">DASHBOARD</h1>
