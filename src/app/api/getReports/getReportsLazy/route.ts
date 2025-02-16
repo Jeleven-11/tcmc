@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/app/lib/db'; // Your database connection
+import { getSession } from '@/app/lib/actions';
 
 export async function GET(req: NextRequest)
 {
@@ -9,15 +10,18 @@ export async function GET(req: NextRequest)
         const page = parseInt(searchParams.get('page') || '1', 10)
         const pageSize = parseInt(searchParams.get('pageSize') || '10', 10)
         const search = searchParams.get('search') || ''
+        const team = Number(searchParams.get('t') || 0)
         const offset = (page - 1) * pageSize
 
-        console.log("SEARCH: ", search)
+        const session = await getSession()
+
+        console.log("TEAM:", team)
 
         let whereClause = ''
         let queryParams: (string | number)[] = [pageSize, offset]
         if (search) {
-            whereClause = `WHERE fullName LIKE ? OR description LIKE ? OR contactNumber LIKE ?`
-            queryParams = [`%${search}%`, `%${search}%`, `%${search}%`, ...queryParams]
+            whereClause = `WHERE (fullName LIKE ? OR description LIKE ? OR contactNumber LIKE ?) AND team = ?`
+            queryParams = [`%${search}%`, `%${search}%`, `%${search}%`, Number(session.team), ...queryParams]
         }
 
         const reports = await query(`SELECT * FROM reports ${whereClause} ORDER BY createdAt DESC LIMIT ? OFFSET ?`, queryParams)

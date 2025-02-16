@@ -7,8 +7,6 @@ import { FaSignOutAlt } from "react-icons/fa";
 import { logout } from "@/app/lib/actions";
 import LogoutModal from "./LogoutModal";
 
-
-
 function NavButton({ onClick = () => {}, children, className = "" }: { onClick?: React.MouseEventHandler<HTMLButtonElement>; children: React.ReactNode; className?: string }) {
   return (
     <button className={`mx-4 text-xl font-normal bg-transparent border-none cursor-pointer ${className}`} onClick={onClick}>
@@ -107,26 +105,25 @@ export default function Navbar() {
               CAMERA MANAGEMENT
             </Link>
 
-         {/* Profile Icon */}
-         <div className="relative hidden md:flex">
-  <NavButton onClick={() => setProfileOpen((prev) => !prev)} className="mx-4 relative">
-    PROFILE
-  </NavButton>
-  <div className={`absolute top-[200%] right-[-15px] bg-white shadow-lg rounded-md overflow-hidden w-48 ${profileOpen ? "block" : "hidden"}`}>
-    <Link href="/admin/profile" className="block py-2 px-4 text-gray-800 hover:bg-gray-100">
-      Profile
-    </Link>
-    {/* Updated Sign Out Button (Triggers Modal) */}
-    <button onClick={() => setIsLogoutModalOpen(true)} className="block px-4 py-2 text-gray-800 hover:bg-gray-200 w-full text-left items-center">
-      <FaSignOutAlt size={18} className="mr-2" />
-      Sign Out
-    </button>
-  </div>
-</div>
-
+            {/* Profile Icon */}
+            <div className="relative hidden md:flex">
+                <NavButton onClick={() => setProfileOpen((prev) => !prev)} className="mx-4 relative">
+                  PROFILE
+                </NavButton>
+                <div className={`absolute top-[200%] right-[-15px] bg-white shadow-lg rounded-md overflow-hidden w-48 ${profileOpen ? "block" : "hidden"}`}>
+                  <Link href="/admin/profile" className="block py-2 px-4 text-gray-800 hover:bg-gray-100">
+                    Profile
+                  </Link>
+                  {/* Updated Sign Out Button (Triggers Modal) */}
+                  <button onClick={() => setIsLogoutModalOpen(true)} className="block px-4 py-2 text-gray-800 hover:bg-gray-200 w-full text-left items-center">
+                    <FaSignOutAlt size={18} className="mr-2" />
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
 
       {/* Logout Confirmation Modal */}
       <LogoutModal isOpen={isLogoutModalOpen} onClose={() => setIsLogoutModalOpen(false)} onConfirm={handleSignOut} />

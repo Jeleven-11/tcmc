@@ -1,16 +1,16 @@
 'use client'
 
-import Nav from '@/components/adminNav';
 import { UserCircleIcon } from '@heroicons/react/24/outline';
 import { getSession } from '@/app/lib/actions';
 import { useState, useEffect } from 'react';
-import DateTimeComponent from '@/components/DateTimeComponent';
+
 type SessionData =
 {
   isLoggedIn: boolean;
   name?: string;
   contact_num?: string;
   role?: string;
+  team?: number;
   email?: string;
 } | null;
 
@@ -19,6 +19,7 @@ type EditData = {
   name: string;
   contact_num: string;
   role: string;
+  team: number;
   email: string;
 };
 
@@ -33,6 +34,7 @@ export default function Profile()
     name: '',
     contact_num: '',
     role: '',
+    team: 0,
     email: ''
   })
 
@@ -48,6 +50,7 @@ export default function Profile()
           name: currentSession.name,
           contact_num: currentSession.contact_num,
           role: currentSession.role,
+          team: currentSession.team,
           email: currentSession.email,
         })
       } else setSessionData({ isLoggedIn: currentSession.isLoggedIn })
@@ -84,6 +87,7 @@ export default function Profile()
       name: sessionData.name || '',
       contact_num: sessionData.contact_num || '',
       role: sessionData.role || '',
+      team: sessionData.team || 0,
       email: sessionData.email || '',
     })
     setIsEditModalOpen(true)
@@ -119,8 +123,6 @@ export default function Profile()
 
   return (
     <>
-    <DateTimeComponent/>
-      <Nav />
       <div className="flex flex-col items-center p-8 bg-blue-50 min-h-screen">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full text-center">
           <div className="mb-6 flex justify-center">
@@ -132,6 +134,7 @@ export default function Profile()
               <div className="space-y-2">
                 <p className="text-lg text-gray-700">Contact No: {sessionData.contact_num}</p>
                 <p className="text-lg text-gray-700">Role: {sessionData.role}</p>
+                <p className="text-lg text-gray-700">Team: {sessionData.team === 1 ? "Task Force" : "Help Desk"}</p>
                 <p className="text-lg text-gray-700">Email: {sessionData.email}</p>
               </div>
             </>
@@ -204,6 +207,15 @@ export default function Profile()
             >
               <option value="user">User</option>
               <option value="admin">Admin</option>
+            </select>
+            <select
+              className="border p-2 w-full rounded-md mb-2"
+              defaultValue={editData.team}
+              onChange={(e) => setEditData({ ...editData, team: parseInt(e.target.value) })}
+              required
+            >
+              <option value="0">Help Desk</option>
+              <option value="1">Task Force</option>
             </select>
             <input
               type="email"

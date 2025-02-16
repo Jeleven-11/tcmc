@@ -7,13 +7,28 @@ import Footer from './Footer';
 import Homebody from './Homebody';
 import { GoReport } from "react-icons/go";
 import { MdFileDownloadDone } from "react-icons/md";
+import FAQAccordion from './Accordion';
+
+const faqs = [
+  {
+    question: "What is the most important field to be filled?",
+    answer: "The plate number is the most crucial since it will be used in spotting that reported vehicle"
+  },
+  {
+    question: "How do I get in touch with my reported case?",
+    answer: "Remember to take a picture of your report ID and type it in check update page. Also, our police officers will provide additional updates from time to time."
+  },
+  {
+    question: "Do I need an account to submit a report?",
+    answer: "Thankfully, no. To avoid hassles, no account is needed to submit a report."
+  }
+];
 
 const HomeClient = () => {
   // const { status } = useSession();
   const [currentDate, setCurrentDate] = useState('');
   const [reportCount, setReportCount] = useState(0);
-  const [pendingCount, setPendingCount] = useState(0);
-  const [acceptedCount, setAcceptedCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [droppedCount, setDroppedCount] = useState(0);
   const [solvedCount, setSolvedCount] = useState(0);
  
@@ -32,11 +47,8 @@ const HomeClient = () => {
         if (data.total) {
           setReportCount(data.total);  // Total report count
         }
-        if (data.pending) {
-          setPendingCount(data.pending);  // Active report count
-        }
-        if (data.accepted) {
-          setAcceptedCount(data.accepted);  // Active report count
+        if (data.unread) {
+          setUnreadCount(data.unread);  // Active report count
         }
         if (data.dropped) {
           setDroppedCount(data.dropped);  // Active report count
@@ -60,7 +72,10 @@ const HomeClient = () => {
     <>
       <Nav />
       <Homebody />
-      
+      <div className='px-2 mx-auto'>
+      <h1 className="text-2xl font-bold mt-2 ml-6">Frequently Asked Questions</h1>
+      <FAQAccordion faqs={faqs} />
+      </div>
       <div className="bg-gray-100 min-h-screen p-6">
         <header className="bg-blue-600 text-white p-4 rounded mb-6">
           <h1 className="text-2xl font-bold">DASHBOARD</h1>
@@ -79,15 +94,7 @@ const HomeClient = () => {
             <GoReport className="h-8 w-8 text-yellow-600 mr-4" />
             <div>
               <h2 className="text-xl font-semibold mb-2">Pending Reports</h2>
-              <p className="text-gray-700">{pendingCount}</p>
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded shadow-md flex items-center">
-            <GoReport className="h-8 w-8 text-green-600 mr-4" />
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Accepted Reports</h2>
-              <p className="text-gray-700">{acceptedCount}</p>
+              <p className="text-gray-700">{unreadCount}</p>
             </div>
           </div>
 

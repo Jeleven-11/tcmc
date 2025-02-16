@@ -1,7 +1,6 @@
 "use client";
 
 import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
-import Nav from "@/components/adminNav";
 import { useState } from "react";
 
 // Import modals
@@ -38,8 +37,7 @@ const CamManagement = () => {
 
   return (
     <>
-      <Nav />
-      <div>
+      <div className="mb-3">
         <h2 className="font-bold text-lg">Camera Management</h2>
         <div className="bg-blue-100 border border-blue-500 text-blue-700 px-4 py-3 rounded mb-4 flex items-start">
           <span className="mr-2 text-xl">ℹ️</span>
@@ -72,20 +70,20 @@ const CamManagement = () => {
             </div>
           ))}
         </div>
+
+        {/* Modals */}
+        <MockAddCam isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} onAdd={handleAdd} />
+
+        {selectedCamera && (
+            <MockEditCam isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} camera={selectedCamera} onEdit={handleEdit} />
+        )}
+
+        {selectedCamera && (
+            <MockDelCam isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} camera={selectedCamera} onDelete={handleDelete} />
+        )}
       </div>
-
-      {/* Modals */}
-      <MockAddCam isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} onAdd={handleAdd} />
-
-      {selectedCamera && (
-        <MockEditCam isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} camera={selectedCamera} onEdit={handleEdit} />
-    )}
-
-      {selectedCamera && (
-        <MockDelCam isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} camera={selectedCamera} onDelete={handleDelete} />
-    )}
     </>
-  );
+  )
 };
 
 export default CamManagement;

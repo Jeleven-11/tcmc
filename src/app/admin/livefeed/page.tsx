@@ -1,12 +1,11 @@
 'use client';
 
-import Nav from '@/components/Nav';
 // import RealtimeDisplay from '@/components/RealtimeAbly';
 import AblyConnectionComponent from '@/components/RealtimeAbly';
 import { useState } from 'react';
 // export const dynamic = 'force-dynamic';
 export default function Livefeed () {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(''); 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
   
@@ -31,7 +30,6 @@ export default function Livefeed () {
   return (
     <>
       {/* <RealtimeDisplay /> */}
-      <Nav />
       <div className="p-4 lg:p-8 bg-gray-50 min-h-screen">
         <div className="bg-white rounded-lg shadow-md p-4 lg:p-8">
           {/* Live Feed Section */}

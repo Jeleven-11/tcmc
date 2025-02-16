@@ -1,9 +1,12 @@
-"use client";
-import { useState, useEffect } from "react";
+'use client';
+
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FiLogIn } from "react-icons/fi";
+import { Menu, X } from "lucide-react";
 
+// Mobile Navigation Component
 type MobileNavProps = {
   isOpen: boolean;
   toggleOpen: (isOpen: boolean) => void;
@@ -11,20 +14,19 @@ type MobileNavProps = {
 };
 
 function MobileNav({ isOpen, toggleOpen, currentPath }: MobileNavProps) {
-  useEffect(() => {
-    document.body.classList.toggle("overflow-hidden", isOpen);
-  }, [isOpen]);
-
   const getLinkClass = (path: string) =>
     currentPath === path
-      ? "text-lime-700 border-b-4 border-lime-700 font-semibold"
-      : "text-gray-800 hover:text-lime-500";
+      ? "text-blue-600 border-b-4 border-blue-600 font-semibold"
+      : "text-gray-800 hover:text-blue-600";
 
   return (
     <div
-      className={`fixed top-0 right-0 h-screen w-[70%] max-w-sm bg-green-50 shadow-lg transform transition-transform duration-300 ease-in-out 
-            ${isOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"} overflow-hidden`}
+      className={`fixed top-0 right-0 h-screen w-[70%] max-w-sm bg-white dark:bg-gray-900 shadow-lg transform transition-transform duration-300 ease-in-out 
+            ${isOpen ? "translate-x-0" : "translate-x-full"} overflow-hidden z-50 flex flex-col`}
     >
+      <button onClick={() => toggleOpen(false)} className="self-end p-4 text-gray-500 dark:text-white">
+        <X className="w-6 h-6" />
+      </button>
       <div className="flex flex-col p-4 space-y-4">
         <Link href="/" className={`text-lg font-medium py-2 ${getLinkClass("/")}`} onClick={() => toggleOpen(false)}>
           Home
@@ -35,7 +37,7 @@ function MobileNav({ isOpen, toggleOpen, currentPath }: MobileNavProps) {
         <Link href="/report-updates" className={`text-lg font-medium py-2 ${getLinkClass("/report-updates")}`} onClick={() => toggleOpen(false)}>
           Check Report Update
         </Link>
-        <Link href="/adminlogin" className="text-lg font-medium py-2 flex items-center text-gray-800 hover:text-lime-600" onClick={() => toggleOpen(false)}>
+        <Link href="/adminlogin" className="text-lg font-medium py-2 flex items-center text-gray-800 hover:text-blue-600" onClick={() => toggleOpen(false)}>
           <FiLogIn className="mr-2" /> Login
         </Link>
       </div>
@@ -43,43 +45,44 @@ function MobileNav({ isOpen, toggleOpen, currentPath }: MobileNavProps) {
   );
 }
 
+// Main Navbar Component
 export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
-  const currentPath = usePathname();
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const currentPath: string = usePathname();
 
   const getLinkClass = (path: string) =>
     currentPath === path
-      ? "text-lime-400 border-b-4 border-white font-semibold"
-      : "text-white hover:text-lime-300";
+      ? "text-blue-600 border-b-4 border-blue-600 font-semibold"
+      : "text-gray-800 hover:text-blue-600";
 
   return (
-    <nav className="flex drop-shadow-md px-6 py-6 h-20 items-center bg-gradient-to-r from-green-800 to-lime-600 text-white">
-      <MobileNav isOpen={isOpen} toggleOpen={setIsOpen} currentPath={currentPath} />
-      <div className="w-3/12 flex ml-2 items-center">
+    <nav className="bg-white dark:bg-gray-900 shadow-md mb-4">
+      <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+        {/* Logo */}
         <Link href="/" className="text-2xl font-semibold">
           TCMC
         </Link>
-      </div>
-      <div className="w-9/12 flex justify-end items-center space-x-2">
-        <div className="md:hidden relative flex-shrink-0">
-          <div className="z-50 flex relative w-6 h-6 flex-col justify-between items-right" onClick={() => setIsOpen(!isOpen)}>
-            <span className={`h-1 w-8 bg-gray-900 rounded-sm transform transition duration-300 ease-in-out ${isOpen ? "rotate-45 translate-y-2.5" : ""}`} />
-            <span className={`h-1 w-8 bg-gray-900 rounded-sm transition-all duration-300 ease-in-out ${isOpen ? "bg-transparent" : "bg-gray-900"}`} />
-            <span className={`h-1 w-8 bg-gray-900 rounded-sm transform transition duration-300 ease-in-out ${isOpen ? "-rotate-45 -translate-y-2.5" : ""}`} />
-          </div>
-        </div>
 
-        <div className="hidden md:flex">
-          <Link href="/" className={`mx-4 text-lg text-white ${getLinkClass("/")}`}>
+        {/* Mobile Menu Button */}
+        <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+
+        {/* Mobile Navigation */}
+        <MobileNav isOpen={isOpen} toggleOpen={setIsOpen} currentPath={currentPath} />
+
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex space-x-4">
+          <Link href="/" className={`text-lg ${getLinkClass("/")}`}>
             HOME
           </Link>
-          <Link href="/file-report" className={`mx-4 text-lg text-white ${getLinkClass("/file-report")}`}>
+          <Link href="/file-report" className={`text-lg ${getLinkClass("/file-report")}`}>
             FILE A REPORT
           </Link>
-          <Link href="/report-updates" className={`mx-4 text-lg text-white ${getLinkClass("/report-updates")}`}>
+          <Link href="/report-updates" className={`text-lg ${getLinkClass("/report-updates")}`}>
             CHECK REPORT UPDATE
           </Link>
-          <Link href="/adminlogin" className="text-white mx-4 hover:text-lime-300">
+          <Link href="/adminlogin" className="text-gray-800 dark:text-white hover:text-blue-600">
             <FiLogIn size={25} />
           </Link>
         </div>
@@ -87,4 +90,3 @@ export default function Navbar() {
     </nav>
   );
 }
-

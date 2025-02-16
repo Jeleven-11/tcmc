@@ -7,7 +7,7 @@ export async function POST(req: Request)
 {
   try
   {
-    const { name, contact_num, role, email } = await req.json()
+    const { name, contact_num, role, team, email } = await req.json()
     if (!name || !contact_num || !role)
         return NextResponse.json({ error: 'Invalid profile data' }, { status: 400 })
 
@@ -16,7 +16,7 @@ export async function POST(req: Request)
     if (!session || !session.isLoggedIn)
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const [result]: [ResultSetHeader, FieldPacket[]] = await pool.query("UPDATE users SET name=?, contact_num=?, role=?, email=? WHERE user_id=?", [name, contact_num, role, email, session.user_id])
+    const [result]: [ResultSetHeader, FieldPacket[]] = await pool.query("UPDATE users SET name=?, contact_num=?, role=?, team=?, email=? WHERE user_id=?", [name, contact_num, role, team, email, session.user_id])
     if (result.affectedRows === 0)
         return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
 
@@ -24,6 +24,7 @@ export async function POST(req: Request)
     session.name = name
     session.contact_num = contact_num
     session.role = role
+    session.team = team
     session.email = email
     await session.save()
 
