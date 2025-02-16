@@ -1,6 +1,5 @@
 'use client';
 
-import Nav from '@/components/AdNav2';
 // import RealtimeDisplay from '@/components/RealtimeAbly';
 import AblyConnectionComponent from '@/components/RealtimeAbly';
 import { useState } from 'react';
@@ -31,7 +30,6 @@ export default function Livefeed () {
   return (
     <>
       {/* <RealtimeDisplay /> */}
-      <Nav />
       <div className="p-4 lg:p-8 bg-gray-50 min-h-screen">
         <div className="bg-white rounded-lg shadow-md p-4 lg:p-8">
           {/* Live Feed Section */}
