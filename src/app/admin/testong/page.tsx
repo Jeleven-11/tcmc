@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
 import Paper from '@mui/material/Paper';
 
-interface Report {
+interface Report
+{
   id: number;
   fullName: string;
   age: number;
@@ -14,11 +15,12 @@ interface Report {
   isOwner: 'Yes' | 'No';
   vehicleType: 'Motorcycle' | 'Car' | 'Van' | 'Truck' | 'Other';
   platenumber?: string | null;
-  status: 'pending' | 'accepted' | 'on investigation' | 'dropped' | 'solved';
+  status: 'unread' | 'on investigation' | 'dropped' | 'solved';
   createdAt: string;
 }
 
-export default function DataTable() {
+export default function DataTable()
+{
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 5 });

@@ -10,7 +10,7 @@ interface User {
   id?: string
   username: string;
   name: string;
-  role: string;
+  team: number;
   contact_num?: string;
   password?: string;
   user_id?: string;
@@ -25,23 +25,23 @@ export default function UserManagement()
   const [isAdding, setIsAdding] = useState(false)
   const [currentUser, setCurrentUser] = useState<User>()
 
+  const fetchUsers = async () =>
+  {
+    try
+    {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/getUsers`)
+      if (!res.ok)
+        throw new Error('Failed to fetch users')
+
+      const data = await res.json()
+      setUsers(data)
+    } catch (error) {
+      console.error('Error fetching users:', error)
+    }
+  }
+
   useEffect(() =>
   {
-    const fetchUsers = async () =>
-    {
-      try
-      {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/getUsers`)
-        if (!res.ok)
-          throw new Error('Failed to fetch users')
-
-        const data = await res.json()
-        setUsers(data)
-      } catch (error) {
-        console.error('Error fetching users:', error)
-      }
-    }
-
     fetchUsers()
   }, [])
 
@@ -51,13 +51,16 @@ export default function UserManagement()
     {
       try
       {
-        const response = await fetch(`/api/deleteUser?id=${userId}`, {
-          method: 'DELETE',
+        const response = await fetch(`/api/deleteUser`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({userId}),
         });
         if (response.ok)
-          setUsers(users.filter((user: User) => user.id !== userId))
-        else
-          throw new Error('Failed to delete user')
+          fetchUsers()
+          // setUsers(users.filter((user: User) => user.id !== userId))
+        // else
+          // throw new Error('Failed to delete user')
       } catch (error) {
         console.error('Error deleting user:', error)
       }
@@ -96,7 +99,8 @@ export default function UserManagement()
         const addedUser = await response.json()
         console.log('Added user:', addedUser.user);
 
-        setUsers([...users, addedUser.user])
+        // setUsers([...users, addedUser.user])
+        fetchUsers()
         setIsAdding(false)
       } else throw new Error('Failed to add user')
     } catch (error) {

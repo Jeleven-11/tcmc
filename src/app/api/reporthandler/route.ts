@@ -49,7 +49,7 @@ export async function POST(request: NextRequest)
         driversLicense, vehicleRegistration, orCr, reason, vehicleType, platenumber, color,
         description, reportID, status, createdAt
       ) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unread', ?)
     `
     const values = [
       fullName,

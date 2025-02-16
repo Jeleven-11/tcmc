@@ -7,7 +7,8 @@ interface newUser {
   id?: string
   username: string;
   name: string;
-  role: string;
+  // role: string;
+  team: number;
   contact_num?: string;
   password?: string;
   user_id?: string;
@@ -16,19 +17,20 @@ interface newUser {
   fcmToken?: string
 }
 
-export async function POST(req: NextRequest) {
-  if (req.method === 'POST') {
-    const { username, name, role, contact_num, password, email, emailVerified, fcmToken }: newUser = await req.json();
+export async function POST(req: NextRequest)
+{
+  // if (req.method === 'POST') {
+    const { username, name, team, contact_num, password, email, emailVerified, fcmToken }: newUser = await req.json()
     // const emailVerified : newUser['emailVerified'] = false
     // const fcmToken: newUser['fcmToken'] = ''
     // Validate input data
-    if (!username || !name || !role || !contact_num || !password || !email) {
-      return NextResponse.json({ error: 'All fields are required' }, {status:400});
-    }
+    console.log('Received data:', { username, name, team, contact_num, password, email });
+
+    if (!username || !name || !contact_num || !password || !email)
+      return NextResponse.json({ error: 'All fields are required' }, {status:400})
 
     try {
       // Log the incoming data for debugging
-      console.log('Received data:', { username, name, role, contact_num, password, email });
 
       // Hash the password before saving it
       const hashedPassword: string = await bcrypt.hash(password, 10);
@@ -47,21 +49,21 @@ export async function POST(req: NextRequest) {
       // Insert new user into the database
       //const [result]: [newUser[], FieldPacket[]] = 
       await connection.query(
-        'INSERT INTO users (username, name, role, contact_num, password, email, isEmailVerified, fcmToken) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [username, name, role, contact_num, hashedPassword, email, emailVerified, fcmToken]
+        'INSERT INTO users (username, name, team, contact_num, password, email, isEmailVerified, fcmToken) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [username, name, team, contact_num, hashedPassword, email, emailVerified, fcmToken]
       )// as [newUser[], FieldPacket[]];
 
       // console.log('Database result:', result);
       connection.release();
       // Return success response
-      return NextResponse.json({ message: 'User added successfully', user: { username, name, role, contact_num, password, email }
+      return NextResponse.json({ message: 'User added successfully', user: { username, name, team, contact_num, password, email }
       }, {status: 200});
     } catch (error) {
       console.error('Error adding user:', error);
       return NextResponse.json({ error: `Failed to add user: ${error}` }, {status: 500});
     }
-  } else {
-    // Handle unsupported request methods
-    return NextResponse.json({ error: 'Method not allowed' }, {status: 405});
-  }
-};
+  // } else {
+  //   // Handle unsupported request methods
+  //   return NextResponse.json({ error: 'Method not allowed' }, {status: 405});
+  // }
+}

@@ -8,6 +8,7 @@ interface User {
   username: string;
   name: string;
   role: string;
+  team: number;
   contact_num?: string;
   password?: string;
   user_id?: string;
@@ -33,6 +34,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onEdit, onDelete }) => 
       <div className="space-y-2">
         <p className="text-lg text-gray-700">Contact No: {user.contact_num}</p>
         <p className="text-lg text-gray-700">Role: {user.role}</p>
+        <p className="text-lg text-gray-700">Team: {user.team === 1 ? "Task Force" : "Help Desk"}</p>
         <p className="text-lg text-gray-700">Email: {user.email}</p>
       </div>
       <div className="mt-4 space-x-4">

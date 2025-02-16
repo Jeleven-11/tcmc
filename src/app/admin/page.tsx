@@ -4,12 +4,13 @@ import { MdFileDownloadDone } from "react-icons/md";
 import Navbar from '@/components/adminNav';
 import Footer from '@/components/Footer';
 // import RequestNotificationPermission from '@/components/RequestNotificationPermission';
-import LineTinapa from '@/components/LineTinapa';
-import LineWeeklyTinapa from '@/components/LineWeeklyTinapa';
-import LineMonthlyTinapa from '@/components/LineMonthlyTinapa';
+import LGDaily from '@/components/LGDaily';
+import LGWeekly from '@/components/LGWeekly';
+import LGMonthly from '@/components/LGMonthly';
+import LGYearly from '@/components/LGYearly';
+
 import DateTimeComponent from '@/components/DateTimeComponent';
 import PushNotification from '@/components/PushNotifications';
-import LineYearlyTinapa from '@/components/LineYearlyTinapa';
 export const dynamic = 'force-dynamic'
 // Make this a Server Component by fetching data directly in the component
 const AdminDashboard = async () =>
@@ -36,19 +37,19 @@ const AdminDashboard = async () =>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                       <div className="bg-white p-4 rounded shadow-md">
                         <h2 className="text-xl font-semibold mb-4">Daily Reports</h2>
-                        <LineTinapa />
+                        <LGDaily />
                       </div>
                       <div className="bg-white p-4 rounded shadow-md">
                         <h2 className="text-xl font-semibold mb-4">Weekly Reports</h2>
-                        <LineWeeklyTinapa />
+                        <LGWeekly />
                       </div>
                       <div className="bg-white p-4 rounded shadow-md">
                         <h2 className="text-xl font-semibold mb-4">Monthly Reports</h2>
-                        <LineMonthlyTinapa />
+                        <LGMonthly />
                       </div>
                       <div className="bg-white p-4 rounded shadow-md">
                         <h2 className="text-xl font-semibold mb-4">Yearly Reports</h2>
-                        <LineYearlyTinapa />
+                        <LGYearly />
                       </div>
                     </div>
 
@@ -65,15 +66,7 @@ const AdminDashboard = async () =>
                         <GoReport className="h-8 w-8 text-yellow-600 mr-4" />
                         <div>
                           <h2 className="text-xl font-semibold mb-2">Pending Reports</h2>
-                          <p className="text-gray-700">{data.pending || 0}</p>
-                        </div>
-                      </div>
-
-                      <div className="bg-white p-4 rounded shadow-md flex items-center">
-                        <GoReport className="h-8 w-8 text-green-600 mr-4" />
-                        <div>
-                          <h2 className="text-xl font-semibold mb-2">Accepted Reports</h2>
-                          <p className="text-gray-700">{data.accepted || 0}</p>
+                          <p className="text-gray-700">{data.unread || 0}</p>
                         </div>
                       </div>
 

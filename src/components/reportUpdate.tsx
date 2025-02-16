@@ -17,9 +17,6 @@ interface Report
   driversLicense: string;
 }
 
-
-
-
 const CheckUpdates = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Report[]>([]); // Results from search

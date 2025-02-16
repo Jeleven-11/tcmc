@@ -6,7 +6,7 @@ interface User {
   id?: string
   username: string;
   name: string;
-  role: string;
+  team: number;
   contact_num?: string;
   password?: string;
   user_id?: string;
@@ -25,7 +25,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUpdate }
   const [username, setUsername] = useState(user.username);
   const [name, setName] = useState(user.name); // Include name field
   const [password, setPassword] = useState(user.password);
-  const [role, setRole] = useState(user.role);
+  const [team, setTeam] = useState(user.team);
   const [contactNumber, setContactNumber] = useState(user.contact_num);
   const [email, setEmail] = useState(user.email);
 
@@ -33,14 +33,14 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUpdate }
     setUsername(user.username);
     setName(user.name); // Initialize name
     setPassword(user.password);
-    setRole(user.role);
+    setTeam(user.team);
     setContactNumber(user.contact_num);
     setEmail(user.email);
   }, [user]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const updatedUser = { id: user.id, user_id: user.user_id, username, password, name, role, contact_num: contactNumber, email }; // Include id and name
+    const updatedUser = { id: user.id, user_id: user.user_id, username, password, name, team, contact_num: contactNumber, email }; // Include id and name
     try {
       const response = await fetch(`/api/updateUser`, {
         method: 'PUT', // Ensure this is PUT
@@ -97,13 +97,22 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUpdate }
           </label>
           <label className="block mb-2">
             Role:
-            <input
+            <select
+              className="border p-2 w-full rounded-md mb-2"
+              value={team}
+              onChange={(e) => setTeam(parseInt(e.target.value))}
+              required
+            >
+              <option value="0">Help Desk</option>
+              <option value="1">Task Force</option>
+            </select>
+            {/* <input
               type="text"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
+              value={team}
+              onChange={(e) => setTeam(e.target.value)}
               className="border p-2 w-full"
               required
-            />
+            /> */}
           </label>
           <label className="block mb-2">
             Contact Number:
