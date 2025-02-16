@@ -5,7 +5,7 @@ import AblyConnectionComponent from '@/components/RealtimeAbly';
 import { useState } from 'react';
 // export const dynamic = 'force-dynamic';
 export default function Livefeed () {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(''); 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
   
