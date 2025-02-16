@@ -67,5 +67,3 @@ export async function POST(req: NextRequest)
   //   return NextResponse.json({ error: 'Method not allowed' }, {status: 405});
   // }
 }
-
-export const dynamic = 'force-dynamic'
