@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import UserCard from '@/components/UserCard';
 import EditUserModal from '@/components/EditUserModal';
 import AddUserModal from '@/components/AddUserModal';
-import Navbar from '@/components/AdNav2';
-import DateTimeComponent from '@/components/DateTimeComponent';
 
 interface User {
   id?: string;
@@ -92,8 +90,6 @@ export default function UserManagement() {
 
   return (
     <>
-      <DateTimeComponent />
-      <Navbar />
       <div className="bg-gray-100 dark:bg-gray-900 p-6 min-h-screen">
         <header className="bg-blue-600 text-white p-4 rounded-lg shadow-md">
           <h1 className="text-xl font-semibold">Admin Dashboard</h1>

@@ -10,7 +10,19 @@ import { logout } from '@/app/lib/actions';
 import LogoutModal from './LogoutModal';
 import { IoNotifications } from "react-icons/io5";
 
-const Navbar = () => {
+interface SessionData {
+  session: {
+    isLoggedIn: boolean;
+    name?: string;
+    contact_num?: string;
+    role?: string;
+    team?: number;
+    email?: string;
+  } | null;
+}
+
+export default function Navbar({ session }: SessionData)
+{
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -25,7 +37,7 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white border-gray-200 dark:bg-gray-900 shadow-md mb-4">
-      <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+      <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-3">
         {/* Logo */}
         <Link href="/admin" className="flex items-center space-x-3 rtl:space-x-reverse">
           <Image src="/tangubpnplogo.jpeg" alt="Logo" width={32} height={32} />
@@ -55,8 +67,8 @@ const Navbar = () => {
           {isDropdownOpen && (
             <div className="absolute right-0 z-50 mt-16 top-20 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow-lg dark:bg-gray-700 dark:divide-gray-600">
               <div className="px-4 py-3">
-                <span className="block text-sm text-gray-900 dark:text-white">Username here</span>
-                <span className="block text-sm text-gray-500 truncate dark:text-gray-400">insert user mail address here</span>
+                <span className="block text-sm text-gray-900 dark:text-white">{session?.name}</span>
+                <span className="block text-sm text-gray-500 truncate dark:text-gray-400">{session?.email}</span>
               </div>
               <ul className="py-2">
                 <li>
@@ -97,7 +109,5 @@ const Navbar = () => {
       {/* Logout Confirmation Modal */}
       <LogoutModal isOpen={isLogoutModalOpen} onClose={() => setIsLogoutModalOpen(false)} onConfirm={handleSignOut} />
     </nav>
-  );
-};
-
-export default Navbar;
+  )
+}

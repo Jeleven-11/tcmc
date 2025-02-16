@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, SetStateAction } from 'react';
 import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
 import Paper from '@mui/material/Paper';
 import Modal from '@mui/material/Modal';
@@ -60,12 +60,19 @@ export default function DataTable() {
   const [selectedRows, setSelectedRows] = useState<number[]>([])
   const [initReports, setInitReports] = useState<string[]>([])
 
-  const fetchReports = async () =>
+  const fetchReports = async (isLoad: SetStateAction<boolean>) =>
   {
     try
     {
-        setLoading(true)
-        const res = await fetch(`/api/getReports/getReportsLazy?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}&search=${encodeURIComponent(searchQuery)}`)
+        const session = await getSession()
+        setLoading(isLoad)
+
+        let res
+        if (Number(session.team) === 1)
+          res = await fetch(`/api/getReports/getReportsLazy?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}&search=${encodeURIComponent(searchQuery)}&t=${session.team}`)
+        else
+          res = await fetch(`/api/getReports/getReportsLazy?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}&search=${encodeURIComponent(searchQuery)}`)
+
         const { data, total } = await res.json()
         if (res.ok)
         {
@@ -75,7 +82,7 @@ export default function DataTable() {
     } catch (error) {
       console.error('Failed to fetch reports:', error)
     } finally {
-        setLoading(false)
+        setLoading(!isLoad)
     }
   }
 
@@ -121,7 +128,7 @@ export default function DataTable() {
 
       await sendNotif([id], newStatus, '')
 
-      fetchReports()
+      fetchReports(true)
     } catch (error) {
       console.error("Error updating status:", error)
     }
@@ -138,19 +145,17 @@ export default function DataTable() {
 
     try
     {
-      setLoading(true)
+      // setLoading(true)
       await axios.post('/api/reports/bulkDelete', { ids: initReports })
       await sendNotif(initReports, '', 'bulk')
 
       //remove deleted reports deleted from state instead of refetching everything
       // setReports((prevReports) => prevReports.filter(report => !selectedRows.includes(report.id)))
 
-      fetchReports()
+      fetchReports(true)
       setSelectedRows([])
     } catch (error) {
       console.error('Error deleting reports:', error)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -167,7 +172,7 @@ export default function DataTable() {
 
       await sendNotif([id], newStatus, 'delete')
 
-      fetchReports()
+      fetchReports(true)
     } catch (error) {
       console.error("Error deleting report:", error)
     }
@@ -176,33 +181,7 @@ export default function DataTable() {
   // Debounce search to prevent excessive API calls
   const debouncedSearch = useCallback(debounce((query: string) => setSearchQuery(query), 500), [])
 
-  useEffect(() =>
-  {
-    let isMounted = true
-
-    async function fetchReports()
-    {
-      setLoading(true)
-      try
-      {
-        const res = await fetch(`/api/getReports/getReportsLazy?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}&search=${encodeURIComponent(searchQuery)}`);
-        const { data, total } = await res.json();
-  
-        if (isMounted) {
-          setReports(data);
-          setTotalRows(total);
-        }
-      } catch (error) {
-        console.error('Failed to fetch reports:', error);
-      } finally {
-        if (isMounted)
-          setLoading(false);
-      }
-    }
-
-    fetchReports()
-    return () => { isMounted = false }
-  }, [paginationModel, searchQuery])
+  useEffect(() => { fetchReports(true) }, [paginationModel, searchQuery])
 
   const handleOpenModal = (report: Report) =>
   {

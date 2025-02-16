@@ -1,10 +1,8 @@
 'use client'
 
-import Nav from '@/components/AdNav2';
 import { UserCircleIcon } from '@heroicons/react/24/outline';
 import { getSession } from '@/app/lib/actions';
 import { useState, useEffect } from 'react';
-import DateTimeComponent from '@/components/DateTimeComponent';
 
 type SessionData =
 {
@@ -125,8 +123,6 @@ export default function Profile()
 
   return (
     <>
-      <DateTimeComponent/>
-      <Nav />
       <div className="flex flex-col items-center p-8 bg-blue-50 min-h-screen">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full text-center">
           <div className="mb-6 flex justify-center">

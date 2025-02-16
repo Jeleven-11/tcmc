@@ -5,7 +5,7 @@ export interface SessionData {
     username?: string;
     name?: string;
     role?: string;
-    team?: string;
+    team?: number;
     contact_num?: string;
     user_id?: string;
     email?: string;
