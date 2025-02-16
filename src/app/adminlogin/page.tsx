@@ -78,9 +78,10 @@ export default function Adminlogin() {
        />
        
       <div className="bg-white/30 backdrop-blur-md p-8 rounded shadow-lg w-full max-w-sm relative">
-        <Link href={"/"} className="text-black">
+        <Link href={"/"} className="text-black mb-4">
           <MdArrowBack size={16} />
         </Link>
+        
         <h2 className="text-2xl font-heading text-blue-700 mb-4">Admin Login</h2>
         {error && <span className="text-red-800">{error}</span>}
         <form onSubmit={handleSubmit} className="relative">

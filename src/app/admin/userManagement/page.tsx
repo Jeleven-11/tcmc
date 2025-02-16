@@ -16,6 +16,7 @@ interface User {
   user_id?: string;
   email?: string;
   emailVerified?: boolean;
+  fcmToken?: string
 }
 
 export default function UserManagement()

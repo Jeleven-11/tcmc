@@ -40,6 +40,7 @@ from ably import AblyRealtime
 from inference_sdk import InferenceHTTPClient
 # import a built in sink called render_boxes (sinks are the logic that happens after inference)
 from inference.core.interfaces.stream.sinks import render_boxes
+
 # logging.basicConfig(level=logging.DEBUG)
 # from gpiozero import PWMLED
 # --- LOGGING CONFIGURATION --- #
@@ -124,8 +125,8 @@ myCamera = None
 def get_camera():
     global myCamera
     if myCamera is None:
-        frame_width = 640#480#640#1280
-        frame_height = 360#270#360#720
+        frame_width = 1280#640#480#640#1280#1920
+        frame_height = 720#360#270#360#720#1080
         # Initialize Picamera2
         myCamera = Picamera2()
         camera_config = myCamera.create_preview_configuration(main={"size": (frame_width, frame_height)})
@@ -145,208 +146,6 @@ def setup_model():
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = YOLO(model_path)
     return model
-class CameraStreamTrack(VideoStreamTrack):
-    def __init__(self):
-        super().__init__()
-        # global camera, isCameraConfigured
-        global isCameraConfigured
-        # self.camera = camera
-        self.camera = None
-        self.workers = 0 if os.name == 'nt' else 4 
-        # --- Camera Setup ---
-        # Camera initialize
-        # create an inference pipeline object
-        # self.pipeline = InferencePipeline.init(
-        #     model_id="local-vehicles-opjyd/10", # set the model id to a yolov8x model with in put size 1280
-        #     video_reference=None, # set the video reference (source of video), it can be a link/path to a video file, an RTSP stream url, or an integer representing a device id (usually 0 for built in webcams)
-        #     on_prediction=self.process_prediction, # tell the pipeline object what to do with each set of inference by passing a function
-        #     api_key="YdtoLOJufCKAjGZC1IkJ", # provide your roboflow api key for loading models from the roboflow api
-        # )
-        self.inference_client = InferenceHTTPClient(api_url="https://detect.roboflow.com", api_key="YdtoLOJufCKAjGZC1IkJ")
-        # self.model = self.inference_client.get_model("local-vehicles-opjyd/10")
-        self.model_id = "local-vehicles-opjyd/10"
-        # self.client
-        # wait for the pipeline to finish
-        # pipeline.join()
-        atexit.register(self.cleanup)
-        self.initializeCamera()
-        # start the pipeline
-        # self.pipeline.start()
-        self.latest_frame = None
-        self.latest_predictions = []
-        self.frame_count = 0
-        self.rec_frame_count = 0
-        self.rec_flag = False
-        self.rec_frames = []
-        print("Set frame count to 0")
-        self.running = False
-        self.start_time = time.time() 
-        print("Initialize complete")
-    
-    def process_prediction(self, result, frame):
-        # Print the result structure
-        print("Result structure:", result)
-
-        # Process the result (draw bounding boxes)
-        if isinstance(result, list) and len(result) > 0:
-            predictions = result[0].get('predictions', [])
-        elif isinstance(result, dict):
-            predictions = result.get('predictions', [])
-        else:
-            predictions = []
-        for prediction in predictions:
-            # Extract bounding box coordinates
-            x1 = int(prediction['x'] - prediction['width'] / 2)
-            y1 = int(prediction['y'] - prediction['height'] / 2)
-            x2 = int(prediction['x'] + prediction['width'] / 2)
-            y2 = int(prediction['y'] + prediction['height'] / 2)
-            
-            # Draw bounding box
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            
-            # Prepare label text
-            label = f"{prediction['class']} {prediction['confidence']:.2f}"
-            
-            # Draw label background
-            (label_width, label_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
-            cv2.rectangle(frame, (x1, y1 - label_height - 10), (x1 + label_width, y1), (0, 255, 0), -1)
-            
-            # Draw label text
-            cv2.putText(frame, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
-        return frame
-
-
-    def initializeCamera(self):
-        # global camera, isCameraConfigured
-        global isCameraConfigured
-        retry_attempts = 3
-        for attempt in range(retry_attempts):
-            # if self.camera is None and camera is None:
-            if self.camera is None:
-                try:
-                    print("Setting camera to Picamera2")
-                    self.camera = get_camera()
-                    self.camera.start()
-                    print("Started camera")
-                    isCameraConfigured = True
-                    break
-                except Exception as ex:
-                    print(f"Error initializing camera: {ex}")
-                    # logging.error(f"Error initializing camera: {ex}")
-                    self.cleanup()
-                    if attempt < retry_attempts - 1:
-                        print("Retrying camera initialization...")
-                        time.sleep(2)
-                    else:
-                        print("Failed to initialize camera after multiple attempts.")
-                        raise
-    
-    
-    def cleanup(self):
-        """Release camera resources."""
-        try:
-            if hasattr(self, 'camera') and self.camera is not None:
-                print("Stopping and releasing camera resources")
-                self.camera.stop()
-                self.camera = None
-                
-        except Exception as e:
-            print(f"Failed to initialize camera after multiple attempts. Cleaning failed: {e}")
-       
-        try:
-            if hasattr(self, 'model') and self.model is not None:
-                print("Releasing Plate Detection Model resources")
-                del self.model
-                self.model = None
-        except Exception as e:
-            print(f"Error during Plate Detection Model cleanup: {e}")
-        
-        # try:
-        #     if hasattr(self, 'pipeline'):
-        #         self.pipeline.join()
-        # except Exception as e:
-        #     print(f"Failed to stop pipeline: {e}")
-
-
-    async def stopClass(self):
-        """Release resources and stop the stream."""
-        print("Stopping CameraStreamTrack...")
-        atexit._run_exitfuncs()
-        self.cleanup()
-
-    def surveillanceMode(self):
-        try:
-            frame = self.camera.capture_array() 
-            self.frame_count += 1
-            start_time = time.time()
-            if self.frame_count % 2 != 0:
-                return
-            
-            img = Image.fromarray(frame)
-            # Pipeline here...
-            if self.frame_count % 60 == 0:
-                fps = 1 / (time.time() - start_time)
-                print(f"\rCurrent FPS: {fps:.2f}")  
-            
-           
-            if self.frame_count >= 600:
-                self.frame_count = 1 #Reset number
-                        
-        except Exception as e:
-            print(f"Error during camera capture: {e}")
-            logging.error(f"Error during camera capture: {e}")
-            self.cleanup()
-            raise
-    
-    async def surveillance_loop(self):
-        if not self.running:
-            print("Started processing frames")
-            self.running = True
-        while self.running:
-            await self.surveillanceMode()
-            await asyncio.sleep(0.04)
-
-    async def recv(self):
-        # global camera
-        global now_live
-        try:
-            # frame = camera.capture_array()
-            frame = self.camera.capture_array() # A Picamera2
-            self.frame_count += 1
-            
-            if frame.shape[2] == 4:
-                frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
-            if self.frame_count % 6 != 0: # skip frames (This is OPTIONAL and can be removed)
-                video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
-                video_frame.pts, video_frame.time_base = await self.next_timestamp()
-                return video_frame
-
-            result = self.inference_client.infer(frame, model_id = self.model_id)
-            # Is it possible to pass variables from this class to another class? I want to publish result to the ably channel
-            vehicles_frame = self.process_prediction(result, frame)
-
-            if self.frame_count % 30 == 0:
-                elapsed_time = time.time() - self.start_time
-                if elapsed_time > 0:
-                    fps = 60 / elapsed_time
-                    print(f"\rCurrent FPS: {fps:.2f}")
-                    self.start_time = time.time()  # Reset timer
-                    now_live = True
-           
-            if self.frame_count >= 6000:
-                self.frame_count = 1 #Reset number
-           
-            # Temporarily preview vehicle detection
-            video_frame = VideoFrame.from_ndarray(vehicles_frame, format="bgr24")
-            video_frame.pts, video_frame.time_base = await self.next_timestamp()
-
-            return video_frame
-        except Exception as e:
-            print(f"Error during camera capture: {e}")
-            # logging.error(f"Error during camera capture: {e}")
-            self.cleanup()
-            exit(1)
-            raise
 
 def release_camera():
     global myCamera
@@ -413,10 +212,13 @@ class WebRTCConnection():
     def __init__(self):
         self.peer_connections = {}
         self.media_relay = MediaRelay()
-        self.webRTCChannel = None
+        # self.webRTCChannel = None
+        self.ably_client = AblyRealtime(ABLY_API_KEY)
+        self.webRTCChannel=self.ably_client.channels.get('webrtc-signaling-channel')
         self.newPeerId = None
         self.stream = None
         self.relayed_stream = None
+        self.isRecording = False
         self.rtc_config = RTCConfiguration(
         iceServers=[
             # RTCIceServer("stun:stun.l.google.com:19302"),
@@ -427,6 +229,295 @@ class WebRTCConnection():
             )
         ]
     )
+    class CameraStreamTrack(VideoStreamTrack):
+        def __init__(self, parent):
+            super().__init__()
+            # global camera, isCameraConfigured
+            global isCameraConfigured
+            # self.camera = camera
+            self.parent = parent
+            self.camera = None
+            self.workers = 0 if os.name == 'nt' else 4 
+            # --- Camera Setup ---
+            output_folder = os.path.join(os.getcwd(), "Recordings")
+
+            # Create the output folder if it doesn't exist
+            if not os.path.exists(output_folder):
+                os.makedirs(output_folder)
+            self.video_output = os.path.join(output_folder, "rec_video"+ datetime.now(pytz.timezone('Asia/Manila')).strftime("%Y%m%d_%H%M%S") +".mp4")
+            self.frame_rate = 30
+            self.frames_to_save = []
+            self.frame_buffer_size =  1 * 60 * self.frame_rate # 1 minute
+            # Initialize the video writer
+            self.fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for .mp4
+            self.out = cv2.VideoWriter(self.video_output, self.fourcc, 30, (640, 480))
+            self.temp_file = 'temp.raw'
+            # Define the FFmpeg command
+            self.command = [
+                "ffmpeg",
+                "-y",
+                "-f", "rawvideo",
+                "-pix_fmt", "bgr24",
+                "-s", "1280x720",
+                "-r", "30",
+                "-i", self.temp_file,
+                "-c:v", "libx264",
+                "-crf", "18",
+                "-pix_fmt", "yuv420p",
+                self.video_output
+            ]
+
+            atexit.register(self.cleanup)
+            self.initializeCamera()
+            # --- Model Setup ---
+            self.inference_client = InferenceHTTPClient(api_url="https://detect.roboflow.com", api_key="YdtoLOJufCKAjGZC1IkJ")
+            # self.model = self.inference_client.get_model("local-vehicles-opjyd/10")
+            self.model_id = "local-vehicles-opjyd/10"
+            # start the pipeline
+            # self.pipeline.start()
+            self.raspberry_pi_id = get_cpu_serial()
+            self.latest_frame = None
+            self.latest_predictions = []
+            self.frame_count = 0
+            self.rec_frame_count = 0
+            self.rec_flag = False
+            self.rec_frames = []
+            self.isSavingVideo = False
+            self.isBufferFull = False
+            # self.save_task = asyncio.create_task(self.save_video_task())
+            self.vehiclesClass = [0,1,2,3,4,5]#0-Bus, 1-Car, 2-Motor, 3-Tricycle, 4-Truck, 5-Van
+            print("Set frame count to 0")
+            self.running = False
+            self.start_time = time.time() 
+            print("Initialize complete")
+        async def save_video_task(self):
+            while True:
+                if self.isBufferFull:
+                    # Save the video frames
+                    print("Saving video...")
+                    await self.save_video(self.frames_to_save)
+                    self.isBufferFull = False
+                await asyncio.sleep(0.5) 
+        async def add_frame(self, frame):
+            self.frames_to_save.append(frame)
+            # print("Buffer size:", len(self.frames_to_save))
+            if len(self.frames_to_save) >= self.frame_buffer_size and not self.isSavingVideo:
+                self.isBufferFull = True
+                await self.save_video(self.frames_to_save)
+
+        def process_prediction(self, result, frame):
+            # Print the result structure
+            print("Result structure:", result)
+
+            # Process the result (draw bounding boxes)
+            if isinstance(result, list) and len(result) > 0:
+                predictions = result[0].get('predictions', [])
+            elif isinstance(result, dict):
+                predictions = result.get('predictions', [])
+            else:
+                predictions = []
+            for prediction in predictions:
+                # Extract bounding box coordinates
+                x1 = int(prediction['x'] - prediction['width'] / 2)
+                y1 = int(prediction['y'] - prediction['height'] / 2)
+                x2 = int(prediction['x'] + prediction['width'] / 2)
+                y2 = int(prediction['y'] + prediction['height'] / 2)
+                
+                # Draw bounding box
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                
+                # Prepare label text
+                label = f"{prediction['class']} {prediction['confidence']:.2f}"
+                
+                # Draw label background
+                (label_width, label_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+                cv2.rectangle(frame, (x1, y1 - label_height - 10), (x1 + label_width, y1), (0, 255, 0), -1)
+                
+                # Draw label text
+                cv2.putText(frame, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+            return frame
+
+
+        def initializeCamera(self):
+            # global camera, isCameraConfigured
+            global isCameraConfigured
+            retry_attempts = 3
+            for attempt in range(retry_attempts):
+                # if self.camera is None and camera is None:
+                if self.camera is None:
+                    try:
+                        print("Setting camera to Picamera2")
+                        self.camera = get_camera()
+                        self.camera.start()
+                        print("Started camera")
+                        isCameraConfigured = True
+                        break
+                    except Exception as ex:
+                        print(f"Error initializing camera: {ex}")
+                        # logging.error(f"Error initializing camera: {ex}")
+                        self.cleanup()
+                        if attempt < retry_attempts - 1:
+                            print("Retrying camera initialization...")
+                            time.sleep(2)
+                        else:
+                            print("Failed to initialize camera after multiple attempts.")
+                            raise
+        
+        
+        def cleanup(self):
+            """Release camera resources."""
+            try:
+                if hasattr(self, 'camera') and self.camera is not None:
+                    print("Stopping and releasing camera resources")
+                    self.camera.stop()
+                    self.camera = None
+                    
+            except Exception as e:
+                print(f"Failed to initialize camera after multiple attempts. Cleaning failed: {e}")
+        
+            try:
+                if hasattr(self, 'model') and self.model is not None:
+                    print("Releasing Plate Detection Model resources")
+                    del self.model
+                    self.model = None
+            except Exception as e:
+                print(f"Error during Plate Detection Model cleanup: {e}")
+
+            # self.save_task.cancel()
+            print("Camera cleanup complete")
+
+        async def stopClass(self):
+            """Release resources and stop the stream."""
+            print("Stopping CameraStreamTrack...")
+            atexit._run_exitfuncs()
+            self.cleanup()
+
+        def surveillanceMode(self):
+            try:
+                frame = self.camera.capture_array() 
+                self.frame_count += 1
+                start_time = time.time()
+                if self.frame_count % 2 != 0:
+                    return
+                
+                img = Image.fromarray(frame)
+                # Pipeline here...
+                if self.frame_count % 60 == 0:
+                    fps = 1 / (time.time() - start_time)
+                    print(f"\rCurrent FPS: {fps:.2f}")  
+                
+                if self.frame_count >= 600:
+                    self.frame_count = 1 #Reset number
+                            
+            except Exception as e:
+                print(f"Error during camera capture: {e}")
+                logging.error(f"Error during camera capture: {e}")
+                self.cleanup()
+                raise
+        
+        async def surveillance_loop(self):
+            if not self.running:
+                print("Started processing frames")
+                self.running = True
+            while self.running:
+                await self.surveillanceMode()
+                await asyncio.sleep(0.04)
+
+        async def save_video(self, frames):
+            self.isSavingVideo = True
+            output_folder = os.path.join(os.getcwd(), "Recordings")
+
+            # Create the output folder if it doesn't exist
+            if not os.path.exists(output_folder):
+                os.makedirs(output_folder)
+            self.video_output = os.path.join(output_folder, "rec_video"+ datetime.now(pytz.timezone('Asia/Manila')).strftime("%Y%m%d_%H%M%S") +".mp4")
+            # self.video_output = "rec_video"+ datetime.now(pytz.timezone('Asia/Manila')).strftime("%Y%m%d_%H%M%S") +".mp4"
+            self.temp_file = 'temp.raw'
+            self.command = [
+                "ffmpeg",
+                "-y",
+                "-f", "rawvideo",
+                "-pix_fmt", "bgr24",
+                "-s", "1280x720",
+                "-r", "30",
+                "-i", self.temp_file,
+                "-c:v", "libx264",
+                "-crf", "18",
+                "-pix_fmt", "yuv420p",
+                self.video_output
+            ]
+
+            with open(self.temp_file, 'wb') as f:
+            # with os.open(self.temp_file, os.O_WRONLY | os.O_TRUNC) as f:
+                for frame in frames:
+                    f.write(frame.tobytes())
+
+            subprocess.run(self.command)
+
+            os.remove(self.temp_file)
+            # Clear the buffer
+            self.frames_to_save.clear()
+            # self.frames_to_save = []
+            print("Video saved. Buffer cleared.")
+            self.isSavingVideo = False
+            await self.parent.webRTCChannel.publish("WebRTC-client-register", {
+                    "role": "Raspberry Pi",
+                    "sessionID": self.raspberry_pi_id,
+                    "message": "Saved video as " + self.video_output})
+            # await asyncio.sleep(5)
+            # Update the video output file name and the command
+            
+        async def recv(self):
+            # global camera
+            global now_live
+            try:
+                # frame = camera.capture_array()
+                frame = self.camera.capture_array() # A Picamera2
+                self.frame_count += 1
+                
+                if frame.shape[2] == 4:
+                    frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
+                if self.frame_count % 3 != 0: # skip frames (This is OPTIONAL and can be removed)
+                    if self.parent.isRecording:
+                        await self.add_frame(frame)
+                    video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
+                    video_frame.pts, video_frame.time_base = await self.next_timestamp()
+                    return video_frame
+
+                result = self.inference_client.infer(frame, model_id = self.model_id)
+                await self.parent.webRTCChannel.publish("WebRTC-client-register", {
+                    "role": "Raspberry Pi",
+                    "sessionID": self.raspberry_pi_id,
+                    "data": result})
+                vehicles_frame = self.process_prediction(result, frame)
+                frame = vehicles_frame
+                if self.parent.isRecording:
+                    await self.add_frame(frame)
+                
+
+                if self.frame_count % 30 == 0:
+                    elapsed_time = time.time() - self.start_time
+                    if elapsed_time > 0:
+                        fps = 30 / elapsed_time
+                        print(f"\rCurrent FPS: {fps:.2f}")
+                        self.start_time = time.time()  # Reset timer
+                        now_live = True
+            
+                if self.frame_count >= 600000:
+                    self.frame_count = 1 #Reset number
+
+                # Temporarily preview vehicle detection
+                video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
+                video_frame.pts, video_frame.time_base = await self.next_timestamp()
+
+                return video_frame
+            except Exception as e:
+                print(f"Error during camera capture: {e}")
+                # logging.error(f"Error during camera capture: {e}")
+                self.cleanup()
+                exit(1)
+                raise
+    
     async def on_icecandidate(self, candidate):
         raspberry_pi_id = get_cpu_serial()
         print("ICE candidate event triggered")
@@ -490,7 +581,7 @@ class WebRTCConnection():
                     surveillanceTask.cancel()
                 print("Starting WebRTC Mode...")
                 if self.stream is None:
-                    self.stream = CameraStreamTrack()
+                    self.stream = self.CameraStreamTrack(self)
                     if self.relayed_stream is None:
                         self.relayed_stream = self.media_relay.subscribe(self.stream)
                 self.peer_connections[peer_id].addTrack(self.stream)##swapped out self.relayed_stream to test if media_relay is the cause of lag
@@ -512,13 +603,13 @@ class WebRTCConnection():
                     del self.peer_connections[peer_id]
             print(f"Cleaned up peer connection for {peer_id}")
     async def ably_connection(self):
-        print(f"ABLY_API_KEY: {ABLY_API_KEY}")
-        secret_key = os.environ.get("AUTH_SECRETKEY")
-        print(f"AUTH_SECRETKEY: {secret_key}")
-        ably_client = AblyRealtime(ABLY_API_KEY)
+        # print(f"ABLY_API_KEY: {ABLY_API_KEY}")
+        # secret_key = os.environ.get("AUTH_SECRETKEY")
+        # print(f"AUTH_SECRETKEY: {secret_key}")
+        # ably_client = AblyRealtime(ABLY_API_KEY)
         try:
             raspberry_pi_id = get_cpu_serial()
-            self.webRTCChannel=ably_client.channels.get('webrtc-signaling-channel')
+            # self.webRTCChannel=ably_client.channels.get('webrtc-signaling-channel')
                 
             async def messageToMyID(message):
                 data = message.data
@@ -588,6 +679,12 @@ class WebRTCConnection():
                                 print(f"No peer connection found for {peer_id}")
                         except Exception as e:
                             print(f"Error handling answer: {e}")
+                    if data['type'] == "Record Start" and data['target'] == raspberry_pi_id:
+                        self.isRecording = True
+                        print(f"Recording started")
+                    if data['type'] == "Record Stop" and data['target'] == raspberry_pi_id:
+                        self.isRecording = False
+                        print(f"Recording stopped")
              
 
             # await webRTCChannel.subscribe(raspberry_pi_id, messageToMyID)
@@ -615,7 +712,7 @@ class WebRTCConnection():
             print(f"General Error: {e}")
         finally:
             await self.cleanup_peer_connection('all')
-            await ably_client.close()#Ensure the connection is closed on exit
+            await self.ably_client.close()#Ensure the connection is closed on exit
 
 async def setup_stream():
     global stream, surveillance_running, surveillanceTask
