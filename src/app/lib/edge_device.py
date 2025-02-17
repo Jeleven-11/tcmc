@@ -40,6 +40,9 @@ from ably import AblyRealtime
 from inference_sdk import InferenceHTTPClient
 # import a built in sink called render_boxes (sinks are the logic that happens after inference)
 from inference.core.interfaces.stream.sinks import render_boxes
+from sort.sort import *
+import easyocr
+import string
 
 # logging.basicConfig(level=logging.DEBUG)
 # from gpiozero import PWMLED
@@ -207,6 +210,30 @@ async def cleanup_peer_connection(peer_id, peer_connections):
             print(f"Error cleaning up peer connection {peer_id}: {e}")
     print(f"peer is not found: {peer_id}")
     return
+def get_car(license_plate, track_ids):
+    x1, y1, x2, y2, score, class_id = license_plate
+    foundIt = False
+    for j in range(len(track_ids)):
+        xcar1, ycar1, xcar2, ycar2, car_id = track_ids[j]
+        if x1 > xcar1 and x2 < xcar2 and y1 > ycar1 and y2 < ycar2:
+            car_indx = j
+            foundIt = True
+            break
+    if foundIt:
+        return track_ids[car_indx]
+    return -1, -1, -1, -1, -1
+# def format_license(license_plate_text):
+
+def read_license_plate(license_plate_cropped):
+    detections = reader.readtext(license_plate_cropped)
+    for detection in detections:
+        bbox, text, score = detection
+        text = text.upper().replace(" ", "")
+        if len(text) == 7:
+            # return format_license(text), score
+            return text, score
+    return None, None
+
 
 class WebRTCConnection():
     def __init__(self):
@@ -266,6 +293,7 @@ class WebRTCConnection():
                 "-pix_fmt", "yuv420p",
                 self.video_output
             ]
+            self.results = {}
 
             atexit.register(self.cleanup)
             self.initializeCamera()
@@ -273,6 +301,8 @@ class WebRTCConnection():
             self.inference_client = InferenceHTTPClient(api_url="https://detect.roboflow.com", api_key="YdtoLOJufCKAjGZC1IkJ")
             # self.model = self.inference_client.get_model("local-vehicles-opjyd/10")
             self.model_id = "local-vehicles-opjyd/10"
+            self.motion_tracker = Sort()#(max_age=20, min_hits=3, iou_threshold=0.3)
+            self.license_plate_detector = setup_model()
             # start the pipeline
             # self.pipeline.start()
             self.raspberry_pi_id = get_cpu_serial()
@@ -316,14 +346,18 @@ class WebRTCConnection():
                 predictions = result.get('predictions', [])
             else:
                 predictions = []
+                detections_ = []
             for prediction in predictions:
                 # Extract bounding box coordinates
                 x1 = int(prediction['x'] - prediction['width'] / 2)
                 y1 = int(prediction['y'] - prediction['height'] / 2)
                 x2 = int(prediction['x'] + prediction['width'] / 2)
                 y2 = int(prediction['y'] + prediction['height'] / 2)
-                
-                # Draw bounding box
+                score = int(prediction['confidence'] * 100)
+                class_id = int(prediction['class_id'])
+                if class_id in self.vehiclesClass:
+                    detections_.append([x1, y1, x2, y2, score])
+            # Draw bounding box
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 
                 # Prepare label text
@@ -335,6 +369,40 @@ class WebRTCConnection():
                 
                 # Draw label text
                 cv2.putText(frame, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+            # track vehicles
+            track_ids = self.motion_tracker.update(np.asarray(detections_))
+            
+            license_plates = self.license_plate_detector(frame)[0]
+            for license_plate in license_plates.boxes.data.toList():
+                x1, y1, x2, y2, score, class_id = license_plate  
+                x1_car, x2_car, y1_car, y2_car, car_id = get_car(license_plate, track_ids)
+                if car_id != -1:
+
+                    license_plate_cropped = frame[int(y1):int(y2), int(x1):int(x2), :]
+                    license_plate_cropped_gray= cv2.cvtColor(license_plate_cropped, cv2.COLOR_BGR2GRAY)
+                    _, license_plate_cropped_thresh = cv2.threshold(license_plate_cropped_gray, 64, 255, cv2.THRESH_BINARY_INV)
+                    license_plate_text, license_plate_text_confidence = read_license_plate(license_plate_cropped_thresh)
+                    if license_plate_text is not None:
+                        self.results[self.frame_count][car_id] = {
+                            'car': {'bbox': [x1_car, y1_car, x2_car, y2_car]},
+                            'license_plate': {'bbox': [x1, y1, x2, y2],
+                                            'text': license_plate_text,
+                                            'confidence': score,
+                                            'text_score': license_plate_text_confidence}
+                        }
+
+                # # Draw bounding box
+                # cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                
+                # # Prepare label text
+                # label = f"{prediction['class']} {prediction['confidence']:.2f}"
+                
+                # # Draw label background
+                # (label_width, label_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+                # cv2.rectangle(frame, (x1, y1 - label_height - 10), (x1 + label_width, y1), (0, 255, 0), -1)
+                
+                # # Draw label text
+                # cv2.putText(frame, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
             return frame
 
 
@@ -484,13 +552,14 @@ class WebRTCConnection():
                     video_frame.pts, video_frame.time_base = await self.next_timestamp()
                     return video_frame
 
-                result = self.inference_client.infer(frame, model_id = self.model_id)
-                await self.parent.webRTCChannel.publish("WebRTC-client-register", {
-                    "role": "Raspberry Pi",
-                    "sessionID": self.raspberry_pi_id,
-                    "data": result})
-                vehicles_frame = self.process_prediction(result, frame)
-                frame = vehicles_frame
+                # result = self.inference_client.infer(frame, model_id = self.model_id)
+                # await self.parent.webRTCChannel.publish("WebRTC-client-register", {
+                #     "role": "Raspberry Pi",
+                #     "sessionID": self.raspberry_pi_id,
+                #     "type": "Data",
+                #     "data": result})
+                # vehicles_frame = self.process_prediction(result, frame)
+                # frame = vehicles_frame
                 if self.parent.isRecording:
                     await self.add_frame(frame)
                 

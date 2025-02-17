@@ -62,6 +62,7 @@ const AblyConnectionComponent = () => {
         const { type, from, target, payload, role, sessionID } = message.data;
         
         if (role !== 'Raspberry Pi' && target !== myID.current && from === myID.current) return;
+
         console.log('Received message from Raspberry Pi:', message.data);
 
         // if (!peerConnection.current) {
@@ -88,7 +89,27 @@ const AblyConnectionComponent = () => {
         //     }
         //   };
         // }
-
+        if (type === 'Data'){
+          /*
+          TO BE UPDATED...
+          Data from Raspberry Pi: {
+            "role": "Raspberry Pi",
+            "sessionID": self.raspberry_pi_id,
+            "type": "Data",
+            "data": {
+              "predictions": [
+                {
+                  "id": "1",
+                  "label": "Car",}
+                },
+                {
+                  "id": "2",
+                  "label": "Truck",}
+                }
+              ]
+          }
+          */
+        }
         if (type === 'offer' && from !== myID.current && target === myID.current) {
           
           console.log('Received WebRTC offer from:', from);
