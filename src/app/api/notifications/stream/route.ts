@@ -1,23 +1,24 @@
 import { NextResponse } from "next/server";
 
-// Store all active SSE clients
-let clients: WritableStreamDefaultWriter<Uint8Array>[] = []
+let clients: WritableStreamDefaultWriter[] = []
 
-// Function to broadcast new notifications to all clients
+// Function to broadcast a notification to all connected clients
 function sendNotificationToClients(notification: { title: string; body: string })
 {
     const encoder = new TextEncoder()
     clients.forEach((client) => client.write(encoder.encode(`data: ${JSON.stringify(notification)}\n\n`)))
 }
 
-// SSE connection handler (no saved notifications)
+// SSE connection handler
 export async function GET(req: Request)
 {
     const { readable, writable } = new TransformStream()
     const writer = writable.getWriter()
+
+    // Add this client to the list of connected clients
     clients.push(writer)
 
-    // Clean up disconnected clients
+    // Remove client on disconnect
     req.signal.addEventListener("abort", () =>
     {
         clients = clients.filter((client) => client !== writer)
@@ -34,22 +35,13 @@ export async function GET(req: Request)
     })
 }
 
-// API to push new notifications to clients
+// API to trigger a new notification
 export async function POST(req: Request)
 {
-    try
-    {
-        const { title, body } = await req.json()
+    const { title, body } = await req.json()
 
-        if (!title || !body)
-            return NextResponse.json({ error: "Title and body are required." }, { status: 400 })
+    // broadcast
+    sendNotificationToClients({ title, body })
 
-        // Broadcast the new notification immediately
-        sendNotificationToClients({ title, body })
-
-        return NextResponse.json({ success: true })
-    } catch (error) {
-        console.error("Error sending notification:", error)
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
-    }
+    return NextResponse.json({ success: true })
 }

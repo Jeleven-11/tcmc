@@ -17,10 +17,18 @@ export default function usePushNotifications()
 
         setIsMounted(true)
 
+        // // Register service worker
+        navigator.serviceWorker.register("/sw.js")
+        .then((registration) => console.log("Service Worker Registered:", registration))
+        .catch((error) => console.error("Service Worker Registration Failed:", error))
+
         // Listen for messages from service worker
         navigator.serviceWorker.addEventListener("message", (event) =>
         {
+            console.log("🚀 Received push event in React:", event.data) // Debug log
+
             const { title, body } = event.data
+            console.log(event.data)
             if (title && body)
                 toast.info(`📢 ${title}: ${body}`)
             else
