@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 
 let clients: WritableStreamDefaultWriter[] = []
+let latestNotification: { title: string; body: string } | null = null
 
-// Function to broadcast a notification to all connected clients
-function sendNotificationToClients(notification: { title: string; body: string })
+// Function to send notifications to all connected clients
+function sendNotificationToClients()
 {
+    if (!latestNotification)
+        return
+
     const encoder = new TextEncoder()
-    clients.forEach((client) => client.write(encoder.encode(`data: ${JSON.stringify(notification)}\n\n`)))
+    clients.forEach((writer) => writer.write(encoder.encode(`data: ${JSON.stringify(latestNotification)}\n\n`)))
+    latestNotification = null
 }
 
 // SSE connection handler
@@ -14,11 +19,15 @@ export async function GET(req: Request)
 {
     const { readable, writable } = new TransformStream()
     const writer = writable.getWriter()
+    const encoder = new TextEncoder()
 
-    // Add this client to the list of connected clients
     clients.push(writer)
 
-    // Remove client on disconnect
+    // Send the latest notification if available
+    if (latestNotification)
+        writer.write(encoder.encode(`data: ${JSON.stringify(latestNotification)}\n\n`))
+
+    // Handle client disconnection
     req.signal.addEventListener("abort", () =>
     {
         clients = clients.filter((client) => client !== writer)
@@ -27,7 +36,8 @@ export async function GET(req: Request)
 
     return new NextResponse(readable,
     {
-        headers: {
+        headers:
+        {
             "Content-Type": "text/event-stream",
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
@@ -40,8 +50,13 @@ export async function POST(req: Request)
 {
     const { title, body } = await req.json()
 
-    // broadcast
-    sendNotificationToClients({ title, body })
+    if (!title || !body)
+        return NextResponse.json({ error: "Title and body are required!" }, { status: 400})
+
+    latestNotification = { title, body }
+    // const sess = await getSession()
+    // if (sess.id !== sess.id)
+        sendNotificationToClients() // Push notification to all clients
 
     return NextResponse.json({ success: true })
 }
