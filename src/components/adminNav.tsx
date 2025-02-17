@@ -56,8 +56,6 @@ function MobileNav({ open, setOpen, pathname, onLogoutClick }: { open: boolean; 
   );
 }
 
-
-
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);

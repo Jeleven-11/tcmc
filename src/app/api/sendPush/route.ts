@@ -38,24 +38,35 @@ export async function POST(res: Request)
             if (!results)
                 return NextResponse.json({ message: "No subscribers available" }, { status: 400 })
 
-            const subscribers = [] as webpush.PushSubscription[]
-            for (const result of results)
-            {
-                const data_string = JSON.stringify(result.data)
-                const subscriptions = JSON.parse(data_string)
-                subscribers.push(subscriptions)
-            }
+            // const subscribers = [] as webpush.PushSubscription[]
+            // for (const result of results)
+            // {
+            //     const data_string = JSON.stringify(result.data)
+            //     const subscriptions = JSON.parse(data_string)
+            //     subscribers.push(subscriptions)
+            // }
+
+            const subscribers = results.map(result => JSON.parse(JSON.stringify(result.data))) as webpush.PushSubscription[]
 
             const notificationPayload = JSON.stringify( { title: title, body: desc })
-            subscribers.forEach(async (sub) =>
+            await Promise.all(subscribers.map(async (sub) =>
             {
-                try
-                {
-                    return await webpush.sendNotification(sub, notificationPayload)
+                try {
+                    await webpush.sendNotification(sub, notificationPayload)
                 } catch (err) {
-                    return console.error(err)
+                    console.error(err)
                 }
-            })
+            }))
+
+            // subscribers.forEach(async (sub) =>
+            // {
+            //     try
+            //     {
+            //         return await webpush.sendNotification(sub, notificationPayload)
+            //     } catch (err) {
+            //         return console.error(err)
+            //     }
+            // })
 
             return NextResponse.json(subscribers)
         } catch (error) {

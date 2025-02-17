@@ -1,4 +1,5 @@
 "use server";
+
 import { SessionData} from '@/app/lib/session';
 import { sessionOptions, defaultSession } from '@/app/lib/session';
 import { getIronSession } from "iron-session";
@@ -27,7 +28,8 @@ export async function login() {
 }
 
 export async function logout() {
-    const session = await getSession();
+    // const session = await getSession();
+    const session = await getIronSession<SessionData>(cookies(), sessionOptions);
     session.destroy();
     redirect("/");
 }

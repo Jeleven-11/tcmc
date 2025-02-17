@@ -10,7 +10,7 @@ export default function FileReport()
 {
   return (
     <>
-    <EdgeStoreProvider>
+      <EdgeStoreProvider>
         <div className="flex flex-col min-h-screen">
           {/* Navigation */}
           <Nav />

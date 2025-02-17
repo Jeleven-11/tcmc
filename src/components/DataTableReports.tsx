@@ -124,9 +124,8 @@ export default function DataTable() {
     try
     {
       const res = await axios.put(`/api/reports/${id}`, { status: newStatus })
-      console.log("res update status:", newStatus, res)
-
-      await sendNotif([id], newStatus, '')
+      if (res.status === 200)
+        await sendNotif([id], newStatus, '')
 
       fetchReports(true)
     } catch (error) {
