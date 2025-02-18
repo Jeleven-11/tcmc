@@ -16,7 +16,7 @@ const AdminDashboard = async () => {
 
     const date = new Date();
     const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const currentDate = date.toLocaleDateString(undefined, options);
+    //const currentDate = date.toLocaleDateString(undefined, options);
 
     return (
       <>
