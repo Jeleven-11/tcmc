@@ -21,7 +21,7 @@ const AdminDashboard = async () => {
           </header>
 
           {/* Report Cards - First Section (Horizontal Stacking with Centered Content) */}
-          <div className="grid grid-cols-4 gap-2 mb-6">
+          <div className="grid grid-cols-5 gap-2 mb-6">
             {/* Total Reports Card */}
             <div className="bg-blue-50 p-4 rounded shadow-md flex items-center justify-center h-32">
               <DocumentTextIcon className="h-12 w-12 text-blue-600 mr-4" />
@@ -36,7 +36,7 @@ const AdminDashboard = async () => {
               <GoReport className="h-12 w-12 text-yellow-600 mr-4" />
               <div className="flex flex-col items-center justify-center">
                 <h2 className="text-3xl font-semibold text-yellow-600">{data.unread || 0}</h2>
-                <p className="text-xl text-gray-500">Pending Reports</p>
+                <p className="text-xl text-gray-500">Unread Reports</p>
               </div>
             </div>
 
@@ -49,6 +49,15 @@ const AdminDashboard = async () => {
               </div>
             </div>
 
+            {/* Active Reports Card */}
+            <div className="bg-orange-100 p-4 rounded shadow-md flex items-center justify-center h-32">
+              <MdFileDownloadDone className="h-12 w-12 text-orange-400 mr-4" />
+              <div className="flex flex-col items-center justify-center">
+                <h2 className="text-3xl font-semibold text-orange-400">{data.on_investigation || 0}</h2>
+                <p className="text-xl text-gray-500">Active Reports</p>
+              </div>
+            </div>
+
             {/* Solved Reports Card */}
             <div className="bg-blue-100 p-4 rounded shadow-md flex items-center justify-center h-32">
               <MdFileDownloadDone className="h-12 w-12 text-blue-400 mr-4" />
@@ -57,7 +66,7 @@ const AdminDashboard = async () => {
                 <p className="text-xl text-gray-500">Solved Reports</p>
               </div>
             </div>
-          </div>
+            </div>
 
           {/* Charts Section - Below Report Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
