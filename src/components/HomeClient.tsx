@@ -73,7 +73,7 @@ const HomeClient = () => {
       <Nav />
       <Homebody />
       <div className='px-2 mx-auto'>
-      <h1 className="text-2xl font-bold mt-2 ml-6">Frequently Asked Questions</h1>
+      <h1 className="text-2xl font-bold mt-6 ml-6">Frequently Asked Questions</h1>
       <FAQAccordion faqs={faqs} />
       </div>
       <div className="bg-gray-100 min-h-screen p-6">

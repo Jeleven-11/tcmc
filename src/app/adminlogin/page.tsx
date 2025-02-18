@@ -6,27 +6,9 @@ import Link from 'next/link';
 import { MdArrowBack } from "react-icons/md";
 import Image from 'next/image';
 
-
-// interface EyeIconProps {
-//   isVisible: boolean;
-//   onClick: () => void;
-// }
-
-// const EyeIcon = ({ isVisible, onClick }: EyeIconProps) => (
-//   <button
-//     type="button"
-//     onClick={onClick}
-//     className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
-//     style={{ top: 'calc(50% + 2px)' }}
-//   >
-//     {isVisible ? '🙈' : '👁️'}
-//   </button>
-// );
-
 export default function Adminlogin() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  // const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
@@ -36,16 +18,6 @@ export default function Adminlogin() {
   }, []);
 
   if (!isClient) return null;
-
-  // interface SignInResult {
-  //   error?: string | null;
-  //   ok?: boolean;
-  // }
-
-  // interface UserRoleResponse {
-  //   role: string;
-  //   error?: string;
-  // }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,14 +70,12 @@ export default function Adminlogin() {
           <div className="mb-6">
             <label className="block text-sm font-medium mb-2">Password</label>
             <input
-              // type={showPassword ? 'text' : 'password'}
               type='password'
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="border bg-gray-100 rounded px-3 py-2 w-full pr-10"
               required
             />
-            {/* <EyeIcon isVisible={showPassword} onClick={() => setShowPassword(!showPassword)} /> */}
           </div>
           <button
             type="submit"

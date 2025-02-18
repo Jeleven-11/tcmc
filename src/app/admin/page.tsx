@@ -13,11 +13,6 @@ const AdminDashboard = async () => {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reportcounter`);
     const data = await res.json();
-
-    //const date = new Date();
-    //const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    //const currentDate = date.toLocaleDateString(undefined, options);
-
     return (
       <>
         <div className="bg-gray-100 min-h-screen p-6">
@@ -66,32 +61,31 @@ const AdminDashboard = async () => {
 
           {/* Charts Section - Below Report Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-  <div className="bg-white p-4 rounded shadow-md">
-    <h2 className="text-xl font-semibold mb-4">Daily Reports</h2>
-    <LGDaily />
-  </div>
-  <div className="bg-white p-4 rounded shadow-md">
-    <h2 className="text-xl font-semibold mb-4">Weekly Reports</h2>
-    <LGWeekly />
-  </div>
-  <div className="bg-white p-4 rounded shadow-md">
-    <h2 className="text-xl font-semibold mb-4">Monthly Reports</h2>
-    <LGMonthly />
-  </div>
-  <div className="bg-white p-4 rounded shadow-md">
-    <h2 className="text-xl font-semibold mb-4">Yearly Reports</h2>
-    <LGYearly />
-  </div>
+            <div className="bg-white p-4 rounded shadow-md">
+              <h2 className="text-xl font-semibold mb-4">Daily Reports</h2>
+              <LGDaily />
+            </div>
+            <div className="bg-white p-4 rounded shadow-md">
+              <h2 className="text-xl font-semibold mb-4">Weekly Reports</h2>
+              <LGWeekly />
+            </div>
+            <div className="bg-white p-4 rounded shadow-md">
+              <h2 className="text-xl font-semibold mb-4">Monthly Reports</h2>
+              <LGMonthly />
+            </div>
+            <div className="bg-white p-4 rounded shadow-md">
+              <h2 className="text-xl font-semibold mb-4">Yearly Reports</h2>
+              <LGYearly />
+            </div>
 
-  {/* Report Breakdown Chart - Centered */}
-  <div className="col-span-2 flex justify-center bg-white p-4 rounded shadow-md">
-    <div className="w-full max-w-2xl">
-      <h2 className="text-xl font-semibold mb-4 text-center">Report Breakdown</h2>
-      <ReportDoughnutChart />
-    </div>
-  </div>
-</div>
-
+            {/* Report Breakdown Chart - Centered */}
+            <div className="col-span-2 flex justify-center bg-white p-4 rounded shadow-md">
+              <div className="w-full max-w-2xl">
+                <h2 className="text-xl font-semibold mb-4 text-center">Report Breakdown</h2>
+                <ReportDoughnutChart />
+              </div>
+            </div>
+          </div>
         </div>
       </>
     );

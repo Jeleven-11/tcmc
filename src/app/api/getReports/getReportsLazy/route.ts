@@ -30,9 +30,7 @@ export async function GET(req: NextRequest)
 
         const reports = await connection.query(`SELECT * FROM reports ${whereClause} ORDER BY createdAt DESC LIMIT ? OFFSET ?`, queryParams)
         const total:[Counter[], FieldPacket[]] = await connection.query(`SELECT COUNT(*) as count FROM reports ${whereClause}`, queryParams.slice(0, -2)) as [Counter[], FieldPacket[]]
-        console.log("TOTAL: ", total[0][0].count);
-        console.log("REPORTS: ", reports[0])
-
+        connection.release();
         // const reports = await query(`SELECT * FROM reports ORDER BY createdAt DESC LIMIT ? OFFSET ?`, [pageSize, offset])
         // const total = await query(`SELECT COUNT(*) as count FROM reports`, []) as { count: number }[]
         if (!total)
