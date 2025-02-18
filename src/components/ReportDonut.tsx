@@ -18,16 +18,16 @@ interface ChartData {
 }
 
 const backgroundColors = [
-  "rgba(255, 99, 132, 0.5)",  // Red
-  "rgba(54, 162, 235, 0.5)",  // Blue
   "rgba(255, 206, 86, 0.5)",  // Yellow
+  "rgba(54, 162, 235, 0.5)",  // Blue
+  "rgba(255, 99, 132, 0.5)",  // Red
   "rgba(75, 192, 192, 0.5)",  // Teal
 ];
 
 const borderColors = [
+    "rgba(255, 206, 86, 1)",
+    "rgba(54, 162, 235, 1)",
   "rgba(255, 99, 132, 1)", 
-  "rgba(54, 162, 235, 1)", 
-  "rgba(255, 206, 86, 1)", 
   "rgba(75, 192, 192, 1)",
 ];
 
