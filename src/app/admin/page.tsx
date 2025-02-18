@@ -14,8 +14,8 @@ const AdminDashboard = async () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reportcounter`);
     const data = await res.json();
 
-    const date = new Date();
-    const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    //const date = new Date();
+    //const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     //const currentDate = date.toLocaleDateString(undefined, options);
 
     return (
