@@ -1,4 +1,4 @@
-import { DocumentTextIcon, TruckIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { GoReport } from "react-icons/go";
 import { MdFileDownloadDone } from "react-icons/md";
 import LGDaily from '@/components/LGDaily';

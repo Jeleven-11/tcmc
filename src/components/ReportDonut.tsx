@@ -1,7 +1,6 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, TooltipItem } from "chart.js"; // Corrected import
 import { Doughnut } from "react-chartjs-2";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -61,9 +60,6 @@ const ReportDoughnutChart = () => {
         const labels = data.map(entry => entry.status);
         const counts = data.map(entry => entry.total_reports);
 
-        // Calculate total reports to compute percentage
-        const totalReports = counts.reduce((sum, count) => sum + count, 0);
-
         setChartData({
           labels,
           datasets: [
@@ -90,16 +86,18 @@ const ReportDoughnutChart = () => {
     plugins: {
       tooltip: {
         callbacks: {
-          label: (tooltipItem: any) => {
-            // Calculate the percentage for each section
-            const total = tooltipItem.dataset.data.reduce((acc: number, value: number) => acc + value, 0);
-            const percentage = ((tooltipItem.raw / total) * 100).toFixed(2);
-            return `${tooltipItem.label}: ${tooltipItem.raw} (${percentage}%)`;
+          label: (tooltipItem: TooltipItem<"doughnut">) => {
+            const rawValue = tooltipItem.raw as number;
+            const total = tooltipItem.dataset.data.reduce(
+              (acc: number, value: unknown) => acc + (value as number), 0
+            );
+            const percentage = ((rawValue / total) * 100).toFixed(2);
+            return `${tooltipItem.label}: ${rawValue} (${percentage}%)`;
           },
         },
       },
       legend: {
-        position: "top" as const,  // Type assertion to resolve the issue
+        position: "top" as const,
       },
     },
   };
@@ -107,7 +105,7 @@ const ReportDoughnutChart = () => {
   return (
     <div className="max-w-md mx-auto">
       <h2 className="text-center font-semibold text-lg mb-4">Reports by Status</h2>
-      <Doughnut data={chartData} options={chartOptions as any} /> {/* Type cast the options */}
+      <Doughnut data={chartData} options={chartOptions} />
     </div>
   );
 };

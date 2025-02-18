@@ -7,6 +7,7 @@ import { useState } from "react";
 import { MockAddCam } from "@/components/mockAddCam";
 import { MockEditCam } from "@/components/mockEditCam";
 import { MockDelCam } from "@/components/mockDelCam";
+import Image from "next/image";
 
 
 const mockCameras = [
@@ -52,7 +53,14 @@ const CamManagement = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {cameras.map((camera) => (
             <div key={camera.id} className="bg-white shadow-lg rounded-lg overflow-hidden">
-              <img src={camera.feed} alt={camera.name} className="w-full h-40 object-cover" />
+              <Image 
+  src={camera.feed} 
+  alt={camera.name} 
+  width={400} // specify the width
+  height={200} // specify the height
+  className="w-full h-40 object-cover" 
+/>
+
               <div className="p-4 flex justify-between items-center">
                 <div>
                   <h3 className="text-lg font-semibold">{camera.name}</h3>
