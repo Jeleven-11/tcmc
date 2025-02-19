@@ -1,6 +1,6 @@
 // components/EditUserModal.js
 'use client';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface User {
   id?: string
@@ -33,29 +33,17 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUpdate }
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    console.log("User prop:", user);
-    console.log("User password in useEffect:", password);
       setUsername(user.username);
       setName(user.name);
       setPassword(user.password);
       setTeam(user.team);
       setContactNumber(user.contact_num);
       setEmail(user.email);
-  //   setUsername(user.username);
-  //   setName(user.name); // Initialize name
-    // if (user.password === undefined) {
-    //   setOldPassword(user.password || newPassword);
-    // }
-  //   setTeam(user.team);
-  //   setContactNumber(user.contact_num);
-  //   setEmail(user.email);
   }, [user]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // setPassword(password)
-  
     let updatedUser = { id: user.id, user_id: user.user_id, username, currPassword, newPassword, password, name, team, contact_num: contactNumber, email }; // Include id and name
     try {
       const response = await fetch(`/api/updateUser`, {
@@ -82,7 +70,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUpdate }
       
         setMessage(JSON.stringify(result.message));
         setPassword(result.data.hPassword)
-        console.log("Updated user:", result.data.hPassword);
         onUpdate(updatedUser); // Call the onUpdate callback with the updated user
         onClose(); // Close the modal
       } else {

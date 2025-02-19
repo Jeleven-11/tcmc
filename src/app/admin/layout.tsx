@@ -3,7 +3,6 @@
 import Navbar from "@/components/AdNav2";
 import { getSession } from "../lib/actions";
 import Footer from "@/components/Footer";
-import PushNotification from "@/components/PushNotifSubscribe";
 import DateTimeComponent from "@/components/DateTimeComponent";
 import { Loader } from "lucide-react";
 import React, { Suspense, useEffect, useState } from "react";
@@ -39,7 +38,6 @@ export default function RootLayout({
 
   return (
     <>
-      <PushNotification />
       <DateTimeComponent />
       <Navbar session={session} />
       <Suspense

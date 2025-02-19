@@ -80,6 +80,7 @@ export async function POST(res: Request)
     } else return NextResponse.json({ message: "Invalid request method" }, { status: 405 });
 }
 
+// purpose: for testing purpose; when opened in browser, sends a notification throughout all subscribers
 export async function GET()
 {
     let conn

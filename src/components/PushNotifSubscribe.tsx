@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { registerServiceWorker } from "@/utils/registerServiceWorker";
+import { IoNotifications } from "react-icons/io5";
+import { IconButton } from "@mui/material";
+import { Tooltip } from "@mui/material";
 
 const PUBLIC_VAPID_KEY = "BIK1qzjrQRCZMsOzO6GH4HeXKOBivuy0npF21_eJONISLMFHPjxwDbcuZNs7bWH-P62GPHjcywsqdoiMJ6O87A8";
 
@@ -12,12 +15,9 @@ const PushNotification = () =>
 
     useEffect(() =>
     {
-        if (isMounted)
-            return
-
         setIsMounted(true)
 
-        const subscribeToPush = async () =>
+        const checkSubscription = async () =>
         {
             await registerServiceWorker()
             if (!("PushManager" in window))
@@ -28,46 +28,132 @@ const PushNotification = () =>
 
             const registration = await navigator.serviceWorker.ready
             const subscription = await registration.pushManager.getSubscription()
+            setSubscribed(!!subscription)
+        }
+        checkSubscription()
+
+        // const subscribeToPush = async () =>
+        // {
+        //     await registerServiceWorker()
+        //     if (!("PushManager" in window))
+        //     {
+        //         console.warn("Push notifications are not supported.")
+        //         return
+        //     }
+
+        //     const registration = await navigator.serviceWorker.ready
+        //     const subscription = await registration.pushManager.getSubscription()
+        //     if (!subscription)
+        //     {
+        //         const newSubscription = await registration.pushManager.subscribe({
+        //             userVisibleOnly: true,
+        //             applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY),
+        //         })
+
+        //         await fetch("/api/subscribe",
+        //         {
+        //             method: "POST",
+        //             body: JSON.stringify(newSubscription),
+        //             headers: {
+        //                 "Content-Type": "application/json",
+        //             },
+        //         }).then((res) =>
+        //         {
+        //             if (res.ok)
+        //             {
+        //                 console.log("Subscribed to push notifications!")
+        //                 setSubscribed(true)
+        //             }
+        //         }).catch((err) => console.error(err))
+        //     } else {
+        //         console.log("Already subscribed to push notifications!")
+        //         setSubscribed(true)
+        //     }
+        // }
+
+        // subscribeToPush()
+    }, [isMounted])
+
+    if (!isMounted)
+        return null
+
+    const subscribeToPush = async () =>
+    {
+        try
+        {
+            const registration = await navigator.serviceWorker.ready
+            let subscription = await registration.pushManager.getSubscription()
             if (!subscription)
             {
-                const newSubscription = await registration.pushManager.subscribe({
+                console.log("No active subscription, subscribing now...");
+                subscription = await registration.pushManager.subscribe({
                     userVisibleOnly: true,
                     applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY),
                 })
+            } else console.log("Already subscribed, updating on server...")
 
-                await fetch("/api/subscribe",
-                {
-                    method: "POST",
-                    body: JSON.stringify(newSubscription),
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                }).then((res) =>
-                {
-                    if (res.ok)
-                    {
-                        console.log("Subscribed to push notifications!")
-                        setSubscribed(true)
-                    }
-                }).catch((err) => console.error(err))
-            } else {
-                console.log("Already subscribed to push notifications!")
+            const response = await fetch("/api/notifications/subscribe",
+            {
+                method: "POST",
+                body: JSON.stringify(subscription),
+                headers: { "Content-Type": "application/json" },
+            })
+
+            if (response.ok)
+            {
+                console.log("Subscribed to push notifications!")
                 setSubscribed(true)
-            }
+            } //else console.error("Failed to register subscription:", await response.text())
+
+            // await fetch("/api/notifications/subscribe", {
+            //     method: "POST",
+            //     body: JSON.stringify(subscription),
+            //     headers: {
+            //         "Content-Type": "application/json",
+            //     },
+            // }).then((res) => {
+            //     if (res.ok) {
+            //         console.log("Subscribed to push notifications!");
+            //         setSubscribed(true)
+            //     }
+            // }).catch((err) => console.error(err))
+        } catch (error) {
+            console.error("Failed to subscribe to push notifications:", error)
         }
+    }
 
-        subscribeToPush()
-    }, [isMounted])
+    const unsubscribeFromPush = async () =>
+    {
+        const registration = await navigator.serviceWorker.ready
+        const subscription = await registration.pushManager.getSubscription()
+        if (subscription)
+        {
+            await subscription.unsubscribe()
+            await fetch("/api/notifications/unsubscribe",
+            {
+                method: "POST",
+                body: JSON.stringify(subscription),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }).then((res) =>
+            {
+                if (res.ok)
+                {
+                    console.log("Unsubscribed from push notifications!");
+                    setSubscribed(false)
+                }
+            }).catch((err) => console.error(err))
+        }
+    }
 
-  return (
-    <div className="text-center">
-      {subscribed ? (
-        <p>✅ Push Notifications Enabled!</p>
-      ) : (
-        <p>🔔 Enabling push notifications...</p>
-      )}
-    </div>
-  )
+    return (
+        <Tooltip onClick={subscribed ? unsubscribeFromPush : subscribeToPush} title={subscribed ? "Notified to any updates" : "Click to notify any updates" }>
+            <IconButton>
+                {subscribed ? "🔔" : <IoNotifications />}
+            </IconButton>
+        </Tooltip>
+    )
 }
 
 // Helper function to convert VAPID key
