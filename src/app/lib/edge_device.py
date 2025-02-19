@@ -40,7 +40,8 @@ from ably import AblyRealtime
 from inference_sdk import InferenceHTTPClient
 # import a built in sink called render_boxes (sinks are the logic that happens after inference)
 from inference.core.interfaces.stream.sinks import render_boxes
-from sort.sort import *
+# from sort.sort import *
+from tracker import CentroidTracker
 import easyocr
 import string
 
@@ -301,8 +302,9 @@ class WebRTCConnection():
             self.inference_client = InferenceHTTPClient(api_url="https://detect.roboflow.com", api_key="YdtoLOJufCKAjGZC1IkJ")
             # self.model = self.inference_client.get_model("local-vehicles-opjyd/10")
             self.model_id = "local-vehicles-opjyd/10"
-            self.motion_tracker = Sort()#(max_age=20, min_hits=3, iou_threshold=0.3)
-            self.license_plate_detector = setup_model()
+            self.motion_tracker = CentroidTracker()#Sort()#(max_age=20, min_hits=3, iou_threshold=0.3)
+            self.license_plate_detector = InferenceHTTPClient(api_url="https://detect.roboflow.com", api_key="xi02obPcBC9MZU7iWSiz")#setup_model()
+            self.plate_detector_model_id = "licenseplate-7tpdn/2"
             # start the pipeline
             # self.pipeline.start()
             self.raspberry_pi_id = get_cpu_serial()
@@ -339,14 +341,14 @@ class WebRTCConnection():
             # Print the result structure
             print("Result structure:", result)
 
-            # Process the result (draw bounding boxes)
+            # Process the result (draw bounding boxes) of vehicles
             if isinstance(result, list) and len(result) > 0:
                 predictions = result[0].get('predictions', [])
             elif isinstance(result, dict):
                 predictions = result.get('predictions', [])
             else:
                 predictions = []
-                detections_ = []
+            detections_ = []
             for prediction in predictions:
                 # Extract bounding box coordinates
                 x1 = int(prediction['x'] - prediction['width'] / 2)
@@ -356,12 +358,13 @@ class WebRTCConnection():
                 score = int(prediction['confidence'] * 100)
                 class_id = int(prediction['class_id'])
                 if class_id in self.vehiclesClass:
-                    detections_.append([x1, y1, x2, y2, score])
+                    detections_.append([x1, y1, x2, y2])
+            
             # Draw bounding box
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 
                 # Prepare label text
-                label = f"{prediction['class']} {prediction['confidence']:.2f}"
+                label = f"{prediction['class']} {score:.2f}"
                 
                 # Draw label background
                 (label_width, label_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
@@ -369,40 +372,47 @@ class WebRTCConnection():
                 
                 # Draw label text
                 cv2.putText(frame, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+            #IF Vehicle are detected track them... else return
             # track vehicles
-            track_ids = self.motion_tracker.update(np.asarray(detections_))
+            track_ids = self.motion_tracker.update(detections_)
             
-            license_plates = self.license_plate_detector(frame)[0]
+            license_plates = self.license_plate_detector.infer(frame, model_id = self.plate_detector_model_id)
+                # await self.parent.webRTCChannel.publish("WebRTC-client-register", {
+                #     "role": "Raspberry Pi",
+                #     "sessionID": self.raspberry_pi_id,
+                #     "type": "Data",
+                #     "data": result})
+                # vehicles_frame = self.process_prediction(result, frame)
+            # license_plates = self.license_plate_detector(frame)[0]
             for license_plate in license_plates.boxes.data.toList():
-                x1, y1, x2, y2, score, class_id = license_plate  
+                x1_, y1_, x2_, y2_, score_, class_id_ = license_plate  
                 x1_car, x2_car, y1_car, y2_car, car_id = get_car(license_plate, track_ids)
                 if car_id != -1:
 
-                    license_plate_cropped = frame[int(y1):int(y2), int(x1):int(x2), :]
+                    license_plate_cropped = frame[int(y1_):int(y2_), int(x1_):int(x2_), :]
                     license_plate_cropped_gray= cv2.cvtColor(license_plate_cropped, cv2.COLOR_BGR2GRAY)
                     _, license_plate_cropped_thresh = cv2.threshold(license_plate_cropped_gray, 64, 255, cv2.THRESH_BINARY_INV)
                     license_plate_text, license_plate_text_confidence = read_license_plate(license_plate_cropped_thresh)
                     if license_plate_text is not None:
                         self.results[self.frame_count][car_id] = {
                             'car': {'bbox': [x1_car, y1_car, x2_car, y2_car]},
-                            'license_plate': {'bbox': [x1, y1, x2, y2],
+                            'license_plate': {'bbox': [x1_, y1_, x2_, y2_],
                                             'text': license_plate_text,
-                                            'confidence': score,
+                                            'confidence': score_,
                                             'text_score': license_plate_text_confidence}
                         }
-
-                # # Draw bounding box
-                # cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 
                 # # Prepare label text
-                # label = f"{prediction['class']} {prediction['confidence']:.2f}"
-                
-                # # Draw label background
-                # (label_width, label_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
-                # cv2.rectangle(frame, (x1, y1 - label_height - 10), (x1 + label_width, y1), (0, 255, 0), -1)
-                
-                # # Draw label text
-                # cv2.putText(frame, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+                #     label_license = f"{prediction['class']} {prediction['confidence']:.2f}"
+                    
+                    # Draw label background
+                    (label_width_, label_height_), _ = cv2.getTextSize(license_plate_text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+                    cv2.rectangle(frame, (x1_, y1_ - label_height_ - 10), (x1_ + label_width_, y1_), (0, 255, 0), -1)
+                    
+                    # Draw label text
+                    cv2.putText(frame, license_plate_text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+
             return frame
 
 
@@ -552,14 +562,16 @@ class WebRTCConnection():
                     video_frame.pts, video_frame.time_base = await self.next_timestamp()
                     return video_frame
 
-                # result = self.inference_client.infer(frame, model_id = self.model_id)
-                # await self.parent.webRTCChannel.publish("WebRTC-client-register", {
-                #     "role": "Raspberry Pi",
-                #     "sessionID": self.raspberry_pi_id,
-                #     "type": "Data",
-                #     "data": result})
-                # vehicles_frame = self.process_prediction(result, frame)
-                # frame = vehicles_frame
+                result = self.inference_client.infer(frame, model_id = self.model_id)#self.license_plate_detector
+                if result:
+                    await self.parent.webRTCChannel.publish("WebRTC-client-register", {
+                        "role": "Raspberry Pi",
+                        "sessionID": self.raspberry_pi_id,
+                        "type": "Data",
+                        "data": result})
+                    vehicles_frame = self.process_prediction(result, frame)
+                    frame = vehicles_frame
+
                 if self.parent.isRecording:
                     await self.add_frame(frame)
                 

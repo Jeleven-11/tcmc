@@ -67,12 +67,7 @@ export default function DataTable() {
         const session = await getSession()
         setLoading(isLoad)
 
-        let res
-        if (Number(session.team) === 1)
-          res = await fetch(`/api/getReports/getReportsLazy?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}&search=${encodeURIComponent(searchQuery)}&t=${session.team}`)
-        else
-          res = await fetch(`/api/getReports/getReportsLazy?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}&search=${encodeURIComponent(searchQuery)}`)
-
+        const res = await fetch(`/api/getReports/getReportsLazy?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}&search=${encodeURIComponent(searchQuery)}${Number(session.team) === 1 ? '&t=' + session.team : ''}`)
         const { data, total } = await res.json()
         if (res.ok)
         {
