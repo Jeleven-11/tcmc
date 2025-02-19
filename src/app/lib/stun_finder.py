@@ -56,10 +56,28 @@ class GetStunServers():
         self.iceServers = [
             RTCIceServer("stun:stun.l.google.com:19302"),
             RTCIceServer(
-                "turn:relay1.expressturn.com:3478?transport=tcp",
+                "turn:relay1.expressturn.com:3478",
                 username="efQSLPKFVR1ANJGAHL",
                 credential="p1CPPouohCkB1MO2"
-            )
+            ),
+            RTCIceServer("stun:stun.relay.metered.ca:80"),
+    
+            RTCIceServer( "turn:global.relay.metered.ca:80",
+                username="0a3a9293f3f8dd410138e0fb",
+                credential="JAYpV4YyYPL7JwX+"
+            ),
+            RTCIceServer("turn:global.relay.metered.ca:80?transport=tcp",
+                username="0a3a9293f3f8dd410138e0fb",
+                credential="JAYpV4YyYPL7JwX+"
+            ),
+            RTCIceServer("turn:global.relay.metered.ca:443",
+                username="0a3a9293f3f8dd410138e0fb",
+                credential="JAYpV4YyYPL7JwX+"
+            ),
+            RTCIceServer( "turns:global.relay.metered.ca:443?transport=tcp",
+                username="0a3a9293f3f8dd410138e0fb",
+                credential="JAYpV4YyYPL7JwX+"
+            ),
         ]
         self.stun_servers = self.fetch_stun_servers(self.STUN_SERVERS_URL)
         self.append_stun_servers(self.iceServers, self.stun_servers)

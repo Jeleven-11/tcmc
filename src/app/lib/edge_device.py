@@ -246,35 +246,35 @@ class WebRTCConnection():
         self.connection_attempts_count = 0
         self.iceServers = GetStunServers().iceServers
         
-        self.rtc_config = RTCConfiguration(#self.iceServers)
-            iceServers=[
-            #     RTCIceServer("stun:stun.l.google.com:19302"),
+        self.rtc_config = RTCConfiguration(self.iceServers)
+            # iceServers=[
+                # RTCIceServer("stun:stun.l.google.com:19302"),
                 # RTCIceServer(
                 #     "turn:relay1.expressturn.com:3478",
                 #     username="efQSLPKFVR1ANJGAHL",
                 #     credential="p1CPPouohCkB1MO2"
                 # ),
-                RTCIceServer("stun:stun.relay.metered.ca:80"),
+                # RTCIceServer("stun:stun.relay.metered.ca:80"),
       
-                RTCIceServer( "turn:global.relay.metered.ca:80",
-                    username="0a3a9293f3f8dd410138e0fb",
-                    credential="JAYpV4YyYPL7JwX+"
-                ),
-                RTCIceServer("turn:global.relay.metered.ca:80?transport=tcp",
-                    username="0a3a9293f3f8dd410138e0fb",
-                    credential="JAYpV4YyYPL7JwX+"
-                ),
-                RTCIceServer("turn:global.relay.metered.ca:443",
-                    username="0a3a9293f3f8dd410138e0fb",
-                    credential="JAYpV4YyYPL7JwX+"
-                ),
-                RTCIceServer( "turns:global.relay.metered.ca:443?transport=tcp",
-                    username="0a3a9293f3f8dd410138e0fb",
-                    credential="JAYpV4YyYPL7JwX+"
-                ),
+                # RTCIceServer( "turn:global.relay.metered.ca:80",
+                #     username="0a3a9293f3f8dd410138e0fb",
+                #     credential="JAYpV4YyYPL7JwX+"
+                # ),
+                # RTCIceServer("turn:global.relay.metered.ca:80?transport=tcp",
+                #     username="0a3a9293f3f8dd410138e0fb",
+                #     credential="JAYpV4YyYPL7JwX+"
+                # ),
+                # RTCIceServer("turn:global.relay.metered.ca:443",
+                #     username="0a3a9293f3f8dd410138e0fb",
+                #     credential="JAYpV4YyYPL7JwX+"
+                # ),
+                # RTCIceServer( "turns:global.relay.metered.ca:443?transport=tcp",
+                #     username="0a3a9293f3f8dd410138e0fb",
+                #     credential="JAYpV4YyYPL7JwX+"
+                # ),
                     #     # Append here RTCIceServer(stun)
-                    ]#
-        )
+        #             ]#
+        # )
         atexit.register(self.cleanup_on_exit)
     def cleanup_on_exit(self):
         ### Synchronous wrapper to run the async cleanup. ###
