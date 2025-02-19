@@ -141,12 +141,35 @@ const AblyConnectionComponent = () => {
             }
             peerConnection.current = new RTCPeerConnection({
               iceServers: [{ 
-                // urls: 'stun:stun.l.google.com:19302' },
-                // {
+                urls: 'stun:stun.l.google.com:19302' },
+                {
                   urls: 'turn:relay1.expressturn.com:3478',
                   username: 'efQSLPKFVR1ANJGAHL',
                   credential: 'p1CPPouohCkB1MO2'
-                }
+                },
+                {
+                  urls: "stun:stun.relay.metered.ca:80",
+                },
+                {
+                  urls: "turn:global.relay.metered.ca:80",
+                  username: "0a3a9293f3f8dd410138e0fb",
+                  credential: "JAYpV4YyYPL7JwX+",
+                },
+                {
+                  urls: "turn:global.relay.metered.ca:80?transport=tcp",
+                  username: "0a3a9293f3f8dd410138e0fb",
+                  credential: "JAYpV4YyYPL7JwX+",
+                },
+                {
+                  urls: "turn:global.relay.metered.ca:443",
+                  username: "0a3a9293f3f8dd410138e0fb",
+                  credential: "JAYpV4YyYPL7JwX+",
+                },
+                {
+                  urls: "turns:global.relay.metered.ca:443?transport=tcp",
+                  username: "0a3a9293f3f8dd410138e0fb",
+                  credential: "JAYpV4YyYPL7JwX+",
+                },
               ],
             })
             peerConnection.current.onicecandidate = async (event) => {
