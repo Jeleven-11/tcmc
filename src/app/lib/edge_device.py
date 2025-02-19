@@ -249,11 +249,11 @@ class WebRTCConnection():
         self.rtc_config = RTCConfiguration(#self.iceServers)
             iceServers=[
             #     RTCIceServer("stun:stun.l.google.com:19302"),
-                RTCIceServer(
-                    "turn:relay1.expressturn.com:3478",
-                    username="efQSLPKFVR1ANJGAHL",
-                    credential="p1CPPouohCkB1MO2"
-                ),
+                # RTCIceServer(
+                #     "turn:relay1.expressturn.com:3478",
+                #     username="efQSLPKFVR1ANJGAHL",
+                #     credential="p1CPPouohCkB1MO2"
+                # ),
                 RTCIceServer("stun:stun.relay.metered.ca:80"),
       
                 RTCIceServer( "turn:global.relay.metered.ca:80",

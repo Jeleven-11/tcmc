@@ -140,13 +140,13 @@ const AblyConnectionComponent = () => {
               peerConnection.current = null;
             }
             peerConnection.current = new RTCPeerConnection({
-              iceServers: [{ 
+              iceServers: [//{ 
                 // urls: 'stun:stun.l.google.com:19302' },
                 // {
-                  urls: 'turn:relay1.expressturn.com:3478',
-                  username: 'efQSLPKFVR1ANJGAHL',
-                  credential: 'p1CPPouohCkB1MO2'
-                },
+                //   urls: 'turn:relay1.expressturn.com:3478',
+                //   username: 'efQSLPKFVR1ANJGAHL',
+                //   credential: 'p1CPPouohCkB1MO2'
+                // },
                 {
                   urls: "stun:stun.relay.metered.ca:80",
                 },
