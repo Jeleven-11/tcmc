@@ -2,7 +2,14 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 
 class CentroidTracker:
-    def init(self, max_disappeared=50, max_distance=50):
+    def __init__(self, max_disappeared=50, max_distance=50):
+        ###
+        #   Initializes the CentroidTracker with parameters for managing object tracking.
+        #
+        #   Args:
+        #       max_disappeared (int): Maximum number of frames an object can be missing before deregistering.
+        #       max_distance (int): Maximum distance between centroids to consider them the same object.
+        ###
         self.next_id = 0
         self.objects = {}
         self.disappeared = {}
@@ -10,7 +17,15 @@ class CentroidTracker:
         self.max_distance = max_distance
 
     def update(self, detections):
-        # detections: list of (x1, y1, x2, y2) bounding boxes
+        ###
+        #   Updates the tracker with new detections.
+        #
+        #   Args:
+        #       detections (list): List of bounding boxes (x1, y1, x2, y2).
+        #
+        #   Returns:
+        #       dict: Updated dictionary of tracked objects.
+        ###
         
         if len(detections) == 0:
             self._update_disappeared()
@@ -53,11 +68,20 @@ class CentroidTracker:
         return self.objects
 
     def _add_object(self, centroid):
+        ###
+        #   Adds a new object to the tracker.
+        #
+        #   Args:
+        #       centroid (tuple): The centroid of the new object.
+        ###
         self.objects[self.next_id] = centroid
         self.disappeared[self.next_id] = 0
         self.next_id += 1
 
     def _update_disappeared(self):
+        ###
+        #   Updates the disappeared count for each object and deregisters if necessary.
+        ###
         to_delete = []
         for object_id in self.disappeared:
             self.disappeared[object_id] += 1

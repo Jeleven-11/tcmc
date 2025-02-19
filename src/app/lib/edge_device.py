@@ -247,6 +247,8 @@ class WebRTCConnection():
         self.stream = None
         self.relayed_stream = None
         self.isRecording = False
+        self.connection_attempts_max = 6
+        self.connection_attempts_count = 0
         self.rtc_config = RTCConfiguration(
         iceServers=[
             # RTCIceServer("stun:stun.l.google.com:19302"),
@@ -275,7 +277,7 @@ class WebRTCConnection():
             self.video_output = os.path.join(output_folder, "rec_video"+ datetime.now(pytz.timezone('Asia/Manila')).strftime("%Y%m%d_%H%M%S") +".mp4")
             self.frame_rate = 30
             self.frames_to_save = []
-            self.frame_buffer_size =  1 * 60 * self.frame_rate # 1 minute
+            self.frame_buffer_size =  1 * 30 * self.frame_rate # 1 minute
             # Initialize the video writer
             self.fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for .mp4
             self.out = cv2.VideoWriter(self.video_output, self.fourcc, 30, (640, 480))
@@ -338,6 +340,8 @@ class WebRTCConnection():
                 await self.save_video(self.frames_to_save)
 
         def process_prediction(self, result, frame):
+            # return None for this variables if code doesn't reach the part where they are set
+            score, license_plate_text_confidence, license_plate_text = None
             # Print the result structure
             print("Result structure:", result)
 
@@ -372,21 +376,28 @@ class WebRTCConnection():
                 
                 # Draw label text
                 cv2.putText(frame, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
-            #IF Vehicle are detected track them... else return
+
             # track vehicles
             track_ids = self.motion_tracker.update(detections_)
             
-            license_plates = self.license_plate_detector.infer(frame, model_id = self.plate_detector_model_id)
-                # await self.parent.webRTCChannel.publish("WebRTC-client-register", {
-                #     "role": "Raspberry Pi",
-                #     "sessionID": self.raspberry_pi_id,
-                #     "type": "Data",
-                #     "data": result})
-                # vehicles_frame = self.process_prediction(result, frame)
-            # license_plates = self.license_plate_detector(frame)[0]
-            for license_plate in license_plates.boxes.data.toList():
-                x1_, y1_, x2_, y2_, score_, class_id_ = license_plate  
-                x1_car, x2_car, y1_car, y2_car, car_id = get_car(license_plate, track_ids)
+            license_plates_predictions = self.license_plate_detector.infer(frame, model_id = self.plate_detector_model_id)
+               
+            if isinstance(license_plates_predictions, list) and len(license_plates_predictions) > 0:
+                predictions_ = license_plates_predictions[0].get('predictions', [])
+            elif isinstance(result, dict):
+                predictions_ = license_plates_predictions.get('predictions', [])
+            else:
+                predictions_ = []
+            for license_plate in predictions_:
+                # Extract bounding box coordinates
+                x1_ = int(license_plate['x'] - license_plate['width'] / 2)
+                y1_ = int(license_plate['y'] - license_plate['height'] / 2)
+                x2_ = int(license_plate['x'] + license_plate['width'] / 2)
+                y2_ = int(license_plate['y'] + license_plate['height'] / 2)
+                score_ = int(license_plate['confidence'] * 100)
+                class_id_ = int(license_plate['class_id'])
+
+                x1_car, x2_car, y1_car, y2_car, car_id = get_car((x1_, y1_, x2_, y2_, score_, class_id_), track_ids)
                 if car_id != -1:
 
                     license_plate_cropped = frame[int(y1_):int(y2_), int(x1_):int(x2_), :]
@@ -401,6 +412,7 @@ class WebRTCConnection():
                                             'confidence': score_,
                                             'text_score': license_plate_text_confidence}
                         }
+                        
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 
                 # # Prepare label text
@@ -413,7 +425,7 @@ class WebRTCConnection():
                     # Draw label text
                     cv2.putText(frame, license_plate_text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
 
-            return frame
+            return frame, score, license_plate_text_confidence, license_plate_text
 
 
         def initializeCamera(self):
@@ -563,13 +575,20 @@ class WebRTCConnection():
                     return video_frame
 
                 result = self.inference_client.infer(frame, model_id = self.model_id)#self.license_plate_detector
-                if result:
+                #Result structure: {'inference_id': '12881a4a-44e5-4643-9214-09f4a5d397ac', 'time': 0.03681961399888678, 'image': {'width': 1280, 'height': 720}, 'predictions': []}
+                if 'predictions' in result and result['predictions']:#check if predictions is not empty []
+                    
+                    vehicles_frame, score, license_plate_text_confidence, license_plate_text  = self.process_prediction(result, frame)
+                    data_payload = {
+                        "Car Confidence": score,
+                        "License Plate Text Confidence": license_plate_text_confidence,
+                        "License Plate Text":license_plate_text
+                    }
                     await self.parent.webRTCChannel.publish("WebRTC-client-register", {
-                        "role": "Raspberry Pi",
-                        "sessionID": self.raspberry_pi_id,
-                        "type": "Data",
-                        "data": result})
-                    vehicles_frame = self.process_prediction(result, frame)
+                            "role": "Raspberry Pi",
+                            "sessionID": self.raspberry_pi_id,
+                            "type": "Data",
+                            "data": data_payload})
                     frame = vehicles_frame
 
                 if self.parent.isRecording:
@@ -618,9 +637,18 @@ class WebRTCConnection():
             # print('sending candidate to {peer_id} : {candidatePayload}')
             await self.webRTCChannel.publish('WebRTC-client-register', candidatePayload)
     async def on_connectionstatechange(self, peer_id):
+        raspberry_pi_id = get_cpu_serial()
         if self.peer_connections[peer_id].connectionState in ["failed", "disconnected", "closed"]:
             print(f"Connection state {self.peer_connections[peer_id].connectionState} for peer {peer_id}. Cleaning up. Live stream")
             await self.cleanup_peer_connection(peer_id)
+            if self.connection_attempts_count <= self.connection_attempts_max:
+                self.connection_attempts_count += 1
+                await self.webRTCChannel.publish('WebRTC-client-register',{
+                    'role': 'Raspberry Pi',
+                    'id': raspberry_pi_id,
+                    'type':"Connect",
+                    'sessionID': raspberry_pi_id
+                })
             now_live = False
             print("Resumed surveillance mode...")
     async def createOfferPayload(self, peer_id):

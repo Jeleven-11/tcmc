@@ -90,6 +90,22 @@ const AblyConnectionComponent = () => {
         //     }
         //   };
         // }
+        if (type === 'Connect' && sessionID !== myID.current){
+          if (!channel.current){
+            console.log('channel.current is null in icecandidate');
+            return;
+          };
+          const registrationMessage = {
+            role: 'Admin',
+            id: myID.current,
+            type: 'Connect',
+            from: myID.current,
+            camera_stream: true,
+          };
+    
+          await channel.current.publish('WebRTC-client-register', registrationMessage);
+          console.log('Sent registration message:', registrationMessage);
+        }
         if (type === 'Data'){
           /*
           TO BE UPDATED...
