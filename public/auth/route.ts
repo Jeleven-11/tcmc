@@ -15,7 +15,6 @@ interface User {
   id?: string
   username: string;
   name: string;
-  role: string;
   team: number;
   contact_num?: string;
   password: string;
@@ -33,14 +32,13 @@ function generateAuthToken(userData:User, remember:boolean=false) {
   }
   
   // Extract relevant user data to include in the JWT payload
-  const { id, username, name, role, team, contact_num, password, user_id }: User = userData;
+  const { id, username, name, team, contact_num, password, user_id }: User = userData;
 
   // Define the payload to be included in the token
   const payload = {
     id,
     username,
     name,
-    role,
     team,
     contact_num,
     password,
@@ -102,7 +100,6 @@ export async function POST(req: NextRequest)
       //     id: data.id,
       //     username: data.username,
       //     name: data.name,
-      //     role: data.role,
       //     contactNum: data.contactNum,
       //     password: data.password,
       //     user_id: data.user_id
@@ -115,7 +112,6 @@ export async function POST(req: NextRequest)
         id: data.id,
         username: data.username,
         name: data.name,
-        role: data.role,
         team: data.team,
         contactNum: data.contact_num,
         password: '',//do not include the password
@@ -147,7 +143,6 @@ export async function POST(req: NextRequest)
 }
 // interface Token {
 //     id: string;
-//     role?: string;
 //     username: string;
 //     name?: string;
 //     contact_num?: string;
@@ -161,7 +156,6 @@ export async function POST(req: NextRequest)
 //         username: { label: 'Username', type: 'text' },
 //         password: { label: 'Password', type: 'password' },
 //         id: { label: 'ID', type: 'text' },
-//         // role: { label: 'Role', type: 'text' },
 //       },
 //     async authorize(credentials):Promise<User | null> {
 //         if (!credentials || !credentials.username || !credentials.password) {
@@ -197,7 +191,6 @@ export async function POST(req: NextRequest)
 //             id: user.user_id,
 //             username: user.username,
 //             name: user.name,
-//             role: user.role,
 //             contact_num: user.contactNum,
 //             password: '',//will not return the password, no need to return it.
 //           } as User;

@@ -8,7 +8,6 @@ interface AddUserModalProps {
     id?: string
     username: string;
     name: string;
-    // role: string;
     team: number;
     contact_num?: string;
     password?: string;
@@ -23,7 +22,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onAddUser }) => {
   const [newUser, setNewUser] = useState({
     username: '',
     name: '',
-    // role: '',
     team: 0,
     contact_num: '',
     password: '',

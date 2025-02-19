@@ -9,7 +9,6 @@ type SessionData =
   isLoggedIn: boolean;
   name?: string;
   contact_num?: string;
-  role?: string;
   team?: number;
   email?: string;
 } | null;
@@ -18,7 +17,6 @@ type EditData = {
   isLoggedIn: boolean;
   name: string;
   contact_num: string;
-  role: string;
   team: number;
   email: string;
 };
@@ -33,7 +31,6 @@ export default function Profile()
     isLoggedIn: false,
     name: '',
     contact_num: '',
-    role: '',
     team: 0,
     email: ''
   })
@@ -49,7 +46,6 @@ export default function Profile()
           isLoggedIn: currentSession.isLoggedIn,
           name: currentSession.name,
           contact_num: currentSession.contact_num,
-          role: currentSession.role,
           team: currentSession.team,
           email: currentSession.email,
         })
@@ -86,7 +82,6 @@ export default function Profile()
       isLoggedIn: sessionData.isLoggedIn,
       name: sessionData.name || '',
       contact_num: sessionData.contact_num || '',
-      role: sessionData.role || '',
       team: sessionData.team || 0,
       email: sessionData.email || '',
     })
@@ -133,7 +128,6 @@ export default function Profile()
               <h1 className="text-3xl font-bold text-blue-700 mb-4">{sessionData.name}</h1>
               <div className="space-y-2">
                 <p className="text-lg text-gray-700">Contact No: {sessionData.contact_num}</p>
-                <p className="text-lg text-gray-700">Role: {sessionData.role}</p>
                 <p className="text-lg text-gray-700">Team: {sessionData.team === 1 ? "Task Force" : "Help Desk"}</p>
                 <p className="text-lg text-gray-700">Email: {sessionData.email}</p>
               </div>
@@ -193,21 +187,6 @@ export default function Profile()
               value={editData.contact_num}
               onChange={(e) => setEditData({ ...editData, contact_num: e.target.value })}
             />
-            {/* <input
-              type="text"
-              className="border p-2 w-full rounded-md mb-2"
-              placeholder="Role"
-              value={editData.role}
-              onChange={(e) => setEditData({ ...editData, role: e.target.value })}
-            /> */}
-            <select
-              className="border p-2 w-full rounded-md mb-2"
-              value={editData.role}
-              onChange={(e) => setEditData({ ...editData, role: e.target.value })}
-            >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
             <select
               className="border p-2 w-full rounded-md mb-2"
               defaultValue={editData.team}

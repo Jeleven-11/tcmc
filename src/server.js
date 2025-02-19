@@ -54,7 +54,7 @@ app.prepare().then(() => {
                 const data = JSON.parse(message);
                 if(data.type==='register'){
                     webRTCClients.set(ws, {
-                        role: data.role,
+                        // role: data.role,
                         id: data.id,
                         // userID: data.userID
                     });

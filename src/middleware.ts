@@ -18,7 +18,6 @@ export async function middleware(request: NextRequest)
       id: number
       username: string
       name: string
-      role: string
       contact_num: string
       password: string
       user_id: number

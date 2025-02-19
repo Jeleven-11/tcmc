@@ -17,7 +17,8 @@ export default function Adminlogin() {
     setIsClient(true);
   }, []);
 
-  if (!isClient) return null;
+  if (!isClient)
+    return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

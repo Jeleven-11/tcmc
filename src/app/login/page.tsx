@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 //     id: string
 //     username: string;
 //     name?: string;
-//     role?: string;
 //     contactNum?: string;
 //     password: string;
 //     user_id?: string;

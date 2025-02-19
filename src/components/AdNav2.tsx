@@ -15,7 +15,6 @@ interface SessionData {
     isLoggedIn: boolean;
     name?: string;
     contact_num?: string;
-    role?: string;
     team?: number;
     email?: string;
   } | null;

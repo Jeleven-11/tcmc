@@ -15,7 +15,7 @@ interface Report
   isOwner: 'Yes' | 'No';
   vehicleType: 'Motorcycle' | 'Car' | 'Van' | 'Truck' | 'Other';
   platenumber?: string | null;
-  status: 'unread' | 'on investigation' | 'dropped' | 'solved';
+  status: 'unread' | 'on_investigation' | 'dropped' | 'solved';
   createdAt: string;
 }
 
