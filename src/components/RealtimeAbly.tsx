@@ -143,7 +143,7 @@ const AblyConnectionComponent = () => {
               iceServers: [{ 
                 // urls: 'stun:stun.l.google.com:19302' },
                 // {
-                  urls: 'turn:relay1.expressturn.com:3478',
+                  urls: 'turn:relay1.expressturn.com:3478?transport=tcp',
                   username: 'efQSLPKFVR1ANJGAHL',
                   credential: 'p1CPPouohCkB1MO2'
                 }

@@ -44,6 +44,7 @@ from inference.core.interfaces.stream.sinks import render_boxes
 from tracker import CentroidTracker
 import easyocr
 import string
+from stun_finder import GetStunServers
 
 # logging.basicConfig(level=logging.DEBUG)
 # from gpiozero import PWMLED
@@ -76,13 +77,6 @@ now_live = False
 isCameraConfigured = False
 surveillanceTask = None
 
-
-
-
-def get_wifi_ssid():
-    result = subprocess.run(['iwgetid'], stdout=subprocess.PIPE)
-    ssid = result.stdout.decode().strip()
-    return ssid
 
 def count_immediate_folders(parent_folder):
     try:
@@ -247,18 +241,29 @@ class WebRTCConnection():
         self.stream = None
         self.relayed_stream = None
         self.isRecording = False
+        self.isAI_On = False
         self.connection_attempts_max = 6
         self.connection_attempts_count = 0
-        self.rtc_config = RTCConfiguration(
-        iceServers=[
-            # RTCIceServer("stun:stun.l.google.com:19302"),
-            RTCIceServer(
-                "turn:relay1.expressturn.com:3478",
-                username="efQSLPKFVR1ANJGAHL",
-                credential="p1CPPouohCkB1MO2"
-            )
-        ]
-    )
+        self.iceServers = GetStunServers().iceServers
+        
+        self.rtc_config = RTCConfiguration(#self.iceServers)
+            iceServers=[
+            #     RTCIceServer("stun:stun.l.google.com:19302"),
+                RTCIceServer(
+                    "turn:relay1.expressturn.com:3478?transport=tcp",
+                    username="efQSLPKFVR1ANJGAHL",
+                    credential="p1CPPouohCkB1MO2"
+                )
+            #     # Append here RTCIceServer(stun)
+            ]#
+        )
+        atexit.register(self.cleanup_on_exit)
+    def cleanup_on_exit(self):
+        ### Synchronous wrapper to run the async cleanup. ###
+        try:
+            asyncio.run(self.cleanup_peer_connection('all'))
+        except Exception as e:
+            print(f"Error during cleanup on exit: {e}")
     class CameraStreamTrack(VideoStreamTrack):
         def __init__(self, parent):
             super().__init__()
@@ -573,23 +578,23 @@ class WebRTCConnection():
                     video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
                     video_frame.pts, video_frame.time_base = await self.next_timestamp()
                     return video_frame
-
-                result = self.inference_client.infer(frame, model_id = self.model_id)#self.license_plate_detector
+                if self.parent.isAI_On:
+                    result = self.inference_client.infer(frame, model_id = self.model_id)#self.license_plate_detector
                 #Result structure: {'inference_id': '12881a4a-44e5-4643-9214-09f4a5d397ac', 'time': 0.03681961399888678, 'image': {'width': 1280, 'height': 720}, 'predictions': []}
-                if 'predictions' in result and result['predictions']:#check if predictions is not empty []
-                    
-                    vehicles_frame, score, license_plate_text_confidence, license_plate_text  = self.process_prediction(result, frame)
-                    data_payload = {
-                        "Car Confidence": score,
-                        "License Plate Text Confidence": license_plate_text_confidence,
-                        "License Plate Text":license_plate_text
-                    }
-                    await self.parent.webRTCChannel.publish("WebRTC-client-register", {
-                            "role": "Raspberry Pi",
-                            "sessionID": self.raspberry_pi_id,
-                            "type": "Data",
-                            "data": data_payload})
-                    frame = vehicles_frame
+                    if 'predictions' in result and result['predictions']:#check if predictions is not empty []
+                        
+                        vehicles_frame, score, license_plate_text_confidence, license_plate_text  = self.process_prediction(result, frame)
+                        data_payload = {
+                            "Car Confidence": score,
+                            "License Plate Text Confidence": license_plate_text_confidence,
+                            "License Plate Text":license_plate_text
+                        }
+                        await self.parent.webRTCChannel.publish("WebRTC-client-register", {
+                                "role": "Raspberry Pi",
+                                "sessionID": self.raspberry_pi_id,
+                                "type": "Data",
+                                "data": data_payload})
+                        frame = vehicles_frame
 
                 if self.parent.isRecording:
                     await self.add_frame(frame)
@@ -600,7 +605,13 @@ class WebRTCConnection():
                     if elapsed_time > 0:
                         fps = 30 / elapsed_time
                         print(f"\rCurrent FPS: {fps:.2f}")
+                        await self.parent.webRTCChannel.publish("WebRTC-client-register", {
+                            "role": "Raspberry Pi",
+                            "sessionID": self.raspberry_pi_id,
+                            "type": "FPS",
+                            "data": fps})
                         self.start_time = time.time()  # Reset timer
+                        
                         now_live = True
             
                 if self.frame_count >= 600000:
@@ -794,6 +805,12 @@ class WebRTCConnection():
                     if data['type'] == "Record Stop" and data['target'] == raspberry_pi_id:
                         self.isRecording = False
                         print(f"Recording stopped")
+                    
+                    if data['type'] == "AI On" and data["target"] == raspberry_pi_id:
+                        self.isAI_On = True
+
+                    if data['type'] == "AI Off" and data["target"] == raspberry_pi_id:
+                        self.isAI_On = False
              
 
             # await webRTCChannel.subscribe(raspberry_pi_id, messageToMyID)
