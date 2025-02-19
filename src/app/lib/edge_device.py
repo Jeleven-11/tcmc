@@ -250,7 +250,7 @@ class WebRTCConnection():
             iceServers=[
             #     RTCIceServer("stun:stun.l.google.com:19302"),
                 RTCIceServer(
-                    "turn:relay1.expressturn.com:3478?transport=tcp",
+                    "turn:relay1.expressturn.com:443",
                     username="efQSLPKFVR1ANJGAHL",
                     credential="p1CPPouohCkB1MO2"
                 )
