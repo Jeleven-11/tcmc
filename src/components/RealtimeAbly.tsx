@@ -65,47 +65,24 @@ const AblyConnectionComponent = () => {
         if (role !== 'Raspberry Pi' && target !== myID.current && from === myID.current) return;
 
         console.log('Received message from Raspberry Pi:', message.data);
-
-        // if (!peerConnection.current) {
-        //   peerConnection.current = new RTCPeerConnection({
-        //     iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-        //   });
-
-          
-
-        //   peerConnection.current.ontrack = (event) => {
-        //     event.streams[0].getTracks().forEach((track) => {
-        //       remoteStream.current?.addTrack(track);
-        //     });
-        //   };
-
-        //   peerConnection.current.onicecandidate = async (event) => {
-        //     if (event.candidate) {
-        //       await channel.current?.publish('WebRTC-client-register', {
-        //         type: 'ice-candidate',
-        //         payload: event.candidate,
-        //         from: myID.current,
-        //         target: piID.current,
-        //       });
-        //     }
-        //   };
-        // }
-        if (type === 'Connect' && role !== 'Admin'){
+        if (type === 'Connect'){
           if (!channel.current){
             console.log('channel.current is null in icecandidate');
             return;
           };
           const registrationMessage = {
-            role: 'Admin',
-            id: myID.current,
             type: 'Connect',
             from: myID.current,
+            target:piID.current,
             camera_stream: true,
+            id: myID.current,
+            role: 'Admin',
           };
     
           await channel.current.publish('WebRTC-client-register', registrationMessage);
           console.log('Sent registration message:', registrationMessage);
         }
+        
         if (type === 'Data'){
           /*
           TO BE UPDATED...
