@@ -52,7 +52,7 @@ const ReportDoughnutChart = () => {
   useEffect(() => {
     const fetchChartData = async () => {
       try {
-        const response = await fetch("/api/getChart/getReportStats");
+        const response = await fetch("/api/getChart/ReportStats");
         if (!response.ok) throw new Error("Failed to fetch data");
 
         const data: ReportStats[] = await response.json();

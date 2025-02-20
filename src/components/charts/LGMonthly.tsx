@@ -41,7 +41,7 @@ const MonthlyChart = () =>
         {
             try
             {
-                const response = await fetch("/api/getChart/getChartMonthlyReports")
+                const response = await fetch("/api/getChart/MonthlyReports")
                 if (!response.ok)
                     throw new Error("Failed to fetch data")
 

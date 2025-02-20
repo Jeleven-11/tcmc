@@ -41,7 +41,7 @@ const YearlyChart = () =>
         {
             try
             {
-                const response = await fetch(`/api/getChart/getChartYearlyReports?year=${selectedYear}`)
+                const response = await fetch(`/api/getChart/YearlyReports?year=${selectedYear}`)
                 if (!response.ok)
                     throw new Error("Failed to fetch data")
 

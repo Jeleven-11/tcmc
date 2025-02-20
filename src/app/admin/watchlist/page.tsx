@@ -1,6 +1,6 @@
 'use client'
 
-import DataTableReports from "@/components/DataTableReports"
+import DataTableReports from "@/components/admin/DataTableReports"
 
 export default function AdminReportManagement()
 {

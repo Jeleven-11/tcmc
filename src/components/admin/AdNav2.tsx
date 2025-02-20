@@ -7,7 +7,7 @@ import { Menu, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { FaSignOutAlt } from 'react-icons/fa';
 import { logout } from '@/app/lib/actions';
-import LogoutModal from './LogoutModal';
+import LogoutModal from '../LogoutModal';
 import PushNotifSubscribe from './PushNotifSubscribe';
 
 interface SessionData {

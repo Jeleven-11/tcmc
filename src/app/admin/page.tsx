@@ -9,11 +9,11 @@ import { TbMessageCancel } from "react-icons/tb";
 import { FaTruckArrowRight } from "react-icons/fa6";
 import { DocumentTextIcon } from "@heroicons/react/24/outline";
 import LoggedVehicles from "@/components/VehicleLogModal";
-import LGDaily from "@/components/LGDaily";
-import LGWeekly from "@/components/LGWeekly";
-import LGMonthly from "@/components/LGMonthly";
-import LGYearly from "@/components/LGYearly";
-import ReportDoughnutChart from "@/components/ReportDonut";
+import LGDaily from "@/components/charts/LGDaily";
+import LGWeekly from "@/components/charts/LGWeekly";
+import LGMonthly from "@/components/charts/LGMonthly";
+import LGYearly from "@/components/charts/LGYearly";
+import ReportDoughnutChart from "@/components/charts/ReportDonut";
 import ReportModal from "@/components/ReportCardModals";
 import axios from "axios";
 
