@@ -762,7 +762,7 @@ class WebRTCConnection():
                 if data['role'] == 'Admin':
                     # print(f"Data: {data}")
                     
-                    if data['type'] == 'Connect' and data['from'] is not None:
+                    if data['type'] == 'Connect' and data['from'] != raspberry_pi_id:
                         global surveillanceTask
                         try:
                             peer_id = data["from"]

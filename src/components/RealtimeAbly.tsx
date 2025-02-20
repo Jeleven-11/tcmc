@@ -65,7 +65,7 @@ const AblyConnectionComponent = () => {
         if (role !== 'Raspberry Pi' && target !== myID.current && from === myID.current) return;
 
         console.log('Received message from Raspberry Pi:', message.data);
-        if (type === 'Connect'){
+        if (role==='Raspberry Pi' && type === 'Connect'){
           if (!channel.current){
             console.log('channel.current is null in icecandidate');
             return;
