@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get("status");
 
     let query = 'SELECT * FROM reports';
-    let params: any[] = [];
+    const params: any[] = [];
 
     if (status) {
       query += ' WHERE LOWER(status) = LOWER(?)'; // Ensure case insensitivity
