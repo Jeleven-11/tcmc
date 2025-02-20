@@ -1,11 +1,11 @@
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { GoReport } from "react-icons/go";
 import { MdFileDownloadDone } from "react-icons/md";
-import LGDaily from '@/components/LGDaily';
-import LGWeekly from '@/components/LGWeekly';
-import LGMonthly from '@/components/LGMonthly';
-import LGYearly from '@/components/LGYearly';
-import ReportDoughnutChart from '@/components/ReportDonut';
+import LGDaily from '@/components/charts/LGDaily';
+import LGWeekly from '@/components/charts/LGWeekly';
+import LGMonthly from '@/components/charts/LGMonthly';
+import LGYearly from '@/components/charts/LGYearly';
+import ReportDoughnutChart from '@/components/charts/ReportDonut';
 
 export const dynamic = 'force-dynamic';
 

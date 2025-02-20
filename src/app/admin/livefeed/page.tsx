@@ -1,7 +1,7 @@
 'use client';
 
 // import RealtimeDisplay from '@/components/RealtimeAbly';
-import AblyConnectionComponent from '@/components/RealtimeAbly';
+import AblyConnectionComponent from '@/components/admin/RealtimeAbly';
 import { useState } from 'react';
 // export const dynamic = 'force-dynamic';
 export default function Livefeed () {

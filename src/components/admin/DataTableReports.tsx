@@ -248,7 +248,7 @@ export default function DataTable() {
     },
     // { field: 'contactNumber', headerName: 'Contact Number', width: 150 },
     { field: 'isOwner', headerName: 'Owner?', width: 100 },
-    { field: 'vehicleType', headerName: 'Vehicle Type', width: 120 },
+    { field: 'vehicleType', headerName: 'Vehicle Type', width: 150 },
     { field: 'platenumber', headerName: 'Plate Number', width: 120 },
     { 
       field: 'fullName', 
