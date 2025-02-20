@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 
+
 interface Report {
   id: number;
   title: string;
@@ -26,6 +27,11 @@ const ReportModal: React.FC<ReportModalProps> = ({
   refreshReports,
 }) => {
   if (!isOpen) return null;
+  const handleClose = () => {
+    refreshReports(); // Refresh reports before closing
+    onClose();
+  };
+  
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -40,7 +46,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
           <h2 className="text-xl font-semibold">
             {category ? `${category} ` : " "}
           </h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
             <X size={24} />
           </button>
         </div>

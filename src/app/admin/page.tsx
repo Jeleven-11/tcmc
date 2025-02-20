@@ -157,15 +157,18 @@ const AdminDashboard = () => {
       </div>
 
       {/* Report Modal */}
-      {isModalOpen && (
-        <ReportModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          reports={reports}
-          category={selectedCategory}
-          refreshReports={fetchReportCounts}
-        />
-      )}
+      {loading ? (
+  <p className="text-center text-gray-500">Loading reports...</p>
+) : (
+  <ReportModal
+    isOpen={isModalOpen}
+    onClose={() => setIsModalOpen(false)}
+    reports={reports}
+    category={selectedCategory}
+    refreshReports={fetchReportCounts}
+  />
+)}
+
     </div>
   );
 };
