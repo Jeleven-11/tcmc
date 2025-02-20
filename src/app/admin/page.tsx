@@ -50,16 +50,35 @@ const AdminDashboard = () => {
   };
 
   const fetchReports = async (category: string) => {
+    if (category === "Passing Vehicles") return; // Prevent modal for this card
+
+    let formattedCategory = category;
+
+    // Convert frontend labels to match database values
+    if (category === "Unread Reports") formattedCategory = "Unread";
+    if (category === "Dropped Reports") formattedCategory = "Dropped";
+    if (category === "On-Investigation Reports") formattedCategory = "On_Investigation";
+    if (category === "Solved Reports") formattedCategory = "Solved";
+
+    console.log(`📡 Fetching reports with status: ${formattedCategory}`);
+
     setLoading(true);
     try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/getReports?status=${category}`
-      );
-      setReports(response.data);
+      let response;
+      if (category === "Total Reports") {
+        response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/getReports`);
+      } else {
+        response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/getReports?status=${formattedCategory}`
+        );
+      }
+
+      console.log("✅ Fetched reports:", response.data);
+      setReports(response.data.reports);
       setSelectedCategory(category);
       setIsModalOpen(true);
     } catch (error) {
-      console.error("Error fetching reports:", error);
+      console.error("❌ Error fetching reports:", error);
     }
     setLoading(false);
   };
@@ -97,7 +116,7 @@ const AdminDashboard = () => {
     },
     {
       label: "Passing Vehicles",
-      value: "4",
+      value: "4", // Replace with dynamic count if available
       color: "gray",
       icon: <FaTruckArrowRight className="h-10 w-10 text-gray-400" />,
     },
@@ -114,9 +133,10 @@ const AdminDashboard = () => {
         {cards.map((card, index) => (
           <motion.div
             key={index}
-            whileTap={{ scale: 0.95 }}
-            whileHover={{ scale: 1.05 }}
-            className={`cursor-pointer bg-${card.color}-50 p-4 rounded shadow-md flex items-center justify-center min-h-[8rem]`}
+            whileTap={card.label !== "Passing Vehicles" ? { scale: 0.95 } : {}}
+            whileHover={card.label !== "Passing Vehicles" ? { scale: 1.05 } : {}}
+            className={`p-4 rounded shadow-md flex items-center justify-center min-h-[8rem] 
+              bg-${card.color}-50 ${card.label !== "Passing Vehicles" ? "cursor-pointer" : ""}`}
             onClick={() => fetchReports(card.label)}
           >
             <div className="mr-4">{card.icon}</div>
@@ -158,17 +178,16 @@ const AdminDashboard = () => {
 
       {/* Report Modal */}
       {loading ? (
-  <p className="text-center text-gray-500">Loading reports...</p>
-) : (
-  <ReportModal
-    isOpen={isModalOpen}
-    onClose={() => setIsModalOpen(false)}
-    reports={reports}
-    category={selectedCategory}
-    refreshReports={fetchReportCounts}
-  />
-)}
-
+        <p className="text-center text-gray-500">Loading reports...</p>
+      ) : (
+        <ReportModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          reports={reports}
+          category={selectedCategory}
+          refreshReports={fetchReportCounts}
+        />
+      )}
     </div>
   );
 };
