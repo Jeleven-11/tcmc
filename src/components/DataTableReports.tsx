@@ -35,7 +35,7 @@ interface Report {
   isOwner: 'Yes' | 'No';
   vehicleType: 'Motorcycle' | 'Car' | 'Van' | 'Truck' | 'Other';
   platenumber?: string | null;
-  status: 'unread' | 'on investigation' | 'dropped' | 'solved';
+  status: 'unread' | 'on_investigation' | 'dropped' | 'solved';
   reportID: string;
   createdAt: string;
 }
@@ -43,7 +43,7 @@ interface Report {
 const statusColors: Record<string, string> =
 {
   unread: "#facc15", // Yellow-500
-  "on investigation": "#fb923c", // Orange-400
+  on_investigation: "#fb923c", // Orange-400
   dropped: "#ef4444", // Red-500
   solved: "#3b82f6", // Blue-500
 }
@@ -101,7 +101,7 @@ export default function DataTable() {
       desc = "Report [" + reportId.join(", ") + "] has been deleted with status \"" + nStatus + "\" by " + session.name + " (" + session.username + ")"
     }
 
-    await fetch('/api/sendPush',
+    await fetch('/api/notifications/sendNotification',
     {
       method: 'POST',
       headers: {

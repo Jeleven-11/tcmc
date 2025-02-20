@@ -39,7 +39,7 @@ const AblyConnectionComponent = () => {
     // Initialize Ably instance
     realtime.current = new Ably.Realtime({
       key: process.env.NEXT_PUBLIC_ABLY_API_KEY,
-      transportParams: { heartbeatInterval: 15000 },
+      transportParams: { heartbeatInterval: 25000 },
     });
 
     channel.current = realtime.current.channels.get('webrtc-signaling-channel');
@@ -90,7 +90,7 @@ const AblyConnectionComponent = () => {
         //     }
         //   };
         // }
-        if (type === 'Connect' && sessionID !== myID.current){
+        if (type === 'Connect' && role !== 'Admin'){
           if (!channel.current){
             console.log('channel.current is null in icecandidate');
             return;

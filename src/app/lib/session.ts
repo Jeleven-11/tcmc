@@ -4,7 +4,6 @@ export interface SessionData {
     id?: string
     username?: string;
     name?: string;
-    role?: string;
     team?: number;
     contact_num?: string;
     user_id?: string;

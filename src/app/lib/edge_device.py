@@ -45,6 +45,7 @@ from tracker import CentroidTracker
 import easyocr
 import string
 from stun_finder import GetStunServers
+from google_uploader import MyGoogleApi
 
 # logging.basicConfig(level=logging.DEBUG)
 # from gpiozero import PWMLED
@@ -240,7 +241,7 @@ class WebRTCConnection():
         self.newPeerId = None
         self.stream = None
         self.relayed_stream = None
-        self.isRecording = False
+        self.isRecording = True
         self.isAI_On = False
         self.connection_attempts_max = 6
         self.connection_attempts_count = 0
@@ -297,10 +298,11 @@ class WebRTCConnection():
             # Create the output folder if it doesn't exist
             if not os.path.exists(output_folder):
                 os.makedirs(output_folder)
-            self.video_output = os.path.join(output_folder, "rec_video"+ datetime.now(pytz.timezone('Asia/Manila')).strftime("%Y%m%d_%H%M%S") +".mp4")
+            self.video_name = "rec_video"+ datetime.now(pytz.timezone('Asia/Manila')).strftime("%Y%m%d_%H%M%S") +".mp4"
+            self.video_output = os.path.join(output_folder, self.video_name)
             self.frame_rate = 30
             self.frames_to_save = []
-            self.frame_buffer_size =  1 * 30 * self.frame_rate # 1 minute
+            self.frame_buffer_size =  1 * 30 * self.frame_rate # 30 Seconds
             # Initialize the video writer
             self.fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for .mp4
             self.out = cv2.VideoWriter(self.video_output, self.fourcc, 30, (640, 480))
@@ -312,7 +314,7 @@ class WebRTCConnection():
                 "-f", "rawvideo",
                 "-pix_fmt", "bgr24",
                 "-s", "1280x720",
-                "-r", "30",
+                "-r", self.frame_rate,
                 "-i", self.temp_file,
                 "-c:v", "libx264",
                 "-crf", "18",
@@ -320,7 +322,8 @@ class WebRTCConnection():
                 self.video_output
             ]
             self.results = {}
-
+            self.google_drive_folder_id='1jfdeg-r2M8eaxiqIVyGiy9dfYD4eN8b6'
+            self.video_uploader = MyGoogleApi()
             atexit.register(self.cleanup)
             self.initializeCamera()
             # --- Model Setup ---
@@ -543,7 +546,9 @@ class WebRTCConnection():
             # Create the output folder if it doesn't exist
             if not os.path.exists(output_folder):
                 os.makedirs(output_folder)
-            self.video_output = os.path.join(output_folder, "rec_video"+ datetime.now(pytz.timezone('Asia/Manila')).strftime("%Y%m%d_%H%M%S") +".mp4")
+            self.video_name = "rec_video"+ datetime.now(pytz.timezone('Asia/Manila')).strftime("%Y%m%d_%H%M%S") +".mp4"
+            self.video_output = os.path.join(output_folder, self.video_name)
+            # self.video_output = os.path.join(output_folder, "rec_video"+ datetime.now(pytz.timezone('Asia/Manila')).strftime("%Y%m%d_%H%M%S") +".mp4")
             # self.video_output = "rec_video"+ datetime.now(pytz.timezone('Asia/Manila')).strftime("%Y%m%d_%H%M%S") +".mp4"
             self.temp_file = 'temp.raw'
             self.command = [
@@ -552,7 +557,7 @@ class WebRTCConnection():
                 "-f", "rawvideo",
                 "-pix_fmt", "bgr24",
                 "-s", "1280x720",
-                "-r", "30",
+                "-r", self.frame_rate,
                 "-i", self.temp_file,
                 "-c:v", "libx264",
                 "-crf", "18",
@@ -572,11 +577,13 @@ class WebRTCConnection():
             self.frames_to_save.clear()
             # self.frames_to_save = []
             print("Video saved. Buffer cleared.")
+            fileID = self.video_uploader.upload("Recordings", self.video_name, 'video/mp4', self.google_drive_folder_id)
             self.isSavingVideo = False
             await self.parent.webRTCChannel.publish("WebRTC-client-register", {
                     "role": "Raspberry Pi",
                     "sessionID": self.raspberry_pi_id,
-                    "message": "Saved video as " + self.video_output})
+                    "message": "Saved video as " + self.video_name,
+                    "fileID": fileID})
             # await asyncio.sleep(5)
             # Update the video output file name and the command
             

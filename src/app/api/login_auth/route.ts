@@ -21,7 +21,6 @@ interface User {
   id?: string
   username: string;
   name: string;
-  role: string;
   team: number;
   contact_num?: string;
   password?: string;
@@ -39,14 +38,13 @@ function generateAuthToken(userData:User, remember:boolean=false) {
   }
   
   // Extract relevant user data to include in the JWT payload
-  const { id, username, name, role, team, contact_num, user_id }: User = userData;
+  const { id, username, name, team, contact_num, user_id }: User = userData;
 
   // Define the payload to be included in the token
   const payload = {
     id,
     username,
     name,
-    role,
     team,
     contact_num,
     user_id
@@ -109,7 +107,6 @@ export async function POST(req: NextRequest)
           id: data.id,
           username: data.username,
           name: data.name,
-          role: data.role,
           team: data.team,
           contact_num: data.contact_num,
           password: '',//do not include the password
@@ -121,7 +118,6 @@ export async function POST(req: NextRequest)
         session.id = data.id
         session.username = data.username
         session.name = data.name
-        session.role = data.role
         session.contact_num = data.contact_num
         session.user_id = data.user_id
         session.email = data.email

@@ -10,7 +10,7 @@ export default function NotificationSender() {
     const handleSendNotification = async () =>
     {
         try {
-            const res = await axios.post("/api/sendPush", { title, desc });
+            const res = await axios.post("/api/notifications/sendNotification", { title, desc });
 
             if (res.status === 200) {
                 toast.success("📢 Notification sent successfully!");

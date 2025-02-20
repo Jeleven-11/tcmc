@@ -8,14 +8,13 @@ import { usePathname } from 'next/navigation';
 import { FaSignOutAlt } from 'react-icons/fa';
 import { logout } from '@/app/lib/actions';
 import LogoutModal from './LogoutModal';
-import { IoNotifications } from "react-icons/io5";
+import PushNotifSubscribe from './PushNotifSubscribe';
 
 interface SessionData {
   session: {
     isLoggedIn: boolean;
     name?: string;
     contact_num?: string;
-    role?: string;
     team?: number;
     email?: string;
   } | null;
@@ -46,12 +45,7 @@ export default function Navbar({ session }: SessionData)
 
         {/* Right-side Icons: Notification, User Avatar, and Mobile Menu */}
         <div className="flex items-center md:order-2 space-x-4 md:space-x-3 rtl:space-x-reverse">
-          {/* Notification Icon */}
-          <button className="relative p-2 text-gray-500 hover:text-blue-600 focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:text-white dark:focus:ring-gray-600">
-            <IoNotifications className="w-6 h-6" />
-            {/* Notification Badge (Optional) */}
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">3</span>
-          </button>
+          <PushNotifSubscribe />
 
           {/* User Avatar */}
           <button

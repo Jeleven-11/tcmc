@@ -1,5 +1,6 @@
 "use client";
 
+// import { registerServiceWorker } from "@/utils/registerServiceWorker";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
