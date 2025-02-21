@@ -4,12 +4,14 @@ import { promisify } from 'util';
 import { FieldPacket } from 'mysql2';
 dotenv.config();
 
+const dbPort: number = process.env.DB_PORT as unknown as number
 // Create a pool with proper configuration
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  port: dbPort,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

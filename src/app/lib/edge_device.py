@@ -43,9 +43,10 @@ from inference.core.interfaces.stream.sinks import render_boxes
 # from sort.sort import *
 from tracker import CentroidTracker
 import easyocr
-import string
+# import string
 from stun_finder import GetStunServers
 from google_uploader import MyGoogleApi
+from TaskManager import AsyncTaskManager
 
 # logging.basicConfig(level=logging.DEBUG)
 # from gpiozero import PWMLED
@@ -121,11 +122,11 @@ def generate_token(device_id):
     return token#.decode()
 
 myCamera = None
-def get_camera():
+def get_camera(frame_width = 1920, frame_height = 1080):
     global myCamera
     if myCamera is None:
-        frame_width = 1280#640#480#640#1280#1920
-        frame_height = 720#360#270#360#720#1080
+        # frame_width = 1280#640#480#640#1280#1920
+        # frame_height = 720#360#270#360#720#1080
         # Initialize Picamera2
         myCamera = Picamera2()
         camera_config = myCamera.create_preview_configuration(main={"size": (frame_width, frame_height)})
@@ -246,6 +247,7 @@ class WebRTCConnection():
         self.connection_attempts_max = 6
         self.connection_attempts_count = 0
         self.iceServers = GetStunServers().iceServers
+        self.videosToBeUploaded = []
         
         self.rtc_config = RTCConfiguration(self.iceServers)
             # iceServers=[
@@ -294,15 +296,17 @@ class WebRTCConnection():
             self.workers = 0 if os.name == 'nt' else 4 
             # --- Camera Setup ---
             output_folder = os.path.join(os.getcwd(), "Recordings")
-
+            self.width = 960
+            self.height = 540
             # Create the output folder if it doesn't exist
             if not os.path.exists(output_folder):
                 os.makedirs(output_folder)
             self.video_name = "rec_video"+ datetime.now(pytz.timezone('Asia/Manila')).strftime("%Y%m%d_%H%M%S") +".mp4"
             self.video_output = os.path.join(output_folder, self.video_name)
+            # self.saver_task_manager = AsyncTaskManager(self.save_video_task)
             self.frame_rate = 30
             self.frames_to_save = []
-            self.frame_buffer_size =  1 * 30 * self.frame_rate # 30 Seconds
+            self.frame_buffer_size =  1 * 29 * self.frame_rate + 15 # 30 Seconds
             # Initialize the video writer
             self.fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for .mp4
             self.out = cv2.VideoWriter(self.video_output, self.fourcc, 30, (640, 480))
@@ -313,7 +317,7 @@ class WebRTCConnection():
                 "-y",
                 "-f", "rawvideo",
                 "-pix_fmt", "bgr24",
-                "-s", "1280x720",
+                "-s", str(self.width)+"x"+str(self.height),#"1280x720", "960x540"
                 "-r", self.frame_rate,
                 "-i", self.temp_file,
                 "-c:v", "libx264",
@@ -344,6 +348,8 @@ class WebRTCConnection():
             self.rec_frames = []
             self.isSavingVideo = False
             self.isBufferFull = False
+            self.isStarted = False
+            self.isUploading = False
             # self.save_task = asyncio.create_task(self.save_video_task())
             self.vehiclesClass = [0,1,2,3,4,5]#0-Bus, 1-Car, 2-Motor, 3-Tricycle, 4-Truck, 5-Van
             print("Set frame count to 0")
@@ -351,18 +357,25 @@ class WebRTCConnection():
             self.start_time = time.time() 
             print("Initialize complete")
         async def save_video_task(self):
-            while True:
-                if self.isBufferFull:
-                    # Save the video frames
-                    print("Saving video...")
-                    await self.save_video(self.frames_to_save)
-                    self.isBufferFull = False
-                await asyncio.sleep(0.5) 
+            print("SAVE VIDEO")
+            await self.save_video(self.frames_to_save)
+            self.parent.isRecording = False
+            # while True:
+            #     if self.isBufferFull:
+            #         # Save the video frames
+            #         print("Saving video...")
+                    
+                    
+            #     await asyncio.sleep(0.5) 
         async def add_frame(self, frame):
             self.frames_to_save.append(frame)
             # print("Buffer size:", len(self.frames_to_save))
-            if len(self.frames_to_save) >= self.frame_buffer_size and not self.isSavingVideo:
+            if len(self.frames_to_save) >= self.frame_buffer_size and not self.isSavingVideo and not self.isBufferFull:
                 self.isBufferFull = True
+                # if not self.isStarted:
+                #     self.saver_task_manager.start_task(True)
+                # else:
+                #     self.saver_task_manager.resume_task()
                 await self.save_video(self.frames_to_save)
 
         def process_prediction(self, result, frame):
@@ -463,7 +476,7 @@ class WebRTCConnection():
                 if self.camera is None:
                     try:
                         print("Setting camera to Picamera2")
-                        self.camera = get_camera()
+                        self.camera = get_camera(self.width, self.height)
                         self.camera.start()
                         print("Started camera")
                         isCameraConfigured = True
@@ -539,6 +552,31 @@ class WebRTCConnection():
                 await self.surveillanceMode()
                 await asyncio.sleep(0.04)
 
+        async def run_ffmpeg_async(self, command, frames, temp_file):
+            # Write frames to a temporary file
+            with open(temp_file, 'wb') as f:
+                for frame in frames:
+                    f.write(frame.tobytes())
+
+            # Run the ffmpeg command asynchronously
+            process = await asyncio.create_subprocess_exec(
+                *command,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+
+            # Wait for the process to complete and capture output
+            stdout, stderr = await process.communicate()
+
+            # Check the return code
+            if process.returncode == 0:
+                print("FFmpeg process completed successfully.")
+            else:
+                print(f"FFmpeg process failed with return code {process.returncode}.")
+                print(f"STDERR: {stderr.decode()}")
+
+            # Remove the temporary file
+            os.remove(temp_file)
         async def save_video(self, frames):
             self.isSavingVideo = True
             output_folder = os.path.join(os.getcwd(), "Recordings")
@@ -551,41 +589,70 @@ class WebRTCConnection():
             # self.video_output = os.path.join(output_folder, "rec_video"+ datetime.now(pytz.timezone('Asia/Manila')).strftime("%Y%m%d_%H%M%S") +".mp4")
             # self.video_output = "rec_video"+ datetime.now(pytz.timezone('Asia/Manila')).strftime("%Y%m%d_%H%M%S") +".mp4"
             self.temp_file = 'temp.raw'
+            print("before command")
+            width = str(self.width)
+            height = str(self.height)
+            vid_rate = str(self.frame_rate)
             self.command = [
                 "ffmpeg",
                 "-y",
                 "-f", "rawvideo",
                 "-pix_fmt", "bgr24",
-                "-s", "1280x720",
-                "-r", self.frame_rate,
+                "-s", width+"x"+height,
+                "-r", vid_rate,
                 "-i", self.temp_file,
                 "-c:v", "libx264",
                 "-crf", "18",
                 "-pix_fmt", "yuv420p",
                 self.video_output
             ]
-
+            print("after command")
+            # await self.run_ffmpeg_async(self.command, frames, self.temp_file)
             with open(self.temp_file, 'wb') as f:
             # with os.open(self.temp_file, os.O_WRONLY | os.O_TRUNC) as f:
                 for frame in frames:
                     f.write(frame.tobytes())
-
+            print("Before subprocess")
             subprocess.run(self.command)
-
+            print("After subprocess")
             os.remove(self.temp_file)
             # Clear the buffer
             self.frames_to_save.clear()
+            self.isBufferFull = False
             # self.frames_to_save = []
+            self.parent.videosToBeUploaded.append(self.video_name)
             print("Video saved. Buffer cleared.")
-            fileID = self.video_uploader.upload("Recordings", self.video_name, 'video/mp4', self.google_drive_folder_id)
+            
+            if len(self.parent.videosToBeUploaded) > 10:
+                print("Will start to upload files to drive...")
+                await self.upload_files()
+            
+            # fileID = self.video_uploader.upload("Recordings", self.video_name, 'video/mp4', self.google_drive_folder_id)
             self.isSavingVideo = False
             await self.parent.webRTCChannel.publish("WebRTC-client-register", {
                     "role": "Raspberry Pi",
                     "sessionID": self.raspberry_pi_id,
                     "message": "Saved video as " + self.video_name,
-                    "fileID": fileID})
+                    # "fileID": fileID
+                    })
+            self.frame_rate = 15
+            # self.saver_task_manager.pause_task()
             # await asyncio.sleep(5)
             # Update the video output file name and the command
+        async def upload_files(self):
+            self.isUploading = True
+            for video_name in self.parent.videosToBeUploaded:
+                #how to access the video_name I appended to self.parent.videosToBeUploaded so that it can be passed to the video_uploader.upload, is it the i in the for loop
+                fileID = self.video_uploader.upload("Recordings", video_name, 'video/mp4', self.google_drive_folder_id)
+                await self.parent.webRTCChannel.publish("WebRTC-client-register", {
+                    "role": "Raspberry Pi",
+                    "sessionID": self.raspberry_pi_id,
+                    "message": "Saved uploaded as " + video_name,
+                    "fileID": fileID
+                    })
+            self.parent.videosToBeUploaded.clear()
+            self.isUploading = False
+
             
         async def recv(self):
             # global camera
@@ -598,7 +665,7 @@ class WebRTCConnection():
                 if frame.shape[2] == 4:
                     frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
                 if self.frame_count % 3 != 0: # skip frames (This is OPTIONAL and can be removed)
-                    if self.parent.isRecording:
+                    if self.parent.isRecording and not self.isBufferFull:
                         await self.add_frame(frame)
                     video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
                     video_frame.pts, video_frame.time_base = await self.next_timestamp()
@@ -621,7 +688,7 @@ class WebRTCConnection():
                                 "data": data_payload})
                         frame = vehicles_frame
 
-                if self.parent.isRecording:
+                if self.parent.isRecording and not self.isBufferFull:
                     await self.add_frame(frame)
                 
 
@@ -629,7 +696,11 @@ class WebRTCConnection():
                     elapsed_time = time.time() - self.start_time
                     if elapsed_time > 0:
                         fps = 30 / elapsed_time
-                        print(f"\rCurrent FPS: {fps:.2f}")
+                        if not self.isUploading:
+                            if int(fps)>1:
+                                self.frame_rate = int(fps)
+                            self.frame_buffer_size =  1 * 29 * self.frame_rate + 15
+                        print(f"\rCurrent FPS: {int(fps):.2f}")
                         await self.parent.webRTCChannel.publish("WebRTC-client-register", {
                             "role": "Raspberry Pi",
                             "sessionID": self.raspberry_pi_id,
@@ -762,11 +833,11 @@ class WebRTCConnection():
                 if data['role'] == 'Admin':
                     # print(f"Data: {data}")
                     
-                    if data['type'] == 'Connect' and data['from'] != raspberry_pi_id:
+                    if data['type'] == 'Connect' and data['from'] != raspberry_pi_id and data['from'] not in self.peer_connections:
                         global surveillanceTask
                         try:
                             peer_id = data["from"]
-                            print(f"Received start_live_stream from {peer_id}")
+                            print(f"Received Connect from {peer_id}")
                             # if peer_id in self.peer_connections:
                             #     await self.cleanup_peer_connection(peer_id)
                             await self.add_peer(peer_id, data)

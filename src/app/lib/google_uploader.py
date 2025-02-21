@@ -42,7 +42,7 @@ class MyGoogleApi():
 
         return build(self.API_NAME, self.API_VERSION, credentials=creds)
 
-    async def upload(self, file_directory, file_name, file_type, folder_id, delete_local=True):#type='video/mp4'    '1jfdeg-r2M8eaxiqIVyGiy9dfYD4eN8b6'
+    def upload(self, file_directory, file_name, file_type, folder_id, delete_local=True):#type='video/mp4'    '1jfdeg-r2M8eaxiqIVyGiy9dfYD4eN8b6'
         """
         Uploads a file to Google Drive and deletes it from local storage after successful upload.
 
