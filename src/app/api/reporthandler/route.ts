@@ -67,7 +67,7 @@ export async function POST(request: NextRequest)
       color,
       description,
       reportID,
-      DateTime.now().setZone('Asia/Manila').toFormat('yyyy-dd-MM HH:mm:ss'),
+      DateTime.now().setZone('Asia/Manila').toFormat('yyyy-MM-dd HH:mm:ss'),
     ]
     // Get connection to the database pool
     const connection = await pool.getConnection();
