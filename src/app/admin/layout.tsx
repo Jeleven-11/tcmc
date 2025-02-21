@@ -1,9 +1,9 @@
 'use client'
 
-import Navbar from "@/components/AdNav2";
+import Navbar from "@/components/admin/AdNav2";
 import { getSession } from "../lib/actions";
 import Footer from "@/components/Footer";
-import DateTimeComponent from "@/components/DateTimeComponent";
+import DateTimeComponent from "@/components/admin/DateTimeComponent";
 import { Loader } from "lucide-react";
 import React, { Suspense, useEffect, useState } from "react";
 import { IronSession } from "iron-session";

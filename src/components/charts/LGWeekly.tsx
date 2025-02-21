@@ -12,59 +12,60 @@ import {
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 import { Line } from "react-chartjs-2";
-import { DateTime } from "luxon";
 
 ChartJS.register(CategoryScale, LinearScale, TimeScale, PointElement, LineElement, Tooltip)
 
-interface HourlyData
+interface WeeklyData
 {
-    labels: string[],
-    datasets: {
-        label: string,
-        data: number[],
-        borderColor: string,
-        fill: boolean,
-        tension: number,
-    }[],
+  labels: string[]
+  datasets:
+  {
+    label: string
+    data: number[]
+    borderColor: string
+    backgroundColor: string
+    fill: boolean
+    tension: number
+  }[]
 }
 
-const formatTime = (isoString: string) => 
+const WeeklyChart = () =>
 {
-    return DateTime.fromISO(isoString).toFormat('hh:mm a')
-}
-
-const DailyReports = () =>
-{
-    const [chartData, setChartData] = useState<HourlyData>({labels: [], datasets: []})
+    const [chartData, setChartData] = useState<WeeklyData>({ labels: [], datasets: [] })
     useEffect(() =>
     {
         const fetchChartData = async () =>
         {
-            fetch('/api/getChart/getChartDailyReports')
-            .then(response => response.json())
-            .then(data =>
+            try
             {
-                const labels = data.map((entry: { time: string }) => formatTime(entry.time))
-                const counts = data.map((entry: { count: number }) => entry.count)
-                // (OPTIONAL)
-                // To make the chart display from 00:00 to 23:59 // TODO: add some validation that data doesn't contain 0:00 and 23:59 from data.time
-                // labels.unshift('00:00');
-                // labels.push('23:59');
-                // counts.unshift(0);
-                // counts.push(0);
-                setChartData({
-                    labels,
+                const response = await fetch("/api/getChart/WeeklyReports")
+                if (!response.ok)
+                    throw new Error("Failed to fetch data")
+
+                const data = await response.json()
+                if (!data || data.length === 0)
+                    throw new Error("No data available")
+
+                //const labels = data.map((entry: { time: string }) => formatWeek(entry.time))
+                const counts = data.flatMap((entry: { [key: string]: number }) => Object.values(entry))
+
+                setChartData(
+                {
+                    labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
                     datasets: [
                         {
-                            label: "Hourly Reports",
+                            label: "Weekly Reports",
                             data: counts,
                             borderColor: "blue",
+                            backgroundColor: "rgba(0, 0, 255, 0.2)",
                             fill: true,
-                            tension: 0.4, // Smooth curves
+                            tension: 0.4,
                         },
                     ],
                 })
-            }).catch(e => console.log(e))
+            } catch (error) {
+                console.error(error)
+            }
         }
 
         fetchChartData()
@@ -80,14 +81,14 @@ const DailyReports = () =>
                         x: {
                             type: "category",
                             title: {
-                            display: true,
-                            text: "Time",
+                                display: true,
+                                text: "Week Day",
                             },
                         },
                         y: {
                             title: {
-                            display: true,
-                            text: "Report Count",
+                                display: true,
+                                text: "Report Count",
                             },
                             beginAtZero: true,
                             ticks: {
@@ -103,4 +104,4 @@ const DailyReports = () =>
     )
 }
 
-export default DailyReports
+export default WeeklyChart

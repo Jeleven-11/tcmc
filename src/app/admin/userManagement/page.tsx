@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import UserCard from '@/components/UserCard';
-import EditUserModal from '@/components/EditUserModal';
-import AddUserModal from '@/components/AddUserModal';
+import UserCard from '@/components/admin/UserCard';
+import EditUserModal from '@/components/admin/EditUserModal';
+import AddUserModal from '@/components/admin/AddUserModal';
 
 interface User {
   id?: string;
