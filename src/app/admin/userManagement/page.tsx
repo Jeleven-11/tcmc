@@ -4,19 +4,7 @@ import { useState, useEffect } from 'react';
 import UserCard from '@/components/admin/UserCard';
 import EditUserModal from '@/components/admin/EditUserModal';
 import AddUserModal from '@/components/admin/AddUserModal';
-
-interface User {
-  id?: string;
-  username: string;
-  name: string;
-  team: number;
-  contact_num?: string;
-  password?: string;
-  user_id?: string;
-  email?: string;
-  emailVerified?: number;
-  fcmToken?: string;
-}
+import { User } from '@/app/lib/interfaces'
 
 export default function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);

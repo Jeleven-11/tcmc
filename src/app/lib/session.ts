@@ -8,7 +8,7 @@ export interface SessionData {
     contact_num?: string;
     user_id?: string;
     email?: string;
-    emailVerified?: boolean;
+    emailVerified?: number;
     isLoggedIn: boolean;
     authToken: string;
     sessionID: string
