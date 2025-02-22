@@ -1,21 +1,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { Report } from '@/app/lib/interfaces';
 
-interface Report
-{
-  reportID: string;
-  fullName: string;
-  contactNumber: string;
-  createdAt: string;
-  vehicleType: string;
-  platenumber?: string;
-  color: string;
-  description: string;
-  reason: string;
-  status: string;
-  driversLicense: string;
-}
 
 const CheckUpdates = () => {
   const [searchQuery, setSearchQuery] = useState('');

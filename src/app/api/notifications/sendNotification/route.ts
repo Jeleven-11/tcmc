@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import webpush from "web-push";
 import pool from "@/app/lib/db";
 import { FieldPacket } from "mysql2";
-
+import { Subscribers } from "@/app/lib/interfaces";
 export const dynamic = 'force-dynamic'
 
 // const FILE_PATH = path.join(process.cwd(), "data", "subscriptions.json");
@@ -16,9 +16,9 @@ webpush.setVapidDetails(
   PRIVATE_VAPID_KEY
 )
 
-interface Subscribers {
-    data: string;
-}
+// interface Subscribers {
+//     data: string;
+// }
 
 export async function POST(res: Request)
 {

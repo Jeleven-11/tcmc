@@ -1,25 +1,8 @@
 import pool from '../../lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 import { DateTime } from 'luxon';
-interface Report {
-  fullName: string;
-  age: number;
-  sex: string;
-  address: string;
-  contactNumber: string;
-  isOwner: string;
-  driversLicense: string;
-  vehicleRegistration: string;
-  orCr: string;
-  reason: string;
-  vehicleType: string;
-  platenumber: string;
-  color: string;
-  description: string;
-  reportID: string;
-  status: string;
-  createdAt: string;
-}
+import { Report } from '@/app/lib/interfaces';
+
 export async function POST(request: NextRequest)
 {
   const records = await request.json();

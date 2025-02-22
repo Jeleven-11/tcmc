@@ -3,25 +3,44 @@
 import React, { useState, useEffect } from 'react';
 import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
 import Paper from '@mui/material/Paper';
-
-interface Report
-{
-  id: number;
-  fullName: string;
-  age: number;
-  sex: 'Male' | 'Female' | 'Other';
-  address: string;
-  contactNumber: string;
-  isOwner: 'Yes' | 'No';
-  vehicleType: 'Motorcycle' | 'Car' | 'Van' | 'Truck' | 'Other';
-  platenumber?: string | null;
-  status: 'unread' | 'on investigation' | 'dropped' | 'solved';
-  createdAt: string;
-}
+import { Report_ } from '@/app/lib/interfaces';
+// interface Report_
+// {
+//   id: number;
+//   fullName: string;
+//   age: number;
+//   sex: 'Male' | 'Female' | 'Other';
+//   address: string;
+//   contactNumber: string;
+//   isOwner: 'Yes' | 'No';
+//   vehicleType: 'Motorcycle' | 'Car' | 'Van' | 'Truck' | 'Other';
+//   platenumber?: string | null;
+//   status: 'unread' | 'on investigation' | 'dropped' | 'solved';
+//   createdAt: string;
+// }
+// interface Report {
+//   fullName: string,
+//   age: number,
+//   sex: string,
+//   address: string,
+//   contactNumber: string,
+//   isOwner: string,
+//   driversLicense: string,
+//   vehicleRegistration: string,
+//   orCr: string,
+//   reason: string,
+//   vehicleType: string,
+//   platenumber: string,
+//   color: string,
+//   description: string,
+//   reportID: string,
+//   status: string,
+//   createdAt: string,
+// }
 
 export default function DataTable()
 {
-  const [reports, setReports] = useState<Report[]>([]);
+  const [reports, setReports] = useState<Report_[]>([]);
   const [loading, setLoading] = useState(true);
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 5 });
   const [totalRows, setTotalRows] = useState(0);

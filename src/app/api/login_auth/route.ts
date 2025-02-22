@@ -16,18 +16,7 @@ import { getSession } from '../../lib/actions';
 // import { NextApiRequest } from 'next';
 // import {SignJWT, jwtVerify} from 'jose'
 // import { AdapterUser } from 'next-auth/adapters';
-
-interface User {
-  id?: string
-  username: string;
-  name: string;
-  team: number;
-  contact_num?: string;
-  password?: string;
-  user_id?: string;
-  email?: string;
-  emailVerified?: boolean;
-}
+import { User } from '@/app/lib/interfaces'
 
 function generateAuthToken(userData:User, remember:boolean=false) {
   const secretKey = process.env.AUTH_SECRETKEY;

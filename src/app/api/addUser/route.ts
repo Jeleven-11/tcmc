@@ -2,19 +2,19 @@ import pool from '../../lib/db';
 import bcrypt from 'bcryptjs';
 import { FieldPacket } from 'mysql2';
 import { NextRequest, NextResponse } from 'next/server';
-
-interface newUser {
-  id?: string
-  username: string;
-  name: string;
-  team: number;
-  contact_num?: string;
-  password?: string;
-  user_id?: string;
-  email?: string;
-  emailVerified?: number;
-  fcmToken?: string
-}
+import { User as newUser} from '@/app/lib/interfaces';
+// interface newUser {
+//   id?: string
+//   username: string;
+//   name: string;
+//   team: number;
+//   contact_num?: string;
+//   password?: string;
+//   user_id?: string;
+//   email?: string;
+//   emailVerified?: number;
+//   fcmToken?: string
+// }
 
 export async function POST(req: NextRequest)
 {

@@ -1,11 +1,7 @@
 // components/EditProfileModal.js
 'use client';
 import { useState } from 'react';
-
-interface User {
-  name: string;
-  contactNum: string;
-}
+import { User } from '@/app/lib/interfaces'
 
 interface EditProfileModalProps {
   user: User;
@@ -16,7 +12,7 @@ interface EditProfileModalProps {
 const EditProfileModal = ({ user, onClose, onUpdate }: EditProfileModalProps) => {
   const [formData, setFormData] = useState({
     name: user.name,
-    contactNum: user.contactNum,
+    contact_num: user.contact_num,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,7 +53,7 @@ const EditProfileModal = ({ user, onClose, onUpdate }: EditProfileModalProps) =>
           />
           <input
             name="contact_num"
-            value={formData.contactNum}
+            value={formData.contact_num}
             onChange={handleChange}
             placeholder="Contact Number"
             required

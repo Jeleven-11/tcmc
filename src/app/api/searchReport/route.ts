@@ -1,20 +1,7 @@
 import pool from '../../lib/db';
 import { FieldPacket } from 'mysql2';
 import { NextRequest, NextResponse } from 'next/server';
-
-// Define a type for the report data
-interface Report {
-  reportID: number;
-  fullName: string;
-  contactNumber: string;
-  createdAt: string;
-  vehicleType: string;
-  platenumber: string;
-  color: string;
-  description: string;
-  reason: string;
-  status: string;
-}
+import { Report } from '@/app/lib/interfaces';
 
 export async function GET(req: NextRequest)
 {

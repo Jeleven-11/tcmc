@@ -1,18 +1,7 @@
 // components/UserCard.tsx
 'use client';
 import React from 'react';
-
-export interface User {
-  id?: string
-  username: string;
-  name: string;
-  team: number;
-  contact_num?: string;
-  password?: string;
-  user_id?: string;
-  email?: string;
-  emailVerified?: boolean;
-}
+import { User } from '@/app/lib/interfaces'
 
 interface UserCardProps {
   user: User;

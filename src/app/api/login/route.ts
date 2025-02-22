@@ -3,16 +3,8 @@ import { query, } from '@/app/lib/db';
 import { FieldPacket } from 'mysql2';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-interface User {
-    id: string
-    username: string;
-    name?: string;
-    team?: number;
-    contact_num?: string;
-    password: string;
-    user_id?: string;
-    emailVerified?: boolean
-}
+import { User, loginInput } from '@/app/lib/interfaces';
+
 function generateAuthToken(userData:User, remember:boolean=false) {
   const secretKey = process.env.AUTH_SECRETKEY;
   
@@ -63,7 +55,7 @@ function generateAuthToken(userData:User, remember:boolean=false) {
 export async function POST(req: Request){
   if (req.method === "POST"){
     try{
-        const { inp, password } = await req.json()
+        const { inp, password }: loginInput = await req.json()
         if (!inp || !password)
             return NextResponse.json({ message: 'Invalid credentials' }, { status: 400 })
 
@@ -77,7 +69,7 @@ export async function POST(req: Request){
 
         //const data = JSON.parse(JSON.stringify(rows[0])) as User
         const data = rows[0]
-        const isPassValid = await bcrypt.compare(password, data.password)
+        const isPassValid = await bcrypt.compare(password, data.password!)
         if (!isPassValid)
             return NextResponse.json({ message: 'Invalid credentials' }, { status: 400 })
 

@@ -14,7 +14,7 @@ interface User {
   password?: string;
   user_id?: string;
   email?: string;
-  emailVerified?: boolean;
+  emailVerified?: number;
   fcmToken?: string;
 }
 

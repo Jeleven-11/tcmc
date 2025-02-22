@@ -2,17 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-// import jwt from "jsonwebtoken";
-//import prisma from "@/app/lib/db";
-// interface User {
-//     id: string
-//     username: string;
-//     name?: string;
-//     contactNum?: string;
-//     password: string;
-//     user_id?: string;
-//     emailVerified?: boolean
-// }
+
 export default function LoginPage()
 {
     const [inp, setInp] = useState("");

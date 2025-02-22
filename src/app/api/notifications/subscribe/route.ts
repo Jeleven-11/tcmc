@@ -1,22 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/app/lib/db";
 import { FieldPacket } from "mysql2";
-
+import { _PushSubscription, Subscribers } from "@/app/lib/interfaces";
 //const FILE_PATH = path.join(process.cwd(), "data", "subscriptions.json");
-
-interface _PushSubscription {
-  //endpoint: string;
-  //expirationTime: number | null;
-  keys: {
-    p256dh: string
-    auth: string
-  };
-}
-
-interface Subscribers {
-  auth: string | ""
-  data: string | ""
-}
 
 export async function POST(req: NextRequest)
 {

@@ -4,7 +4,7 @@ import { FieldPacket } from 'mysql2';
 import pool from '../../lib/db';
 // import { get, IncomingMessage } from 'http';
 import { getSession } from '../../lib/actions';
-
+import { User } from '@/app/lib/interfaces';
 // async function getSessionWithNextRequest(req: NextRequest) {
 //   // Create a compatible request object
 //   const compatibleReq: Partial<IncomingMessage> = {
@@ -18,16 +18,7 @@ import { getSession } from '../../lib/actions';
 
 //   return session;
 // }
-interface User {
-  id?: string
-  username: string;
-  name: string;
-  contact_num?: string;
-  password?: string;
-  user_id?: string;
-  email?: string;
-  emailVerified?: boolean;
-}
+
 
 export async function GET(req: NextRequest) {
   // Only allow GET requests

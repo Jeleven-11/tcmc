@@ -1,20 +1,7 @@
 import pool from "@/app/lib/db";
 import { FieldPacket } from "mysql2";
 import { NextResponse } from "next/server";
-
-interface _PushSubscription {
-    //endpoint: string;
-    //expirationTime: number | null;
-    keys: {
-      p256dh: string
-      auth: string
-    };
-  }
-  
-  interface Subscribers {
-    auth: string | ""
-    data: string | ""
-  }
+import { _PushSubscription, Subscribers } from "@/app/lib/interfaces";
 
 export async function POST(req: Request)
 {

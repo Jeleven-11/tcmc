@@ -2,18 +2,7 @@
 'use client';
 import { UserCircleIcon } from '@heroicons/react/24/outline';
 import React from 'react';
-
-interface User {
-  id?: string
-  username: string;
-  name: string;
-  team: number;
-  contact_num?: string;
-  password?: string;
-  user_id?: string;
-  email?: string;
-  emailVerified?: boolean;
-}
+import { User } from '@/app/lib/interfaces'
 
 interface ProfileCardProps {
   user: User;

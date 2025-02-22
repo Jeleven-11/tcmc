@@ -1,22 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { FieldPacket } from 'mysql2';
 import pool from '../../lib/db';
-
+import { UpdateReportRequestBody } from '@/app/lib/interfaces';
 interface Report {
     report_id: number;
     reported_by_user_id: number;
     // Add other properties of the report as needed
 }
 
-interface UpdateReportRequestBody {
-    id?: string;
-    vehicle_type: string;
-    vehicle_color: string;
-    plate_number: string;
-    incurred_violations: string;
-    image_upload: string;
-    userId: number;
-}
+
+// interface UpdateReportRequestBody {
+//     id?: string;
+//     vehicle_type: string;
+//     vehicle_color: string;
+//     plate_number: string;
+//     incurred_violations: string;
+//     image_upload: string;
+//     userId: number;
+// }
 
 export async function PUT(req: NextRequest) {
   if (req.method === 'PUT') {
