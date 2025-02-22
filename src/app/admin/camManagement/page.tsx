@@ -7,14 +7,14 @@ import { useState } from "react";
 import { MockAddCam } from "@/components/mockAddCam";
 import { MockEditCam } from "@/components/mockEditCam";
 import { MockDelCam } from "@/components/mockDelCam";
-import Image from "next/image";
-
+// import Image from "next/image";
+import AblyConnectionComponent from '@/components/admin/RealtimeAbly';
 
 const mockCameras = [
   { id: 1, name: "Camera 1", location: "1st Street", feed: "/mock.png" },
-  { id: 2, name: "Camera 2", location: "Street A", feed: "/mock.png" },
-  { id: 3, name: "Camera 3", location: "Straight Street", feed: "/mock.png" },
-  { id: 4, name: "Camera 4", location: "Strait Street", feed: "/mock.png" },
+  // { id: 2, name: "Camera 2", location: "Street A", feed: "/mock.png" },
+  // { id: 3, name: "Camera 3", location: "Straight Street", feed: "/mock.png" },
+  // { id: 4, name: "Camera 4", location: "Strait Street", feed: "/mock.png" },
 ];
 
 const CamManagement = () => {
@@ -53,13 +53,14 @@ const CamManagement = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {cameras.map((camera) => (
             <div key={camera.id} className="bg-white shadow-lg rounded-lg overflow-hidden">
-              <Image 
+              {/* <Image 
   src={camera.feed} 
   alt={camera.name} 
   width={400} // specify the width
   height={200} // specify the height
   className="w-full h-40 object-cover" 
-/>
+/> */}
+              <AblyConnectionComponent />
 
               <div className="p-4 flex justify-between items-center">
                 <div>
