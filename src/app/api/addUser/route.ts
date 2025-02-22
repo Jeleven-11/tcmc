@@ -12,7 +12,7 @@ interface newUser {
   password?: string;
   user_id?: string;
   email?: string;
-  emailVerified?: boolean;
+  emailVerified?: number;
   fcmToken?: string
 }
 
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest)
       // Insert new user into the database
       //const [result]: [newUser[], FieldPacket[]] = 
       await connection.query(
-        'INSERT INTO users (username, name, team, contact_num, password, email, isEmailVerified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO users (username, name, team, contact_num, password, email, isEmailVerified) VALUES (?, ?, ?, ?, ?, ?, ?)',
         [username, name, team, contact_num, hashedPassword, email, emailVerified]
       )// as [newUser[], FieldPacket[]];
 

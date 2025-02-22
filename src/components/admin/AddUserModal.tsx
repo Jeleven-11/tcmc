@@ -13,7 +13,7 @@ interface AddUserModalProps {
     password?: string;
     user_id?: string;
     email?: string;
-    emailVerified?: boolean;
+    emailVerified?: number;
     fcmToken?: string
   }) => void;
 }
@@ -26,7 +26,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onAddUser }) => {
     contact_num: '',
     password: '',
     email: '',
-    emailVerified: false,
+    emailVerified: 0,
     fcmToken: ''
   });
 
