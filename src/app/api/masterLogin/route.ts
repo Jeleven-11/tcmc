@@ -45,3 +45,22 @@ export async function POST(req: Request)
         }
     } else return NextResponse.json({ error: 'Method not allowed' }, {status: 405})
 }
+
+// export async function GET()
+// {
+//     let conn
+//     try
+//     {
+//         conn = await pool.getConnection()
+//         const hashedPass = await bcrypt.hash("123456", 10)
+//         await conn.query('INSERT INTO master (master_password) VALUES (?)', [hashedPass])
+//         return NextResponse.json({ message: 'ok' }, {status: 200})
+//     } catch (error) {
+//         console.error('Error logging in:', error)
+//         return NextResponse.json({ error: 'Failed to log in' }, {status: 500})
+//     } finally {
+
+//         if (conn)
+//             conn.release()
+//     }
+// }

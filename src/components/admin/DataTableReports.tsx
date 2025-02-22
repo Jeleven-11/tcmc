@@ -14,10 +14,15 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination as Pagination1 } from 'swiper/modules';
-import { Button, MenuItem, Select, TextField } from '@mui/material';
+import { Button, MenuItem, Select, TextField, Tooltip } from '@mui/material';
 import CustomPagination from './CustomPagination';
 import { getSession } from '@/app/lib/actions';
 import axios from 'axios';
+
+
+import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit';
+
 
 interface Report {
   driversLicense: string;
@@ -37,7 +42,9 @@ interface Report {
   platenumber?: string | null;
   status: 'unread' | 'on_investigation' | 'dropped' | 'solved';
   reportID: string;
+  remarks: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 const statusColors: Record<string, string> =
@@ -59,6 +66,8 @@ export default function DataTable() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRows, setSelectedRows] = useState<number[]>([])
   const [initReports, setInitReports] = useState<string[]>([])
+  const [remarkModal, setRemarkModal] = useState(false)
+  const [remark, setRemark] = useState('')
 
   const fetchReports = async (isLoad: SetStateAction<boolean>) =>
   {
@@ -148,6 +157,7 @@ export default function DataTable() {
 
       fetchReports(true)
       setSelectedRows([])
+      setSelectedReport(null)
     } catch (error) {
       console.error('Error deleting reports:', error)
     }
@@ -183,6 +193,12 @@ export default function DataTable() {
     setIsModalOpen(true)
   }
 
+  const handleOpenEditModal = (report: Report) =>
+  {
+    setSelectedReport(report)
+    setRemarkModal(true)
+  }
+
   const handleCloseModal = () =>
   {
     setIsModalOpen(false)
@@ -201,16 +217,40 @@ export default function DataTable() {
     setSelectedRows(selectedIds)
   }
 
+  const handleRemarkSubmit = async () =>
+  {
+    try
+    {
+      const response = await fetch("/api/reports/updateReport",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ remark }),
+      })
+
+      if (!response.ok)
+        throw new Error("Failed to submit remark")
+  
+    } catch (error) {
+      console.error(error)
+    }
+
+    setRemark("")
+    setRemarkModal(false)
+  }
+
   const loadCarousel = (reportId: string) => setLoadedImages((prev) => ({ ...prev, [reportId]: true }))
 
   const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', width: 70 },
+    { field: 'id', headerName: '#', width: 70 },
     {
       field: "status",
       headerName: "Status",
       flex: 2, // ✅ Auto-width based on content
-      minWidth: 180,
-      maxWidth: 200,
+      minWidth: 190,
+      maxWidth: 250,
       renderCell: (params) => {
         const { value } = params;
         const textColor = statusColors[value] || "#374151";
@@ -247,47 +287,99 @@ export default function DataTable() {
       }
     },
     // { field: 'contactNumber', headerName: 'Contact Number', width: 150 },
-    { field: 'isOwner', headerName: 'Owner?', width: 100 },
-    { field: 'vehicleType', headerName: 'Vehicle Type', width: 150 },
-    { field: 'platenumber', headerName: 'Plate Number', width: 120 },
+    { field: 'isOwner', headerName: 'Owner?', width: 70 },
+    { field: 'vehicleType', headerName: 'Vehicle Type', flex: 2 },
+    { field: 'platenumber', headerName: 'Plate Number', width: 150 },
     { 
       field: 'fullName', 
       headerName: 'Full Name', 
+      flex: 2, // auto-width based on content
       width: 200,
       renderCell: (params) => (
-        <span 
-          style={{ color: 'blue', cursor: 'pointer', textDecoration: 'underline' }} 
-          onClick={() => handleOpenModal(params.row)}
-        >
-          {params.value}
-        </span>
+        <Tooltip title={params.row.reportID} arrow>
+          <span 
+            style={{ color: 'blue', cursor: 'pointer', textDecoration: 'underline' }} 
+            onClick={() => handleOpenModal(params.row)}
+          >
+            {params.value}
+          </span>
+        </Tooltip>
       )
     },
-    { field: 'age', headerName: 'Age', type: 'number', width: 80 },
-    { field: 'sex', headerName: 'Sex', width: 100 },
-    // { field: 'status', headerName: 'Status', width: 130 },
-    { field: 'createdAt', 
-      headerName: 'Created At',
+    { field: 'age', headerName: 'Age', flex: 1, width: 50 },
+    // { field: 'sex', headerName: 'Sex', width: 50 },
+    { field: 'sex', 
+      flex: 1, // auto-width based on content
+      headerName: 'Sex',
       width: 200,
       renderCell: (params) => (
-        <span>{new Date(params.row.createdAt).toLocaleDateString("en-US", {month: "short", day: "numeric", year: "numeric"})}, {new Date(params.row.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true})}</span>
+        <span className="text-sm">{params.row.sex.replace('Male', 'M').replace('Female', 'F')}</span>
       )
+    },
+    // { field: 'status', headerName: 'Status', width: 130 },
+    { field: 'createdAt',
+      flex: 2, // auto-width based on content
+      headerName: 'Created At',
+      width: 175,
+      renderCell: (params) => {
+        const formattedDate = new Date(params.row.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ", " + new Date(params.row.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+        return (
+          <Tooltip title={formattedDate} arrow>
+            <span className="text-sm">{formattedDate}</span>
+          </Tooltip>
+        );
+      }
+    },
+    { field: 'updatedAt',
+      flex: 2, // auto-width based on content
+      headerName: 'Updated At',
+      width: 180,
+      renderCell: (params) => {
+        const formattedDate = new Date(params.row.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ", " + new Date(params.row.updatedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+        return (
+          <Tooltip title={formattedDate} arrow>
+            <span className="text-sm">{formattedDate}</span>
+          </Tooltip>
+        );
+      }
     },
     {
       field: 'actions',
       headerName: 'Action',
-      flex: 2, // ✅ Auto-width based on content
+      flex: 2, // auto-width based on content
       minWidth: 100,
-      maxWidth: 120,
+      maxWidth: 100,
       renderCell: (params) => (
-        <Button
-          variant="contained"
-          color="error"
-          size="small"
-          onClick={() => deleteSingleReport(params.row.reportID, params.row.status)}
-        >
-          Delete
-        </Button>
+        <>
+          {/* <Button
+            className="mr-2"
+            variant="contained"
+            color="info"
+            onClick={() => handleOpenModal(params.row)}
+          > */}
+          <Tooltip title="Edit Report" arrow>
+            <EditIcon
+              className="mr-2 cursor-pointer"
+              color="info"
+              // onClick={() => setRemarkModal(true)}
+              onClick={() => handleOpenEditModal(params.row)}
+            />
+          </Tooltip>
+          {/* </Button> */}
+          {/* <Button
+            color="error"
+            size="small"
+            onClick={() => deleteSingleReport(params.row.reportID, params.row.status)}
+          > */}
+           <Tooltip title="Delete Report" arrow>
+            <DeleteIcon
+              className="cursor-pointer"
+              color="error"
+              onClick={() => deleteSingleReport(params.row.reportID, params.row.status)}
+            />
+          </Tooltip>
+          {/* </Button> */}
+        </>
       ),
     }
   ];
@@ -372,10 +464,17 @@ export default function DataTable() {
               {/* Renamed from complainant to Informant/Reporting Party */}
               {/* Complainant Details */}
               <h2 className="text-2xl font-bold mb-3">Informant / Reporting Party Details</h2>
-              <div className="mb-6">
+              <span className="text-sm font-bold mt-6"><p className="mb-6">Report ID: {selectedReport.reportID}</p></span>
+              {/* <div className="mb-6">
                 <label className="block text-gray-700 text-sm font-bold">Status:</label>
                 <button style={{backgroundColor: (statusColors[selectedReport.status] || "gray"), fontWeight: "bold"}} className="text-white px-2 py-2 rounded-full w-auto text-sm text-center">
                   {selectedReport.status.charAt(0).toUpperCase()  + selectedReport.status.substring(1)}
+                </button>
+              </div> */}
+              <div className="mb-6">
+                <label className="block text-gray-700 text-sm font-bold">Status:</label>
+                <button style={{backgroundColor: (statusColors[selectedReport.status] || "gray"), fontWeight: "bold"}} className="text-white px-2 py-2 rounded-full w-auto text-sm text-center">
+                  {selectedReport.status.charAt(0).toUpperCase() + selectedReport.status.substring(1)}
                 </button>
               </div>
               <div className="mb-4">
@@ -441,7 +540,7 @@ export default function DataTable() {
                   <label className="block text-gray-700 text-sm font-bold">Vehicle Type:</label>
                   {selectedReport.vehicleType}
                 </div>
-      
+
                 <div>
                   <label className="block text-gray-700 text-sm font-bold">Reason:</label>
                   {selectedReport.reason}
@@ -468,6 +567,29 @@ export default function DataTable() {
           )}
         </Box>
       </Modal>
+
+      {/* Edit Profile Modal */}
+      {remarkModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+          <div className="bg-white p-6 rounded-md shadow-lg w-96">
+            <h2 className="text-xl font-bold mb-4">Editing Report [{selectedReport?.reportID}]</h2>
+            <h4 className="text-sm font-bold mb-4">Report by: {selectedReport?.fullName}</h4>
+            <textarea
+              className="border p-2 w-full rounded-md mb-2"
+              defaultValue={selectedReport?.remarks}
+              placeholder="Add remarks to the report, or leave notes"
+              required
+              onChange={(e) => setRemark(e.target.value)}
+            />
+            <div className="mt-4 flex justify-end space-x-2">
+              <button className="px-4 py-2 bg-gray-300 rounded" onClick={() => setRemarkModal(false)}>Cancel</button>
+              <button className="px-4 py-2 bg-green-500 text-white rounded" onClick={handleRemarkSubmit}>
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Paper>
   );
 }

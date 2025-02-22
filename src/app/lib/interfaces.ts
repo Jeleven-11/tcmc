@@ -5,7 +5,7 @@ export interface User {
     team: number;
     contact_num?: string;
     password: string;
-    password_?: string;
+    password_: string;
     user_id?: string;
     email?: string;
     emailVerified?: number;
@@ -28,7 +28,9 @@ export interface Report {
     description: string,
     reportID: string,
     status: string,
+    remarks: string,
     createdAt: string,
+    updatedAt: string,
 }
 
 export interface Report_ {
