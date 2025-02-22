@@ -4,7 +4,8 @@ export interface User {
     name: string;
     team: number;
     contact_num?: string;
-    password?: string;
+    password: string;
+    password_?: string;
     user_id?: string;
     email?: string;
     emailVerified?: number;

@@ -10,7 +10,7 @@ interface AddUserModalProps {
     name: string;
     team: number;
     contact_num?: string;
-    password?: string;
+    password: string;
     user_id?: string;
     email?: string;
     emailVerified?: number;
