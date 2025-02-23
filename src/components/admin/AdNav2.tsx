@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { FaSignOutAlt } from 'react-icons/fa';
 import { logout } from '@/app/lib/actions';
 import LogoutModal from '../LogoutModal';
 import PushNotifSubscribe from './PushNotifSubscribe';
@@ -40,7 +39,7 @@ export default function Navbar({ session }: SessionData)
     <nav className="bg-white border-gray-200 bg-white-900 shadow-md mb-4">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-3">
         {/* Logo */}
-        <Link href="/admin" className="flex items-center space-x-3 rtl:space-x-reverse">
+        <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
           <Image src="/tangubpnplogo.jpeg" alt="Logo" width={32} height={32} />
           <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">TCMC</span>
         </Link>
