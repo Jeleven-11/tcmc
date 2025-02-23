@@ -5,6 +5,7 @@ import UserCard from '@/components/admin/UserCard';
 import EditUserModal from '@/components/admin/EditUserModal';
 import AddUserModal from '@/components/admin/AddUserModal';
 import { User } from '@/app/lib/interfaces'
+import { Paper } from '@mui/material';
 
 export default function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
@@ -158,69 +159,67 @@ export default function UserManagement() {
 
   return (
     <>
-      <div className="bg-gray-100 dark:bg-gray-900 p-6 min-h-screen">
+      <Paper sx={{ height: 'auto', width: '100%', padding: 3, marginBottom: 2 }}>
         <header className="bg-blue-600 text-white p-4 rounded-lg shadow-md">
-          <h1 className="text-xl font-semibold">Admin Dashboard</h1>
+          <h1 className="text-xl font-semibold">Users List</h1>
         </header>
-        <main className="mt-6">
-          <section>
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">User Management</h2>
-              <button
-                onClick={handleAddUser}
-                className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                Add User
-              </button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-              {users.map((user, index) => (
-                <div key={user.user_id || user.id || `user-${index}`} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-4">
-                  <UserCard user={user} onEdit={handleEdit} onDelete={() => handleDelete(user.user_id || '')} />
-                </div>
-              ))}
-            </div>
-          </section>
-        </main>
+        <section className="mt-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-gray-800"></h2>
+            <button
+              onClick={handleAddUser}
+              className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Add User
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+            {users.map((user, index) => (
+              <div key={user.user_id || user.id || `user-${index}`} className="bg-white border dark:border-gray-200 rounded-lg shadow-sm p-4">
+                <UserCard user={user} onEdit={handleEdit} onDelete={() => handleDelete(user.user_id || '')} />
+              </div>
+            ))}
+          </div>
+        </section>
         {isEditing && currentUser && <EditUserModal user={currentUser} onClose={closeEditModal} onUpdate={(updatedUser) => {
           setUsers(users.map(user => user.id === updatedUser.id ? updatedUser : user));
           closeEditModal();
         }} />}
         {/* {isAdding && <AddUserModal onClose={closeAddUserModal} onAddUser={(newUser) => setUsers([...users, newUser])} />} */}
         {isAdding && <AddUserModal onClose={closeAddUserModal} onAddUser={handleAddUserSubmit} />}
-      </div>
 
-      {/* Master Password Modal */}
-      {isPasswordModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-          <div className="bg-white p-6 rounded-md shadow-lg">
-            <h2 className="text-xl font-bold mb-4">Master Password Required</h2>
-            <input
-              type="password"
-              className="border p-2 w-full rounded-md"
-              placeholder="Enter master password"
-              value={password}
-              required
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <div className="mt-4 flex justify-end space-x-2">
-              <button
-                className="px-4 py-2 bg-gray-300 rounded"
-                onClick={() => {
-                  setIsPasswordModalOpen(false);
-                  setPassword('');
-                  setPendingAction(null);
-                }}
-              >
-                Cancel
-              </button>
-              <button className="px-4 py-2 bg-blue-500 text-white rounded" onClick={executePendingAction}>
-                Submit
-              </button>
+        {/* Master Password Modal */}
+        {isPasswordModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+            <div className="bg-white p-6 rounded-md shadow-lg">
+              <h2 className="text-xl font-bold mb-4">Master Password Required</h2>
+              <input
+                type="password"
+                className="border p-2 w-full rounded-md"
+                placeholder="Enter master password"
+                value={password}
+                required
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <div className="mt-4 flex justify-end space-x-2">
+                <button
+                  className="px-4 py-2 bg-gray-300 rounded"
+                  onClick={() => {
+                    setIsPasswordModalOpen(false);
+                    setPassword('');
+                    setPendingAction(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button className="px-4 py-2 bg-blue-500 text-white rounded" onClick={executePendingAction}>
+                  Submit
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Paper>
     </>
   );
 }

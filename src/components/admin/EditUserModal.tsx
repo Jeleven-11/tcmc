@@ -35,7 +35,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUpdate }
 
     let updatedUser = { id: user.id, user_id: user.user_id, username, currPassword, newPassword, password, name, team, contact_num: contactNumber, email }; // Include id and name
     try {
-      const response = await fetch(`/api/updateUser`, {
+      const response = await fetch(`/api/masterLogin/updateUser`, {
         method: 'PUT', // Ensure this is PUT
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedUser),

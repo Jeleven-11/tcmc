@@ -9,6 +9,8 @@ import { FaSignOutAlt } from 'react-icons/fa';
 import { logout } from '@/app/lib/actions';
 import LogoutModal from '../LogoutModal';
 import PushNotifSubscribe from './PushNotifSubscribe';
+import { Button } from '@mui/material';
+import { AccountBox, Logout } from '@mui/icons-material';
 
 interface SessionData {
   session: {
@@ -50,7 +52,7 @@ export default function Navbar({ session }: SessionData)
           {/* User Avatar */}
           <button
             type="button"
-            className="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 focus:ring-gray-600"
+            className="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-600"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             <span className="sr-only">Open user menu</span>
@@ -64,19 +66,42 @@ export default function Navbar({ session }: SessionData)
                 <span className="block text-sm text-gray-900">{session?.name}</span>
                 <span className="block text-sm text-gray-500 truncate">{session?.email}</span>
               </div>
-              <ul className="py-2">
+              <ul className="py-2 text-gray-800">
+                {/* Profile Button */}
                 <li>
-                  <Link href="/admin/profile" className="block px-4 py-2 text-sm hover:bg-gray-100">
-                    Profile
-                  </Link>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => setIsLogoutModalOpen(true)} 
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 items-center"
+                  <Button 
+                    href="/admin/profile"
+                    component={Link}
+                    fullWidth
+                    sx={{ 
+                      justifyContent: 'flex-start', 
+                      textTransform: 'none', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                    }}
+                    className="w-full text-gray-700 text-sm hover:bg-gray-100 px-4 py-2 gap-2"
                   >
-                    <span className="flex" style={{margin: '3px'}}><FaSignOutAlt className="mr-2 mt-1" /> Sign Out</span>
-                  </button>
+                    <AccountBox className="text-gray-700 w-5 h-5" /> 
+                    <span className="whitespace-nowrap text-gray-700">Profile</span>
+                  </Button>
+                </li>
+                {/* Sign Out Button */}
+                <li>
+                  <Button 
+                    onClick={() => setIsLogoutModalOpen(true)}
+                    // component={setIsLogoutModalOpen(true)} 
+                    fullWidth
+                    sx={{ 
+                      justifyContent: 'flex-start', 
+                      textTransform: 'none', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                    }}
+                    className="w-full text-gray-700 text-sm hover:bg-gray-100 px-4 py-2 gap-2"
+                  >
+                    <Logout className="text-gray-700 w-5 h-5" />
+                    <span className="whitespace-nowrap text-gray-700">Sign Out</span>
+                  </Button>
                 </li>
               </ul>
             </div>

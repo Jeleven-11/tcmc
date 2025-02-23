@@ -232,12 +232,14 @@ export default function DataTable() {
 
       if (!response.ok)
         throw new Error("Failed to submit remark")
+
+      const res = await response.json()
+      setRemark(res.remark)
   
     } catch (error) {
       console.error(error)
     }
 
-    setRemark("")
     setRemarkModal(false)
   }
 
@@ -385,211 +387,213 @@ export default function DataTable() {
   ];
 
   return (
-    <Paper sx={{ height: 'auto', width: '100%', padding: 2 }}>
-      <h1 className="text-lg pt-3 pb-3">Admin Report Management</h1>
-      <TextField
-        label="Search Reports..."
-        variant="outlined"
-        fullWidth
-        onChange={(e) => debouncedSearch(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-      <Button
-        variant="contained"
-        color="error"
-        disabled={selectedRows.length === 0}
-        onClick={handleDeleteReports}
-        sx={{ mb: 2 }}
-      >
-        Delete Selected
-      </Button>
-      <DataGrid
-        rows={reports}
-        columns={columns}
-        loading={loading}
-        paginationMode="server"
-        rowCount={totalRows}
-        paginationModel={paginationModel}
-        onPaginationModelChange={setPaginationModel}
-        initialState={{
-          pagination: {
-            paginationModel: { pageSize: paginationModel.pageSize, page: 0 },
-          },
-          columns: {
-            columnVisibilityModel: {
-              status: true,
-              name: true,
+    <Paper sx={{ height: 'auto', width: '100%', padding: 3, marginBottom: 2 }}>
+        <header className="bg-blue-600 text-white p-4 mb-3 rounded-lg shadow-md">
+          <h1 className="text-xl font-semibold">Reports List</h1>
+        </header>
+        <TextField
+          label="Search Reports..."
+          variant="outlined"
+          fullWidth
+          onChange={(e) => debouncedSearch(e.target.value)}
+          sx={{ mb: 2 }}
+        />
+        <Button
+          variant="contained"
+          color="error"
+          disabled={selectedRows.length === 0}
+          onClick={handleDeleteReports}
+          sx={{ mb: 2 }}
+        >
+          Delete Selected
+        </Button>
+        <DataGrid
+          rows={reports}
+          columns={columns}
+          loading={loading}
+          paginationMode="server"
+          rowCount={totalRows}
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: paginationModel.pageSize, page: 0 },
             },
-          },
-        }}
-        pageSizeOptions={[10, 20, 50, 100]}
-        checkboxSelection
-        disableRowSelectionOnClick
-        sx={{ border: 0 }}
-        slots={{
-          pagination: () => (
-            <CustomPagination
-              page={paginationModel.page}
-              onPageChange={(newPage) => setPaginationModel((prev) => ({ ...prev, page: newPage }))}
-              pageSize={paginationModel.pageSize}
-              onPageSizeChange={(newSize) => setPaginationModel((prev) => ({ ...prev, pageSize: newSize }))}
-              rowCount={totalRows}
-            />
-          ),
-        }}
-        // onRowSelectionModelChange={(newSelection) => setSelectedRows(newSelection as number[])}
-        onRowSelectionModelChange={(ids) => handleRowSelection(ids as number[])}
-        rowSelectionModel={selectedRows}
-      />
+            columns: {
+              columnVisibilityModel: {
+                status: true,
+                name: true,
+              },
+            },
+          }}
+          pageSizeOptions={[10, 20, 50, 100]}
+          checkboxSelection
+          disableRowSelectionOnClick
+          sx={{ border: 0 }}
+          slots={{
+            pagination: () => (
+              <CustomPagination
+                page={paginationModel.page}
+                onPageChange={(newPage) => setPaginationModel((prev) => ({ ...prev, page: newPage }))}
+                pageSize={paginationModel.pageSize}
+                onPageSizeChange={(newSize) => setPaginationModel((prev) => ({ ...prev, pageSize: newSize }))}
+                rowCount={totalRows}
+              />
+            ),
+          }}
+          // onRowSelectionModelChange={(newSelection) => setSelectedRows(newSelection as number[])}
+          onRowSelectionModelChange={(ids) => handleRowSelection(ids as number[])}
+          rowSelectionModel={selectedRows}
+        />
 
-      {/* Modal */}
-      <Modal open={isModalOpen} onClose={handleCloseModal}>
-      <Box
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "80vw", // 80% of viewport width
-          maxHeight: "90vh", // 90% of viewport height
-          bgcolor: "background.paper",
-          boxShadow: 24,
-          p: 4,
-          borderRadius: 2,
-          overflowY: "auto", // Enables scrolling
-        }}
-      >
-          {selectedReport && (
-            <>
-              {/* Renamed from complainant to Informant/Reporting Party */}
-              {/* Complainant Details */}
-              <h2 className="text-2xl font-bold mb-3">Informant / Reporting Party Details</h2>
-              <span className="text-sm font-bold mt-6"><p className="mb-6">Report ID: {selectedReport.reportID}</p></span>
-              {/* <div className="mb-6">
-                <label className="block text-gray-700 text-sm font-bold">Status:</label>
-                <button style={{backgroundColor: (statusColors[selectedReport.status] || "gray"), fontWeight: "bold"}} className="text-white px-2 py-2 rounded-full w-auto text-sm text-center">
-                  {selectedReport.status.charAt(0).toUpperCase()  + selectedReport.status.substring(1)}
-                </button>
-              </div> */}
-              <div className="mb-6">
-                <label className="block text-gray-700 text-sm font-bold">Status:</label>
-                <button style={{backgroundColor: (statusColors[selectedReport.status] || "gray"), fontWeight: "bold"}} className="text-white px-2 py-2 rounded-full w-auto text-sm text-center">
-                  {selectedReport.status.charAt(0).toUpperCase() + selectedReport.status.substring(1)}
-                </button>
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold">Full Name:</label>
-                {selectedReport.fullName}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mb-2">
-                <div>
-                  <label className="block text-gray-700 text-sm font-bold">Age:</label>
-                  {selectedReport.age}
+        {/* Modal */}
+        <Modal open={isModalOpen} onClose={handleCloseModal}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "80vw", // 80% of viewport width
+            maxHeight: "90vh", // 90% of viewport height
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+            overflowY: "auto", // Enables scrolling
+          }}
+        >
+            {selectedReport && (
+              <>
+                {/* Renamed from complainant to Informant/Reporting Party */}
+                {/* Complainant Details */}
+                <h2 className="text-2xl font-bold mb-3">Informant / Reporting Party Details</h2>
+                <span className="text-sm font-bold mt-6"><p className="mb-6">Report ID: {selectedReport.reportID}</p></span>
+                {/* <div className="mb-6">
+                  <label className="block text-gray-700 text-sm font-bold">Status:</label>
+                  <button style={{backgroundColor: (statusColors[selectedReport.status] || "gray"), fontWeight: "bold"}} className="text-white px-2 py-2 rounded-full w-auto text-sm text-center">
+                    {selectedReport.status.charAt(0).toUpperCase()  + selectedReport.status.substring(1)}
+                  </button>
+                </div> */}
+                <div className="mb-6">
+                  <label className="block text-gray-700 text-sm font-bold">Status:</label>
+                  <button style={{backgroundColor: (statusColors[selectedReport.status] || "gray"), fontWeight: "bold"}} className="text-white px-2 py-2 rounded-full w-auto text-sm text-center">
+                    {selectedReport.status.charAt(0).toUpperCase() + selectedReport.status.substring(1)}
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-gray-700 text-sm font-bold">Sex:</label>
-                  {selectedReport.sex}
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold">Address:</label>
-                {selectedReport.address}
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold">Contact Number:</label>
-                {selectedReport.contactNumber}
-              </div>
-      
-              <div className="mb-6">
-                <label className="block text-gray-700 text-sm font-bold">Submitted Files:</label>
-                {selectedReport.isOwner === 'Yes' ? (
-                  !loadedImages[selectedReport.id] ? (
-                    <button onClick={() => loadCarousel(selectedReport.id.toString())} className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg">Load Images</button>
-                  ) : (
-                    <Swiper 
-                      navigation 
-                      pagination={{ clickable: true }} 
-                      modules={[Navigation, Pagination1]} 
-                      className="my-4"
-                    >
-                      {[selectedReport.driversLicense, selectedReport.vehicleRegistration, selectedReport.orCr]
-                        .filter(Boolean)
-                        .map((image, index) => (
-                          <SwiperSlide key={index} className="relative w-full h-64">
-                                {/* <img 
-                                  src={image} 
-                                  alt={`Document ${index + 1}`} 
-                                  className="w-auto h-auto max-w-full max-h-full object-contain rounded-lg" 
-                                  layout="responsive"
-                                /> */}
-                            <Image src={image} alt={`Document ${index + 1}`} width={500} height={256} className="w-full h-64 object-cover rounded-lg" />
-                          </SwiperSlide>
-                        ))}
-                    </Swiper>
-                  )
-                ) : 'None' }
-              </div>
-
-              {/* Vehicle Details */}
-              <h2 className="text-2xl font-bold mb-4">Vehicle Details</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-700 text-sm font-bold">Vehicle Type:</label>
-                  {selectedReport.vehicleType}
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 text-sm font-bold">Reason:</label>
-                  {selectedReport.reason}
-                </div>
-      
                 <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold">Plate Number:</label>
-                  {selectedReport.platenumber}
+                  <label className="block text-gray-700 text-sm font-bold">Full Name:</label>
+                  {selectedReport.fullName}
                 </div>
-              </div>
-      
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-gray-700 text-sm font-bold">Color:</label>
-                  {selectedReport.color}
-                </div>
-      
-                <div>
-                  <label className="block text-gray-700 text-sm font-bold">Additional Description of Vehicle:</label>
-                  {selectedReport.description}
-                </div>
-              </div>
-            </>
-          )}
-        </Box>
-      </Modal>
 
-      {/* Edit Profile Modal */}
-      {remarkModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-          <div className="bg-white p-6 rounded-md shadow-lg w-96">
-            <h2 className="text-xl font-bold mb-4">Editing Report [{selectedReport?.reportID}]</h2>
-            <h4 className="text-sm font-bold mb-4">Report by: {selectedReport?.fullName}</h4>
-            <textarea
-              className="border p-2 w-full rounded-md mb-2"
-              defaultValue={selectedReport?.remarks}
-              placeholder="Add remarks to the report, or leave notes"
-              required
-              onChange={(e) => setRemark(e.target.value)}
-            />
-            <div className="mt-4 flex justify-end space-x-2">
-              <button className="px-4 py-2 bg-gray-300 rounded" onClick={() => setRemarkModal(false)}>Cancel</button>
-              <button className="px-4 py-2 bg-green-500 text-white rounded" onClick={handleRemarkSubmit}>
-                Save
-              </button>
+                <div className="grid grid-cols-2 gap-4 mb-2">
+                  <div>
+                    <label className="block text-gray-700 text-sm font-bold">Age:</label>
+                    {selectedReport.age}
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 text-sm font-bold">Sex:</label>
+                    {selectedReport.sex}
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold">Address:</label>
+                  {selectedReport.address}
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold">Contact Number:</label>
+                  {selectedReport.contactNumber}
+                </div>
+        
+                <div className="mb-6">
+                  <label className="block text-gray-700 text-sm font-bold">Submitted Files:</label>
+                  {selectedReport.isOwner === 'Yes' ? (
+                    !loadedImages[selectedReport.id] ? (
+                      <button onClick={() => loadCarousel(selectedReport.id.toString())} className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg">Load Images</button>
+                    ) : (
+                      <Swiper 
+                        navigation 
+                        pagination={{ clickable: true }} 
+                        modules={[Navigation, Pagination1]} 
+                        className="my-4"
+                      >
+                        {[selectedReport.driversLicense, selectedReport.vehicleRegistration, selectedReport.orCr]
+                          .filter(Boolean)
+                          .map((image, index) => (
+                            <SwiperSlide key={index} className="relative w-full h-64">
+                                  {/* <img 
+                                    src={image} 
+                                    alt={`Document ${index + 1}`} 
+                                    className="w-auto h-auto max-w-full max-h-full object-contain rounded-lg" 
+                                    layout="responsive"
+                                  /> */}
+                              <Image src={image} alt={`Document ${index + 1}`} width={500} height={256} className="w-full h-64 object-cover rounded-lg" />
+                            </SwiperSlide>
+                          ))}
+                      </Swiper>
+                    )
+                  ) : 'None' }
+                </div>
+
+                {/* Vehicle Details */}
+                <h2 className="text-2xl font-bold mb-4">Vehicle Details</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-gray-700 text-sm font-bold">Vehicle Type:</label>
+                    {selectedReport.vehicleType}
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-700 text-sm font-bold">Reason:</label>
+                    {selectedReport.reason}
+                  </div>
+        
+                  <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-bold">Plate Number:</label>
+                    {selectedReport.platenumber}
+                  </div>
+                </div>
+        
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-gray-700 text-sm font-bold">Color:</label>
+                    {selectedReport.color}
+                  </div>
+        
+                  <div>
+                    <label className="block text-gray-700 text-sm font-bold">Additional Description of Vehicle:</label>
+                    {selectedReport.description}
+                  </div>
+                </div>
+              </>
+            )}
+          </Box>
+        </Modal>
+
+        {/* Edit Profile Modal */}
+        {remarkModal && (
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+            <div className="bg-white p-6 rounded-md shadow-lg w-96">
+              <h2 className="text-xl font-bold mb-4">Editing Report [{selectedReport?.reportID}]</h2>
+              <h4 className="text-sm font-bold mb-4">Report by: {selectedReport?.fullName}</h4>
+              <textarea
+                className="border p-2 w-full rounded-md mb-2"
+                defaultValue={selectedReport?.remarks}
+                placeholder="Add remarks to the report, or leave notes"
+                required
+                onChange={(e) => setRemark(e.target.value)}
+              />
+              <div className="mt-4 flex justify-end space-x-2">
+                <button className="px-4 py-2 bg-gray-300 rounded" onClick={() => setRemarkModal(false)}>Cancel</button>
+                <button className="px-4 py-2 bg-green-500 text-white rounded" onClick={handleRemarkSubmit}>
+                  Save
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
     </Paper>
   );
 }

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FiLogIn } from "react-icons/fi";
 import { Menu, X } from "lucide-react";
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
 // Mobile Navigation Component
 type MobileNavProps = {
@@ -56,7 +57,7 @@ export default function Navbar() {
       : "text-gray-800 hover:text-blue-600";
 
   return (
-    <nav className="bg-white dark:bg-gray-900 shadow-md mb-4">
+    <nav className="bg-white shadow-md mb-4">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
         {/* Logo */}
         <Link href="/" className="text-2xl font-semibold">
@@ -82,8 +83,8 @@ export default function Navbar() {
           <Link href="/report-updates" className={`text-lg ${getLinkClass("/report-updates")}`}>
             CHECK REPORT UPDATE
           </Link>
-          <Link href="/adminlogin" className="text-gray-800 dark:text-white hover:text-blue-600">
-            <FiLogIn size={25} />
+          <Link href="/adminlogin" className="text-gray-800 hover:text-blue-600">
+            <AdminPanelSettingsIcon />
           </Link>
         </div>
       </div>
