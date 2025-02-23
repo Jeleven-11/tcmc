@@ -42,7 +42,7 @@ export async function PUT(req:NextRequest, {params}: {params: {id: string}}) {
 
     try {
       
-      const [result]: [ResultSetHeader, FieldPacket[]] = await connection.query('UPDATE reports SET status = ? WHERE reportID = ?', [newStatus, id]) as [ResultSetHeader, FieldPacket[]];
+      const [result]: [ResultSetHeader, FieldPacket[]] = await connection.query('UPDATE reports SET status = ?, updatedAt = NOW() WHERE reportID = ?', [newStatus, id]) as [ResultSetHeader, FieldPacket[]];
       connection.release();
       if (result.affectedRows === 0) {
         return NextResponse.json({ error: 'Report not found' }, { status: 404 } );

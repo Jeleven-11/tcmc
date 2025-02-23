@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(res : Request)
 {
-    const { remark } = await res.json()
+    const { remark, reportID  } = await res.json()
     // if (!remark)
     //     return NextResponse.json({ error: 'Invalid remark' }, {status: 400})
 
@@ -15,7 +15,7 @@ export async function POST(res : Request)
     {
         conn = await pool.getConnection()
 
-        const [results]: [ResultSetHeader, FieldPacket[]] = await conn.query('UPDATE reports SET remarks = ?, updatedAt = NOW()', [remark]) as [ResultSetHeader, FieldPacket[]]
+        const [results]: [ResultSetHeader, FieldPacket[]] = await conn.query('UPDATE reports SET remarks = ?, updatedAt = NOW() WHERE ', [remark, reportID]) as [ResultSetHeader, FieldPacket[]]
         if (results.affectedRows === 0)
             return NextResponse.json({ error: 'Failed to update report' }, {status: 500})
 

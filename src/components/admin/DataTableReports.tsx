@@ -221,13 +221,14 @@ export default function DataTable() {
   {
     try
     {
+      const reportID = selectedReport?.reportID || 0
       const response = await fetch("/api/reports/updateReport",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ remark }),
+        body: JSON.stringify({ remark, reportID }),
       })
 
       if (!response.ok)
