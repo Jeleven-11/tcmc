@@ -15,7 +15,7 @@ export async function POST(res : Request)
     {
         conn = await pool.getConnection()
 
-        const [results]: [ResultSetHeader, FieldPacket[]] = await conn.query('UPDATE reports SET remarks = ?, updatedAt = NOW() WHERE ', [remark, reportID]) as [ResultSetHeader, FieldPacket[]]
+        const [results]: [ResultSetHeader, FieldPacket[]] = await conn.query('UPDATE reports SET remarks = ?, updatedAt = NOW() WHERE reportID = ?', [remark, reportID]) as [ResultSetHeader, FieldPacket[]]
         if (results.affectedRows === 0)
             return NextResponse.json({ error: 'Failed to update report' }, {status: 500})
 

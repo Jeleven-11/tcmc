@@ -236,7 +236,7 @@ export default function DataTable() {
 
       const res = await response.json()
       setRemark(res.remark)
-  
+      fetchReports(true)
     } catch (error) {
       console.error(error)
     }
