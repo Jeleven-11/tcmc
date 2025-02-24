@@ -39,7 +39,7 @@ export default function Navbar({ session }: SessionData)
     <nav className="bg-white border-gray-200 bg-white-900 shadow-md mb-4">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-3">
         {/* Logo */}
-        <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
+        <Link href="/admin" className="flex items-center space-x-3 rtl:space-x-reverse">
           <Image src="/tangubpnplogo.jpeg" alt="Logo" width={32} height={32} />
           <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">TCMC</span>
         </Link>
