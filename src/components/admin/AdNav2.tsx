@@ -9,7 +9,8 @@ import { logout } from '@/app/lib/actions';
 import LogoutModal from '../LogoutModal';
 import PushNotifSubscribe from './PushNotifSubscribe';
 import { Button } from '@mui/material';
-import { AccountBox, Logout } from '@mui/icons-material';
+import { AccountBox, Logout, Update } from '@mui/icons-material';
+
 
 interface SessionData {
   session: {
@@ -82,6 +83,24 @@ export default function Navbar({ session }: SessionData)
                   >
                     <AccountBox className="text-gray-700 w-5 h-5" /> 
                     <span className="whitespace-nowrap text-gray-700">Profile</span>
+                  </Button>
+                </li>
+                {/* Homepage editor */}
+                <li>
+                  <Button 
+                    href="/admin/homepage-editor"
+                    component={Link}
+                    fullWidth
+                    sx={{ 
+                      justifyContent: 'flex-start', 
+                      textTransform: 'none', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                    }}
+                    className="w-full text-gray-700 text-sm hover:bg-gray-100 px-4 py-2 gap-2"
+                  >
+                    <Update className="text-gray-700 w-5 h-5" /> 
+                    <span className="whitespace-nowrap text-gray-700">Home Page Editor</span>
                   </Button>
                 </li>
                 {/* Sign Out Button */}
