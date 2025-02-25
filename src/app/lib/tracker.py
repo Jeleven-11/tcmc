@@ -24,7 +24,7 @@ class CentroidTracker:
         #       detections (list): List of bounding boxes (x1, y1, x2, y2).
         #
         #   Returns:
-        #       dict: Updated dictionary of tracked objects.
+        #       dict: Updated dictionary of tracked objects with bounding boxes and centroids.
         ###
         
         if len(detections) == 0:
@@ -35,11 +35,11 @@ class CentroidTracker:
         centroids = np.array([[(x1 + x2)/2, (y1 + y2)/2] for (x1, y1, x2, y2) in detections])
         
         if len(self.objects) == 0:
-            for centroid in centroids:
-                self._add_object(centroid)
+            for bbox, centroid in zip(detections, centroids):
+                self._add_object(bbox, centroid)
         else:
             object_ids = list(self.objects.keys())
-            object_centroids = list(self.objects.values())
+            object_centroids = [data[1] for data in self.objects.values()]#list(self.objects.values())
             
             # Calculate pairwise distances
             distance_matrix = np.linalg.norm(object_centroids - centroids[:, np.newaxis], axis=2)
@@ -53,28 +53,29 @@ class CentroidTracker:
                     continue
                 
                 object_id = object_ids[col]
-                self.objects[object_id] = centroids[row]
+                self.objects[object_id] = (detections[row], centroids[row])
                 self.disappeared[object_id] = 0
                 matched.add(row)
             
             # Handle unmatched existing objects
             unmatched = set(range(len(centroids))).difference(matched)
             for row in unmatched:
-                self._add_object(centroids[row])
+                self._add_object(detections[row], centroids[row])
             
             # Handle disappeared objects
             self._update_disappeared()
             
         return self.objects
 
-    def _add_object(self, centroid):
+    def _add_object(self, bbox, centroid):
         ###
         #   Adds a new object to the tracker.
         #
         #   Args:
+        #       bbox (tuple): The bounding box of the new object.
         #       centroid (tuple): The centroid of the new object.
         ###
-        self.objects[self.next_id] = centroid
+        self.objects[self.next_id] = (bbox, centroid)
         self.disappeared[self.next_id] = 0
         self.next_id += 1
 

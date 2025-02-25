@@ -1,41 +1,14 @@
-// import { stat } from 'fs';
-// import { FieldPacket } from 'mysql2';
-import pool  from '../../../lib/db'; // Adjust this path as needed
-// import { NextApiRequest, NextApiResponse } from 'next';
+import pool  from '../../../lib/db'; 
 import { NextRequest, NextResponse } from 'next/server';
 import { FieldPacket, ResultSetHeader } from 'mysql2';
-
-// interface Report {
-//     fullName: string;
-//     age: number;
-//     sex: string;
-//     address: string;
-//     contactNumber: string;
-//     isOwner: string;
-//     driversLicense: string;
-//     vehicleRegistration: string;
-//     orCr: string;
-//     reason: string;
-//     vehicleType: string;
-//     platenumber: string;
-//     color: string;
-//     description: string;
-//     reportID: string;
-//     status: string;
-//     createdAt: string;
-//   }
 
 
 
 export async function PUT(req:NextRequest, {params}: {params: {id: string}}) {
   
-  // const id = req.query.id;
-  // const { id } = await req.json(); // how do i get the id i have in the url api/reports/[id]
   const { id } = params
   const body = await req.json()
   const newStatus =  body.status
-  console.log(`newStatus: ${newStatus}`)
-  console.log(`id: ${id}`)
   const connection = await pool.getConnection();
   if (req.method === 'PUT') {
     // const { status } = await req.json();

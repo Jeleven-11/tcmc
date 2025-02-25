@@ -208,28 +208,24 @@ async def cleanup_peer_connection(peer_id, peer_connections):
     print(f"peer is not found: {peer_id}")
     return
 def get_car(license_plate, track_ids):
+    print(f"License inside: {license_plate}")#License inside: (647, 323, 710, 349, 88, 0)
+    print(f"Track IDs: {track_ids}")#Track IDs
     x1, y1, x2, y2, score, class_id = license_plate
     foundIt = False
-    for j in range(len(track_ids)):
-        xcar1, ycar1, xcar2, ycar2, car_id = track_ids[j]
+    car_indx = -1
+    for car_id, (bbox, centroid) in track_ids.items():
+        xcar1, ycar1, xcar2, ycar2 = bbox # should this be track_ids[0][j] to get the bounding box?
         if x1 > xcar1 and x2 < xcar2 and y1 > ycar1 and y2 < ycar2:
-            car_indx = j
+            car_indx = car_id
             foundIt = True
             break
     if foundIt:
-        return track_ids[car_indx]
+        print("Found it")
+        return xcar1, ycar1, xcar2, ycar2, car_indx
     return -1, -1, -1, -1, -1
 # def format_license(license_plate_text):
 
-def read_license_plate(license_plate_cropped):
-    detections = reader.readtext(license_plate_cropped)
-    for detection in detections:
-        bbox, text, score = detection
-        text = text.upper().replace(" ", "")
-        if len(text) == 7:
-            # return format_license(text), score
-            return text, score
-    return None, None
+
 
 
 class WebRTCConnection():
@@ -243,11 +239,12 @@ class WebRTCConnection():
         self.stream = None
         self.relayed_stream = None
         self.isRecording = True
-        self.isAI_On = False
+        self.isAI_On = True
         self.connection_attempts_max = 6
         self.connection_attempts_count = 0
         self.iceServers = GetStunServers().iceServers
         self.videosToBeUploaded = []
+        self.licensePlatesToBeUploaded = {}
         
         self.rtc_config = RTCConfiguration(self.iceServers)
             # iceServers=[
@@ -296,8 +293,10 @@ class WebRTCConnection():
             self.workers = 0 if os.name == 'nt' else 4 
             # --- Camera Setup ---
             output_folder = os.path.join(os.getcwd(), "Recordings")
-            self.width = 960
-            self.height = 540
+            self.width = 1280#960
+            self.height = 720#540
+            # frame_width = 1280#640#480#640#1280#1920
+            # frame_height = 720#360#270#360#720#1080
             # Create the output folder if it doesn't exist
             if not os.path.exists(output_folder):
                 os.makedirs(output_folder)
@@ -311,6 +310,14 @@ class WebRTCConnection():
             self.fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for .mp4
             self.out = cv2.VideoWriter(self.video_output, self.fourcc, 30, (640, 480))
             self.temp_file = 'temp.raw'
+
+
+            # TEMPORARY FOR TESTING
+            self.temp_video_src = 'video4.mp4'
+            self.video_capture = cv2.VideoCapture(self.temp_video_src)
+            self.resized_frame = None
+            
+            
             # Define the FFmpeg command
             self.command = [
                 "ffmpeg",
@@ -326,7 +333,8 @@ class WebRTCConnection():
                 self.video_output
             ]
             self.results = {}
-            self.google_drive_folder_id='1jfdeg-r2M8eaxiqIVyGiy9dfYD4eN8b6'
+            self.google_drive_videos_folder_id='1jfdeg-r2M8eaxiqIVyGiy9dfYD4eN8b6'
+            self.google_drive_images_folder_id='14y2Arew7POKwhPLVRuqLaW4jBG0rAuYg'
             self.video_uploader = MyGoogleApi()
             atexit.register(self.cleanup)
             self.initializeCamera()
@@ -337,6 +345,7 @@ class WebRTCConnection():
             self.motion_tracker = CentroidTracker()#Sort()#(max_age=20, min_hits=3, iou_threshold=0.3)
             self.license_plate_detector = InferenceHTTPClient(api_url="https://detect.roboflow.com", api_key="xi02obPcBC9MZU7iWSiz")#setup_model()
             self.plate_detector_model_id = "licenseplate-7tpdn/2"
+            self.reader = easyocr.Reader(['en'], gpu=False)
             # start the pipeline
             # self.pipeline.start()
             self.raspberry_pi_id = get_cpu_serial()
@@ -377,12 +386,55 @@ class WebRTCConnection():
                 # else:
                 #     self.saver_task_manager.resume_task()
                 await self.save_video(self.frames_to_save)
-
-        def process_prediction(self, result, frame):
+        def read_license_plate(self, license_plate_cropped):
+            detections = self.reader.readtext(license_plate_cropped)
+            for detection in detections:
+                bbox, text, score = detection
+                text = text.upper().replace(" ", "")
+                if len(text) == 7:
+                    # return format_license(text), score
+                    return text, score
+            return None, None
+        async def save_license_plate_image(self, frame, x1_, y1_, x2_, y2_, car_id, image_name_prefix="license_plate"):
+            # Crop the license plate from the frame
+            license_plate_cropped = frame[int(y1_):int(y2_), int(x1_):int(x2_), :]
+            
+            # Convert the cropped image to grayscale
+            license_plate_cropped_gray = cv2.cvtColor(license_plate_cropped, cv2.COLOR_BGR2GRAY)
+            
+            # Apply thresholding
+            _, license_plate_cropped_thresh = cv2.threshold(license_plate_cropped_gray, 140, 255, cv2.THRESH_BINARY_INV)
+            
+            # Define the directory to save images
+            output_dir = "license_plate_images"
+            os.makedirs(output_dir, exist_ok=True)
+            
+            # Define the file path
+            file_name = f"license_crop_{x1_}_{y1_}.png"
+            license_crop = os.path.join(output_dir, file_name)
+            # license_crop_gray = os.path.join(output_dir, f"license_crop_gray_{x1_}_{y1_}.png")
+            # image_path = os.path.join(output_dir, f"{image_name_prefix}_{x1_}_{y1_}.png")
+            
+            # Save the thresholded image
+            cv2.imwrite(license_crop, license_plate_cropped)
+            if car_id not in self.parent.licensePlatesToBeUploaded:
+                self.parent.licensePlatesToBeUploaded[car_id] = file_name
+            
+            if len(self.parent.licensePlatesToBeUploaded) > 20:
+                print("Will start to upload license plate files to drive...")
+                await self.upload_license_plates_image_files()
+            
+            # cv2.imwrite(license_crop_gray, license_plate_cropped_gray)
+            # cv2.imwrite(image_path, license_plate_cropped_thresh)
+            # print(f"Saved license plate image to {image_path}")
+            return license_plate_cropped_thresh
+        async def process_prediction(self, result, frame):
             # return None for this variables if code doesn't reach the part where they are set
-            score, license_plate_text_confidence, license_plate_text = None
+            score = None
+            license_plate_text_confidence = None
+            license_plate_text = None
             # Print the result structure
-            print("Result structure:", result)
+            # print("Result structure22:", result)
 
             # Process the result (draw bounding boxes) of vehicles
             if isinstance(result, list) and len(result) > 0:
@@ -420,49 +472,53 @@ class WebRTCConnection():
             track_ids = self.motion_tracker.update(detections_)
             
             license_plates_predictions = self.license_plate_detector.infer(frame, model_id = self.plate_detector_model_id)
-               
-            if isinstance(license_plates_predictions, list) and len(license_plates_predictions) > 0:
-                predictions_ = license_plates_predictions[0].get('predictions', [])
-            elif isinstance(result, dict):
-                predictions_ = license_plates_predictions.get('predictions', [])
-            else:
-                predictions_ = []
-            for license_plate in predictions_:
-                # Extract bounding box coordinates
-                x1_ = int(license_plate['x'] - license_plate['width'] / 2)
-                y1_ = int(license_plate['y'] - license_plate['height'] / 2)
-                x2_ = int(license_plate['x'] + license_plate['width'] / 2)
-                y2_ = int(license_plate['y'] + license_plate['height'] / 2)
-                score_ = int(license_plate['confidence'] * 100)
-                class_id_ = int(license_plate['class_id'])
+            if 'predictions' in license_plates_predictions and license_plates_predictions['predictions']:
+                if isinstance(license_plates_predictions, list) and len(license_plates_predictions) > 0:
+                    predictions_ = license_plates_predictions[0].get('predictions', [])
+                elif isinstance(result, dict):
+                    predictions_ = license_plates_predictions.get('predictions', [])
+                else:
+                    predictions_ = []
+                for license_plate in predictions_:
+                    # Extract bounding box coordinates
+                    x1_ = int(license_plate['x'] - license_plate['width'] / 2)
+                    y1_ = int(license_plate['y'] - license_plate['height'] / 2)
+                    x2_ = int(license_plate['x'] + license_plate['width'] / 2)
+                    y2_ = int(license_plate['y'] + license_plate['height'] / 2)
+                    score_ = int(license_plate['confidence'] * 100)
+                    class_id_ = int(license_plate['class_id'])
+                    print(f"License plate prediction: {license_plate}")
 
-                x1_car, x2_car, y1_car, y2_car, car_id = get_car((x1_, y1_, x2_, y2_, score_, class_id_), track_ids)
-                if car_id != -1:
-
-                    license_plate_cropped = frame[int(y1_):int(y2_), int(x1_):int(x2_), :]
-                    license_plate_cropped_gray= cv2.cvtColor(license_plate_cropped, cv2.COLOR_BGR2GRAY)
-                    _, license_plate_cropped_thresh = cv2.threshold(license_plate_cropped_gray, 64, 255, cv2.THRESH_BINARY_INV)
-                    license_plate_text, license_plate_text_confidence = read_license_plate(license_plate_cropped_thresh)
-                    if license_plate_text is not None:
-                        self.results[self.frame_count][car_id] = {
-                            'car': {'bbox': [x1_car, y1_car, x2_car, y2_car]},
-                            'license_plate': {'bbox': [x1_, y1_, x2_, y2_],
-                                            'text': license_plate_text,
-                                            'confidence': score_,
-                                            'text_score': license_plate_text_confidence}
-                        }
+                    x1_car, x2_car, y1_car, y2_car, car_id = get_car((x1_, y1_, x2_, y2_, score_, class_id_), track_ids)
+                    if car_id != -1:
+                        # license_plate_cropped = frame[int(y1_):int(y2_), int(x1_):int(x2_), :]
+                        # license_plate_cropped_gray= cv2.cvtColor(license_plate_cropped, cv2.COLOR_BGR2GRAY)
+                        # _, license_plate_cropped_thresh = cv2.threshold(license_plate_cropped_gray, 140, 255, cv2.THRESH_BINARY_INV)
+                        license_plate_cropped_thresh = await self.save_license_plate_image(frame, x1_, y1_, x2_, y2_, car_id)
+                        license_plate_text, license_plate_text_confidence = self.read_license_plate(license_plate_cropped_thresh)
+                        print(f"License plate text: {license_plate_text}")
+                        print(f"License plate text confidence: {license_plate_text_confidence}")
+                        if license_plate_text is not None:
+                            self.results[self.frame_count][car_id] = {
+                                'car': {'bbox': [x1_car, y1_car, x2_car, y2_car]},
+                                'license_plate': {'bbox': [x1_, y1_, x2_, y2_],
+                                                'text': license_plate_text,
+                                                'confidence': score_,
+                                                'text_score': license_plate_text_confidence}
+                            }
                         
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                
-                # # Prepare label text
-                #     label_license = f"{prediction['class']} {prediction['confidence']:.2f}"
+                        
+                        cv2.rectangle(frame, (x1_, y1_), (x2_, y2_), (255, 0, 0), 2)
                     
-                    # Draw label background
-                    (label_width_, label_height_), _ = cv2.getTextSize(license_plate_text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
-                    cv2.rectangle(frame, (x1_, y1_ - label_height_ - 10), (x1_ + label_width_, y1_), (0, 255, 0), -1)
-                    
-                    # Draw label text
-                    cv2.putText(frame, license_plate_text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+                    # # Prepare label text
+                    #     label_license = f"{prediction['class']} {prediction['confidence']:.2f}"
+                        
+                        # Draw label background
+                        (label_width_, label_height_), _ = cv2.getTextSize(license_plate_text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+                        cv2.rectangle(frame, (x1_, y1_ - label_height_ - 10), (x1_ + label_width_, y1_), (0, 255, 0), -1)
+                        
+                        # Draw label text
+                        cv2.putText(frame, license_plate_text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
 
             return frame, score, license_plate_text_confidence, license_plate_text
 
@@ -512,6 +568,14 @@ class WebRTCConnection():
             except Exception as e:
                 print(f"Error during Plate Detection Model cleanup: {e}")
 
+            try:
+                if hasattr(self,'video_capture') and self.video_capture is not None:
+                    print("Releasing video capture resources")
+                    self.video_capture.release()
+                    self.video_capture = None
+            except Exception as e:
+
+                print(f"Error during Video Capture cleanup: {e}")
             # self.save_task.cancel()
             print("Camera cleanup complete")
 
@@ -592,7 +656,7 @@ class WebRTCConnection():
             print("before command")
             width = str(self.width)
             height = str(self.height)
-            vid_rate = str(self.frame_rate)
+            vid_rate = str(self.frame_rate + 5) 
             self.command = [
                 "ffmpeg",
                 "-y",
@@ -623,11 +687,11 @@ class WebRTCConnection():
             self.parent.videosToBeUploaded.append(self.video_name)
             print("Video saved. Buffer cleared.")
             
-            if len(self.parent.videosToBeUploaded) > 10:
+            if len(self.parent.videosToBeUploaded) > 0:
                 print("Will start to upload files to drive...")
-                await self.upload_files()
+                await self.upload_video_files()
             
-            # fileID = self.video_uploader.upload("Recordings", self.video_name, 'video/mp4', self.google_drive_folder_id)
+            # fileID = self.video_uploader.upload("Recordings", self.video_name, 'video/mp4', self.google_drive_videos_folder_id)
             self.isSavingVideo = False
             await self.parent.webRTCChannel.publish("WebRTC-client-register", {
                     "role": "Raspberry Pi",
@@ -639,83 +703,107 @@ class WebRTCConnection():
             # self.saver_task_manager.pause_task()
             # await asyncio.sleep(5)
             # Update the video output file name and the command
-        async def upload_files(self):
+        async def upload_video_files(self):
             self.isUploading = True
             for video_name in self.parent.videosToBeUploaded:
                 #how to access the video_name I appended to self.parent.videosToBeUploaded so that it can be passed to the video_uploader.upload, is it the i in the for loop
-                fileID = self.video_uploader.upload("Recordings", video_name, 'video/mp4', self.google_drive_folder_id)
+                fileID = self.video_uploader.upload("Recordings", video_name, 'video/mp4', self.google_drive_videos_folder_id)
                 await self.parent.webRTCChannel.publish("WebRTC-client-register", {
                     "role": "Raspberry Pi",
                     "sessionID": self.raspberry_pi_id,
-                    "message": "Saved uploaded as " + video_name,
+                    "message": "Saved uploaded video as " + video_name,
                     "fileID": fileID
                     })
             self.parent.videosToBeUploaded.clear()
             self.isUploading = False
+
+        async def upload_license_plates_image_files(self):
+            self.isUploading = True
+            for car_id, file_name in self.parent.licensePlatesToBeUploaded:
+                #how to access the video_name I appended to self.parent.videosToBeUploaded so that it can be passed to the video_uploader.upload, is it the i in the for loop
+                fileID = self.video_uploader.upload("license_plate_images", file_name, 'image/png', self.google_drive_images_folder_id)
+                await self.parent.webRTCChannel.publish("WebRTC-client-register", {
+                    "role": "Raspberry Pi",
+                    "sessionID": self.raspberry_pi_id,
+                    "message": "Saved uploaded image as " + file_name,
+                    "fileID": fileID
+                    })
+            self.parent.licensePlatesToBeUploaded.clear()
+            # self.isUploading = False
 
             
         async def recv(self):
             # global camera
             global now_live
             try:
-                # frame = camera.capture_array()
-                frame = self.camera.capture_array() # A Picamera2
-                self.frame_count += 1
                 
-                if frame.shape[2] == 4:
-                    frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
-                if self.frame_count % 3 != 0: # skip frames (This is OPTIONAL and can be removed)
+                if self.video_capture and self.video_capture.isOpened():
+                    ret, temp_frame = self.video_capture.read()
+                    if not ret:
+                        print("End of video file")
+                        exit()
+                    frame = cv2.resize(temp_frame, (self.width, self.height))
+                    # frame = camera.capture_array()
+                    # frame = self.resized_frame
+                # frame = self.camera.capture_array() # A Picamera2
+                    self.frame_count += 1
+                    
+                    if frame.shape[2] == 4:
+                        frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
+                    if self.frame_count % 30 != 0: # skip frames (This is OPTIONAL and can be removed)
+                        if self.parent.isRecording and not self.isBufferFull:
+                            await self.add_frame(frame)
+                        video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
+                        video_frame.pts, video_frame.time_base = await self.next_timestamp()
+                        return video_frame
+                    if self.parent.isAI_On:
+                        result = self.inference_client.infer(frame, model_id = self.model_id)#self.license_plate_detector
+                        print(f"Result structure: {result}")
+                        print(f"Result prediction structure: {result['predictions']}")
+                    #Result structure: {'inference_id': '12881a4a-44e5-4643-9214-09f4a5d397ac', 'time': 0.03681961399888678, 'image': {'width': 1280, 'height': 720}, 'predictions': []}
+                        if 'predictions' in result and result['predictions']:#check if predictions is not empty []
+                            
+                            vehicles_frame, score, license_plate_text_confidence, license_plate_text  = await self.process_prediction(result, frame)
+                            data_payload = {
+                                "Car Confidence": score,
+                                "License Plate Text Confidence": license_plate_text_confidence,
+                                "License Plate Text":license_plate_text
+                            }
+                            await self.parent.webRTCChannel.publish("WebRTC-client-register", {
+                                    "role": "Raspberry Pi",
+                                    "sessionID": self.raspberry_pi_id,
+                                    "type": "Data",
+                                    "data": data_payload})
+                            frame = vehicles_frame
+
                     if self.parent.isRecording and not self.isBufferFull:
                         await self.add_frame(frame)
-                    video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
-                    video_frame.pts, video_frame.time_base = await self.next_timestamp()
-                    return video_frame
-                if self.parent.isAI_On:
-                    result = self.inference_client.infer(frame, model_id = self.model_id)#self.license_plate_detector
-                #Result structure: {'inference_id': '12881a4a-44e5-4643-9214-09f4a5d397ac', 'time': 0.03681961399888678, 'image': {'width': 1280, 'height': 720}, 'predictions': []}
-                    if 'predictions' in result and result['predictions']:#check if predictions is not empty []
-                        
-                        vehicles_frame, score, license_plate_text_confidence, license_plate_text  = self.process_prediction(result, frame)
-                        data_payload = {
-                            "Car Confidence": score,
-                            "License Plate Text Confidence": license_plate_text_confidence,
-                            "License Plate Text":license_plate_text
-                        }
-                        await self.parent.webRTCChannel.publish("WebRTC-client-register", {
+                    
+
+                    if self.frame_count % 30 == 0:
+                        elapsed_time = time.time() - self.start_time
+                        if elapsed_time > 0:
+                            fps = 30 / elapsed_time
+                            if not self.isUploading:
+                                if int(fps)>1:
+                                    self.frame_rate = int(fps)
+                                self.frame_buffer_size =  1 * 29 * self.frame_rate + 15
+                            print(f"\rCurrent FPS: {int(fps):.2f}")
+                            await self.parent.webRTCChannel.publish("WebRTC-client-register", {
                                 "role": "Raspberry Pi",
                                 "sessionID": self.raspberry_pi_id,
-                                "type": "Data",
-                                "data": data_payload})
-                        frame = vehicles_frame
-
-                if self.parent.isRecording and not self.isBufferFull:
-                    await self.add_frame(frame)
+                                "type": "FPS",
+                                "data": fps})
+                            self.start_time = time.time()  # Reset timer
+                            
+                            now_live = True
                 
+                    if self.frame_count >= 600000:
+                        self.frame_count = 1 #Reset number
 
-                if self.frame_count % 30 == 0:
-                    elapsed_time = time.time() - self.start_time
-                    if elapsed_time > 0:
-                        fps = 30 / elapsed_time
-                        if not self.isUploading:
-                            if int(fps)>1:
-                                self.frame_rate = int(fps)
-                            self.frame_buffer_size =  1 * 29 * self.frame_rate + 15
-                        print(f"\rCurrent FPS: {int(fps):.2f}")
-                        await self.parent.webRTCChannel.publish("WebRTC-client-register", {
-                            "role": "Raspberry Pi",
-                            "sessionID": self.raspberry_pi_id,
-                            "type": "FPS",
-                            "data": fps})
-                        self.start_time = time.time()  # Reset timer
-                        
-                        now_live = True
-            
-                if self.frame_count >= 600000:
-                    self.frame_count = 1 #Reset number
-
-                # Temporarily preview vehicle detection
-                video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
-                video_frame.pts, video_frame.time_base = await self.next_timestamp()
+                    # Temporarily preview vehicle detection
+                    video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
+                    video_frame.pts, video_frame.time_base = await self.next_timestamp()
 
                 return video_frame
             except Exception as e:
