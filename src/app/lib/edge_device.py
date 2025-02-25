@@ -736,7 +736,6 @@ class WebRTCConnection():
             # global camera
             global now_live
             try:
-                
                 if self.video_capture and self.video_capture.isOpened():
                     ret, temp_frame = self.video_capture.read()
                     if not ret:
