@@ -16,7 +16,7 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: 'reportID and status are required' }, {status: 400});
       }
 
-      const query = `UPDATE reports SET status = ? WHERE reportID = ?`;
+      const query = `UPDATE reports SET status = ?, updatedAt = NOW() WHERE reportID = ?`;
       const values = [status, reportID];
       // Get connection to the database pool
       const connection = await pool.getConnection();

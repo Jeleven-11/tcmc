@@ -1,7 +1,8 @@
-import pool from '../../lib/db'; // Adjust this path as needed
+import pool from '../../../lib/db'; // Adjust this path as needed
 import bcrypt from 'bcryptjs';
 import { NextRequest, NextResponse } from 'next/server';
 import { ResultSetHeader, FieldPacket } from 'mysql2';
+
 interface UpdateUserRequestBody {
     username: string;
     currPassword: string;

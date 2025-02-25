@@ -16,6 +16,7 @@ import LGYearly from "@/components/charts/LGYearly";
 import ReportDoughnutChart from "@/components/charts/ReportDonut";
 import ReportModal from "@/components/ReportCardModals";
 import axios from "axios";
+import { Paper } from "@mui/material";
 
 export const dynamic = "force-dynamic";
 
@@ -123,72 +124,74 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="bg-gray-100 min-h-screen p-6">
-      <header className="bg-blue-600 text-white p-4 rounded mb-6">
-        <h1 className="text-2xl font-bold">DASHBOARD</h1>
-      </header>
+    <Paper sx={{ height: 'auto', width: '100%', padding: 3, marginBottom: 2 }}>
+      <div className="min-h-screen">
+        <header className="bg-blue-600 text-white p-4 mb-3 rounded-lg shadow-md">
+          <h1 className="text-xl font-semibold">DASHBOARD</h1>
+        </header>
 
-      {/* Report Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
-        {cards.map((card, index) => (
-          <motion.div
-            key={index}
-            whileTap={card.label !== "Passing Vehicles" ? { scale: 0.95 } : {}}
-            whileHover={card.label !== "Passing Vehicles" ? { scale: 1.05 } : {}}
-            className={`p-4 rounded shadow-md flex items-center justify-center min-h-[8rem] 
-              bg-${card.color}-50 ${card.label !== "Passing Vehicles" ? "cursor-pointer" : ""}`}
-            onClick={() => fetchReports(card.label)}
-          >
-            <div className="mr-4">{card.icon}</div>
-            <div className="flex flex-col items-center">
-              <h2 className={`text-2xl sm:text-3xl font-semibold text-${card.color}-600`}>
-                {card.value}
-              </h2>
-              <p className="text-lg sm:text-xl text-gray-500">{card.label}</p>
+        {/* Report Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
+          {cards.map((card, index) => (
+            <motion.div
+              key={index}
+              whileTap={card.label !== "Passing Vehicles" ? { scale: 0.95 } : {}}
+              whileHover={card.label !== "Passing Vehicles" ? { scale: 1.05 } : {}}
+              className={`p-4 rounded shadow-md flex items-center justify-center min-h-[8rem] 
+                bg-${card.color}-50 ${card.label !== "Passing Vehicles" ? "cursor-pointer" : ""}`}
+              onClick={() => fetchReports(card.label)}
+            >
+              <div className="mr-4">{card.icon}</div>
+              <div className="flex flex-col items-center">
+                <h2 className={`text-2xl sm:text-3xl font-semibold text-${card.color}-600`}>
+                  {card.value}
+                </h2>
+                <p className="text-lg sm:text-xl text-gray-500">{card.label}</p>
+              </div>
+            </motion.div>
+          ))}
+          <LoggedVehicles />
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+          {[
+            { title: "Daily Reports", Component: LGDaily },
+            { title: "Weekly Reports", Component: LGWeekly },
+            { title: "Monthly Reports", Component: LGMonthly },
+            { title: "Yearly Reports", Component: LGYearly },
+          ].map((chart, index) => (
+            <div key={index} className="bg-white p-4 rounded shadow-md">
+              <h2 className="text-lg sm:text-xl font-semibold mb-4">{chart.title}</h2>
+              <chart.Component />
             </div>
-          </motion.div>
-        ))}
-        <LoggedVehicles />
-      </div>
+          ))}
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-        {[
-          { title: "Daily Reports", Component: LGDaily },
-          { title: "Weekly Reports", Component: LGWeekly },
-          { title: "Monthly Reports", Component: LGMonthly },
-          { title: "Yearly Reports", Component: LGYearly },
-        ].map((chart, index) => (
-          <div key={index} className="bg-white p-4 rounded shadow-md">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4">{chart.title}</h2>
-            <chart.Component />
-          </div>
-        ))}
-
-        {/* Report Breakdown Chart */}
-        <div className="col-span-1 md:col-span-2 flex justify-center bg-white p-4 rounded shadow-md">
-          <div className="w-full max-w-md md:max-w-lg">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4 text-center">
-              Report Breakdown
-            </h2>
-            <ReportDoughnutChart />
+          {/* Report Breakdown Chart */}
+          <div className="col-span-1 md:col-span-2 flex justify-center bg-white p-4 rounded shadow-md">
+            <div className="w-full max-w-md md:max-w-lg">
+              <h2 className="text-lg sm:text-xl font-semibold mb-4 text-center">
+                Report Breakdown
+              </h2>
+              <ReportDoughnutChart />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Report Modal */}
-      {loading ? (
-        <p className="text-center text-gray-500">Loading reports...</p>
-      ) : (
-        <ReportModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          reports={reports}
-          category={selectedCategory}
-          refreshReports={fetchReportCounts}
-        />
-      )}
-    </div>
+        {/* Report Modal */}
+        {loading ? (
+          <p className="text-center text-gray-500">Loading reports...</p>
+        ) : (
+          <ReportModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            reports={reports}
+            category={selectedCategory}
+            refreshReports={fetchReportCounts}
+          />
+        )}
+      </div>
+    </Paper>
   );
 };
 

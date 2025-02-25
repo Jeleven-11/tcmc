@@ -25,6 +25,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, onAddUser }) => {
     team: 0,
     contact_num: '',
     password: '',
+    password_: '',
     email: '',
     emailVerified: 0,
     fcmToken: ''

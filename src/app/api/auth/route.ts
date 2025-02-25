@@ -2,7 +2,7 @@
 // import NextAuth from 'next-auth';
 // import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-import { query } from '../../src/app/lib/db';
+import { query } from '../../lib/db';
 import { FieldPacket } from 'mysql2'; 
 import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';

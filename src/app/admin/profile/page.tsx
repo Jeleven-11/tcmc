@@ -3,6 +3,7 @@
 import { UserCircleIcon } from '@heroicons/react/24/outline';
 import { getSession } from '@/app/lib/actions';
 import { useState, useEffect } from 'react';
+import { Paper } from '@mui/material';
 
 type SessionData =
 {
@@ -118,7 +119,11 @@ export default function Profile()
 
   return (
     <>
-      <div className="flex flex-col items-center p-8 bg-blue-50 min-h-screen">
+    <Paper sx={{ height: 'auto', width: '100%', padding: 3, marginBottom: 2 }}>
+        <header className="bg-blue-600 text-white p-4 mb-3 rounded-lg shadow-md">
+          <h1 className="text-xl font-semibold">Manage Profile</h1>
+        </header>
+      <div className="flex flex-col items-center p-8 bg-blue-50">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full text-center">
           <div className="mb-6 flex justify-center">
             <UserCircleIcon className="w-20 h-20 text-gray-300" />
@@ -148,7 +153,7 @@ export default function Profile()
       {isPasswordModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
           <div className="bg-white p-6 rounded-md shadow-lg">
-            <h2 className="text-xl font-bold mb-4">Require&apos;s Master Password</h2>
+            <h2 className="text-xl font-bold mb-4">Master Password Required</h2>
             <input
               type="password"
               className="border p-2 w-full rounded-md"
@@ -212,6 +217,7 @@ export default function Profile()
           </div>
         </div>
       )}
+      </Paper>
     </>
   )
 }
