@@ -8,7 +8,7 @@ import Image from 'next/image';
 
 export default function Adminlogin() {
   const [username, setUsername] = useState('');
-  const [password_, setPassword] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
@@ -26,7 +26,7 @@ export default function Adminlogin() {
       const response = await fetch("/api/login_auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password_ }),
+        body: JSON.stringify({ username, password }),
       });
       const result = await response.json();
       if (!response.ok) {
@@ -72,7 +72,7 @@ export default function Adminlogin() {
             <label className="block text-sm font-medium mb-2">Password</label>
             <input
               type='password'
-              value={password_}
+              value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="border bg-gray-100 rounded px-3 py-2 w-full pr-10"
               required

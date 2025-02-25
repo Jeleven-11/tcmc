@@ -13,7 +13,7 @@ export default function UserManagement() {
   const [isAdding, setIsAdding] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [password_, setPassword] = useState('');
+  const [password, setPassword] = useState('');
   const [pendingAction, setPendingAction] = useState<'edit' | 'add' | 'delete' | null>(null);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -47,7 +47,7 @@ export default function UserManagement() {
   const verifyMasterPassword = async (): Promise<boolean> => {
     const res = await fetch('/api/masterLogin', {
       method: 'POST',
-      body: JSON.stringify({ password_ }),
+      body: JSON.stringify({ password }),
       headers: { 'Content-Type': 'application/json' },
     });
 
