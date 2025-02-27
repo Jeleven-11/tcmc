@@ -28,7 +28,7 @@ SET time_zone = "+00:00";
 --
 CREATE DATABASE IF NOT EXISTS `tcmc_db`;
 
-
+USE `tcmc_db`;
 -- Add an index to the `team` column if it doesn't exist
 -- ALTER TABLE `users`
 --   ADD INDEX `idx_team` (`team`);
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `subscriptions` (
 ) ENGINE=InnoDB DEFAULT
 CHARSET=utf8mb4
 COLLATE=utf8mb4_general_ci;
-ALTER TABLE  `users` ADD KEY `team` (`team`);
+
 -- ALTER TABLE `reports` ADD CONSTRAINT `users_team` FOREIGN KEY (team) REFERENCES `users` (team) ON DELETE CASCADE ON UPDATE CASCADE;
 
 
@@ -56,10 +56,8 @@ ALTER TABLE  `users` ADD KEY `team` (`team`);
 -- ALTER TABLE `users`
 --   ADD INDEX `idx_team` (`team`);
 
-USE `tcmc_db`;
+-- USE `tcmc_db`;
 
--- ALTER TABLE `reports` ADD COLUMN `remarks` VARCHAR(255) DEFAULT NULL;
-ALTER TABLE `users` ADD COLUMN `fcmToken` VARCHAR (255) DEFAULT NULL;
 
 
 
@@ -98,7 +96,7 @@ CREATE TABLE IF NOT EXISTS `reports` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 USE `tcmc_db`;
-ALTER TABLE `reports` DROP FOREIGN KEY `fk_users_team`;
+-- ALTER TABLE `reports` DROP FOREIGN KEY `fk_users_team`;
 -- Add the foreign key constraint to the `reports` table
 -- ALTER TABLE `reports`
 --   ADD COLUMN `team` TINYINT UNSIGNED DEFAULT 0,
@@ -151,16 +149,19 @@ ALTER TABLE `watchlist`
   ADD CONSTRAINT `watchlist_ibfk_1` FOREIGN KEY (`reported_by_user_id`) REFERENCES `users` (`user_id`);
 COMMIT;
 
+-- ALTER TABLE `reports` ADD COLUMN `remarks` VARCHAR(255) DEFAULT NULL;
+ALTER TABLE `users` ADD COLUMN `fcmToken` VARCHAR (255) DEFAULT NULL;
+ALTER TABLE  `users` ADD KEY `team` (`team`);
 -- /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 -- /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 -- /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 USE `tcmc_db`;
--- INSERT INTO users (username, name, team, contact_num, password, email, isEmailVerified) 
--- VALUES ('Account1', 'Ricardo Dalisay', 0, 09123456789, '$2a$10$2ZRWm3XbtTRGV8uNOsNxjOyua.ZxRLNfOkx2N7I31y44rjJZAIpHG', 'acc1.email@gmail.com', 0);
+INSERT INTO users (username, name, team, contact_num, password, email, isEmailVerified) 
+ VALUES ('Account1', 'Ricardo Dalisay', 0, 09123456789, '$2a$10$2ZRWm3XbtTRGV8uNOsNxjOyua.ZxRLNfOkx2N7I31y44rjJZAIpHG', 'acc1.email@gmail.com', 0);
 
--- CREATE TABLE IF NOT EXISTS `master`(
---     `id` INT PRIMARY KEY AUTO_INCREMENT,
---     `master_password` VARCHAR(255) NOT NULL
--- );
+CREATE TABLE IF NOT EXISTS `master`(
+    `id` INT PRIMARY KEY AUTO_INCREMENT,
+    `master_password` VARCHAR(255) NOT NULL
+);
 INSERT INTO master (master_password) VALUES ('$2a$10$vvk3fsM0XzkqxxNQW6ZMsOQl48VAWnjKr74SIHfn2fBXHElidYfou'); -- Password : 123456
 
