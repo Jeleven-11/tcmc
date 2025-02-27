@@ -18,6 +18,8 @@ type EditData = {
   isLoggedIn: boolean;
   name: string;
   contact_num: string;
+  current_password:string;
+  new_password:string;
   team: number;
   email: string;
 };
@@ -32,6 +34,8 @@ export default function Profile()
     isLoggedIn: false,
     name: '',
     contact_num: '',
+    current_password:'',
+    new_password:'',
     team: 0,
     email: ''
   })
@@ -83,6 +87,8 @@ export default function Profile()
       isLoggedIn: sessionData.isLoggedIn,
       name: sessionData.name || '',
       contact_num: sessionData.contact_num || '',
+      current_password:'',
+      new_password:'',
       team: sessionData.team || 0,
       email: sessionData.email || '',
     })
@@ -142,7 +148,7 @@ export default function Profile()
             <button onClick={() => setIsPasswordModalOpen(true)} className="bg-blue-500 text-white px-4 py-2 rounded">
               Edit Profile
             </button>
-            <button onClick={() => alert('Delete Account')} className="bg-red-500 text-white px-4 py-2 rounded">
+            <button onClick={() => setIsPasswordModalOpen(true)} className="bg-red-500 text-white px-4 py-2 rounded">
               Delete Account
             </button>
           </div>
@@ -192,6 +198,27 @@ export default function Profile()
               value={editData.contact_num}
               onChange={(e) => setEditData({ ...editData, contact_num: e.target.value })}
             />
+            <input
+              type="password"
+              className="border p-2 w-full rounded-md mb-2"
+              placeholder="Enter Current Password"
+              value={editData.current_password}
+              onChange={(e) => setEditData({ ...editData, current_password: e.target.value })}
+            />
+            <input
+              type="password"
+              className="border p-2 w-full rounded-md mb-2"
+              placeholder="Enter New Password"
+              value={editData.new_password}
+              onChange={(e) => setEditData({ ...editData, new_password: e.target.value })}
+            />
+            <input
+              type="email"
+              className="border p-2 w-full rounded-md mb-2"
+              placeholder="Email"
+              value={editData.email}
+              onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+            />
             <select
               className="border p-2 w-full rounded-md mb-2"
               defaultValue={editData.team}
@@ -201,13 +228,6 @@ export default function Profile()
               <option value="0">Help Desk</option>
               <option value="1">Task Force</option>
             </select>
-            <input
-              type="email"
-              className="border p-2 w-full rounded-md mb-2"
-              placeholder="Email"
-              value={editData.email}
-              onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-            />
             <div className="mt-4 flex justify-end space-x-2">
               <button className="px-4 py-2 bg-gray-300 rounded" onClick={() => setIsEditModalOpen(false)}>Cancel</button>
               <button className="px-4 py-2 bg-green-500 text-white rounded" onClick={handleEditSubmit}>
