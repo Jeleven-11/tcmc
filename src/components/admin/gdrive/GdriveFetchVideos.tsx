@@ -13,7 +13,7 @@ export default function VideosPage() {
   const [videos, setVideos] = useState<Video[]>([]);
 
   useEffect(() => {
-    fetch("/api/drive")
+    fetch("/api/drive/drive_sa")
       .then((res) => res.json())
       .then((data) => setVideos(data));
   }, []);
