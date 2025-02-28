@@ -214,7 +214,7 @@ def get_car(license_plate, track_ids):
     foundIt = False
     car_indx = -1
     for car_id, (bbox, centroid) in track_ids.items():
-        xcar1, ycar1, xcar2, ycar2 = bbox # should this be track_ids[0][j] to get the bounding box?
+        xcar1, ycar1, xcar2, ycar2 = bbox 
         if x1 > xcar1 and x2 < xcar2 and y1 > ycar1 and y2 < ycar2:
             car_indx = car_id
             foundIt = True
@@ -307,17 +307,15 @@ class WebRTCConnection():
             self.frames_to_save = []
             self.frame_buffer_size =  1 * 29 * self.frame_rate + 15 # 30 Seconds
             # Initialize the video writer
-            self.fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for .mp4
-            self.out = cv2.VideoWriter(self.video_output, self.fourcc, 30, (640, 480))
+            # self.fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for .mp4
+            # self.out = cv2.VideoWriter(self.video_output, self.fourcc, 30, (self.width, self.height))
             self.temp_file = 'temp.raw'
-
 
             # TEMPORARY FOR TESTING
             self.temp_video_src = 'video4.mp4'
             self.video_capture = cv2.VideoCapture(self.temp_video_src)
             self.resized_frame = None
-            
-            
+
             # Define the FFmpeg command
             self.command = [
                 "ffmpeg",
@@ -711,6 +709,8 @@ class WebRTCConnection():
                 await self.parent.webRTCChannel.publish("WebRTC-client-register", {
                     "role": "Raspberry Pi",
                     "sessionID": self.raspberry_pi_id,
+                    "file_name": video_name,
+                    "type": "Upload",
                     "message": "Saved uploaded video as " + video_name,
                     "fileID": fileID
                     })
@@ -720,12 +720,13 @@ class WebRTCConnection():
         async def upload_license_plates_image_files(self):
             self.isUploading = True
             for car_id, file_name in self.parent.licensePlatesToBeUploaded:
-                #how to access the video_name I appended to self.parent.videosToBeUploaded so that it can be passed to the video_uploader.upload, is it the i in the for loop
                 fileID = self.video_uploader.upload("license_plate_images", file_name, 'image/png', self.google_drive_images_folder_id)
                 await self.parent.webRTCChannel.publish("WebRTC-client-register", {
                     "role": "Raspberry Pi",
                     "sessionID": self.raspberry_pi_id,
                     "message": "Saved uploaded image as " + file_name,
+                    "file_name": file_name,
+                    "type": "Upload",
                     "fileID": fileID
                     })
             self.parent.licensePlatesToBeUploaded.clear()
