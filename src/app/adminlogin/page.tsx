@@ -5,20 +5,28 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { MdArrowBack } from "react-icons/md";
 import Image from 'next/image';
+import { getSession } from '../lib/actions';
 
-export default function Adminlogin() {
+export default function Adminlogin()
+{
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  useEffect(() =>
+  {
+    setIsClient(true)
+    getSession().then((session) =>
+    {
+      if (session.isLoggedIn)
+        router.push('/admin')
+    })
+  }, [])
 
   if (!isClient)
-    return null;
+    return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
