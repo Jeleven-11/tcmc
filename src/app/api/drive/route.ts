@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { google } from "googleapis";
 // import oauth2Client from "@/utils/gdrive";
 import path from "path";
