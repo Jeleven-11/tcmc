@@ -1,7 +1,7 @@
 'use client';
 
 // import RealtimeDisplay from '@/components/RealtimeAbly';
-import AblyConnectionComponent from '@/components/admin/RealtimeAbly';
+// import AblyConnectionComponent from '@/components/admin/RealtimeAbly';
 import { useState } from 'react';
 // export const dynamic = 'force-dynamic';
 export default function Livefeed () {
@@ -39,7 +39,7 @@ export default function Livefeed () {
         </header>
 
             <div className="bg-gray-100 rounded-lg overflow-hidden mb-4">
-              <AblyConnectionComponent />
+              {/* <AblyConnectionComponent /> */}
             </div>
             <div className="flex justify-center space-x-4">
               <button className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-600">CAM1</button>
