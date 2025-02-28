@@ -55,6 +55,11 @@ const statusColors: Record<string, string> =
   solved: "#3b82f6", // Blue-500
 }
 
+function dateConv(date: string) : string
+{
+  return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ", " + new Date(date).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })  
+}
+
 export default function DataTable() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(false);
@@ -325,7 +330,8 @@ export default function DataTable() {
       headerName: 'Created At',
       width: 175,
       renderCell: (params) => {
-        const formattedDate = new Date(params.row.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ", " + new Date(params.row.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+        // const formattedDate = new Date(params.row.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ", " + new Date(params.row.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+        const formattedDate = dateConv(params.row.createdAt)
         return (
           <Tooltip title={formattedDate} arrow>
             <span className="text-sm">{formattedDate}</span>
@@ -338,7 +344,8 @@ export default function DataTable() {
       headerName: 'Updated At',
       width: 180,
       renderCell: (params) => {
-        const formattedDate = new Date(params.row.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ", " + new Date(params.row.updatedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+        const formattedDate = dateConv(params.row.updatedAt)
+        // const formattedDate = new Date(params.row.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ", " + new Date(params.row.updatedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
         return (
           <Tooltip title={formattedDate} arrow>
             <span className="text-sm">{formattedDate}</span>
@@ -387,6 +394,42 @@ export default function DataTable() {
     }
   ];
 
+  const exportToCSV = () => {
+    if (reports.length === 0) {
+      // message.warning("No data to export.");
+      return;
+    }
+
+    const headers = ["Status", "Report ID", "isOwner", "Vehicle Type", "Plate #", "Full Name", "Age", "Sex", "Report Created", "Report UpdatedAt"];
+
+    const csvRows = reports.map((row) => [
+      row.status,
+      row.reportID,
+      row.isOwner,
+      row.vehicleType,
+      row.platenumber,
+      row.fullName,
+      row.age,
+      row.sex,
+      dateConv(row.createdAt),
+      dateConv(row.updatedAt),
+    ]);
+
+    // Convert to CSV format
+    const csvString = [headers, ...csvRows]
+      .map((row) => row.map((cell) => `"${cell || 0}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob(["\ufeff" + csvString], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `transactions_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <Paper sx={{ height: 'auto', width: '100%', padding: 3, marginBottom: 2 }}>
         <header className="bg-blue-600 text-white p-4 mb-3 rounded-lg shadow-md">
@@ -407,6 +450,14 @@ export default function DataTable() {
           sx={{ mb: 2 }}
         >
           Delete Selected
+        </Button>
+        <Button
+         variant="contained"
+         color="success"
+         onClick={exportToCSV}
+         sx={{ mb: 2, ml: 2 }}
+        >
+          Export CSV
         </Button>
         <DataGrid
           rows={reports}

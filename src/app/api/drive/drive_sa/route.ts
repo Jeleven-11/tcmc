@@ -13,7 +13,7 @@ const getAuthClient = async () => {
         scopes: ["https://www.googleapis.com/auth/drive.readonly"],
     });
 
-    return auth;
+    return auth;                                                                                                                                                
 };
 
 export async function GET(req: NextRequest) {
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
         const response = await drive.files.list({
             q: `'${folderId}' in parents and trashed = false`,
             fields: "nextPageToken, files(id, name, mimeType, webViewLink, webContentLink, thumbnailLink)",
-            pageSize: 2, // 2-3 req per sec ra sguro rate limit
+            pageSize: 2,
             pageToken,
         }); 
 
