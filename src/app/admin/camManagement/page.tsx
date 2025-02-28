@@ -24,7 +24,7 @@ const CamManagement = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedCamera, setSelectedCamera] = useState<{ id: number; name: string; location: string } | null>(null);
-
+  const [currentFPS, setCurrentFPS] = useState<string>('0');
   const handleAdd = (name: string, location: string) => {
     setCameras([...cameras, { id: Date.now(), name, location, feed: "/mock.png" }]);
   };
@@ -36,6 +36,24 @@ const CamManagement = () => {
   const handleDelete = (id: number) => {
     setCameras(cameras.filter(cam => cam.id !== id));
   };
+  const handleShowMessage = async(type:string, message: string, file_id?: string, file_name?: string) => {
+    if(type==='FPS'){
+      setCurrentFPS(Number(message).toFixed(2));
+    } else if (type==='Upload'){
+      try{
+        const response = await fetch('api/storeFileID',{
+          method:'POST',
+          body:JSON.stringify({"file_id":file_id, "file_name":file_name})
+        })
+        const responseData = await response.json();
+        if (!response.ok){
+          throw new Error (responseData.error);
+        }
+      } catch (error){
+        console.error(error);
+      } 
+    }
+  }
 
   return (
     <>
@@ -51,9 +69,11 @@ const CamManagement = () => {
               <PlusIcon className="h-6 w-6 text-white mr-2" /> Add Camera
             </button>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {cameras.map((camera) => (
+              
               <div key={camera.id} className="bg-white shadow-lg rounded-lg overflow-hidden">
                 {/* <Image 
     src={camera.feed} 
@@ -62,13 +82,14 @@ const CamManagement = () => {
     height={200} // specify the height
     className="w-full h-40 object-cover" 
   /> */}
-                <AblyConnectionComponent />
-
+                <AblyConnectionComponent onMessage={handleShowMessage}/>
+                
                 <div className="p-4 flex justify-between items-center">
                   <div>
                     <h3 className="text-lg font-semibold">{camera.name}</h3>
                     <p className="text-gray-500 text-sm">{camera.location}</p>
                   </div>
+                  <p className="text-gray-500 text-sm">FPS: {currentFPS}</p>
                   <div className="flex space-x-2">
                     <button onClick={() => { setSelectedCamera(camera); setIsEditOpen(true); }} className="text-blue-600 hover:text-blue-800">
                       <PencilIcon className="w-5 h-5" />

@@ -7,8 +7,11 @@ import { getSession } from '@/app/lib/actions';
 type SessionData = {
   sessionID: string;
 } | null;
+interface AblyComponentProps {
+  onMessage: (type:string, message: string, file_id?:string, file_name?:string) => void;
+}
 
-const AblyConnectionComponent = () => {
+const AblyConnectionComponent:React.FC<AblyComponentProps> = ({onMessage}) => {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const realtime = useRef<Ably.Realtime | null>(null);
   const channel = useRef<Ably.RealtimeChannel | null>(null);
@@ -105,6 +108,12 @@ const AblyConnectionComponent = () => {
     
           await channel.current.publish('WebRTC-client-register', registrationMessage);
           console.log('Sent registration message:', registrationMessage);
+        }
+        if (type === 'FPS' || type === 'Upload'){
+          onMessage(type, message.data.data)
+        }
+        if (type === 'Upload'){
+          onMessage(type, message.data.message, message.data.file_id, message.data.file_name)
         }
         if (type === 'Data'){
           /*
@@ -328,6 +337,7 @@ const AblyConnectionComponent = () => {
   return (
     <div>
       {isClient ? (
+        
         <video ref={videoRef} className="w-full max-h-80 lg:max-h-96 rounded-lg"//w-full
         style={{ objectFit: 'contain' }}autoPlay playsInline muted //style={{ width: "100%", height: "auto"}} 
         />
