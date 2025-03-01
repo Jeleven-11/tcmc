@@ -2,8 +2,6 @@ import pool  from '../../../lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 import { FieldPacket, ResultSetHeader } from 'mysql2';
 
-
-
 export async function PUT(req:NextRequest, {params}: {params: {id: string}}) {
   
   const { id } = params
@@ -58,7 +56,7 @@ export async function POST(req: NextRequest)
     const { reportID, status } = await req.json()
     conn = await pool.getConnection()
 
-    const [result]: [ResultSetHeader, FieldPacket[]] = await conn.query('UPDATE reports SET users_team = ?, updatedAt = NOW() WHERE reportID = ?', [status, reportID]) as [ResultSetHeader, FieldPacket[]]
+    const [result]: [ResultSetHeader, FieldPacket[]] = await conn.query('UPDATE reports SET team = ?, updatedAt = NOW() WHERE reportID = ?', [status, reportID]) as [ResultSetHeader, FieldPacket[]]
     if (result.affectedRows === 0)
       return NextResponse.json({ error: 'Report not found' }, { status: 404 } )
 
