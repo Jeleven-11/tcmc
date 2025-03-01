@@ -112,6 +112,7 @@ export async function POST(req: NextRequest)
         session.email = data.email
         session.emailVerified = data.emailVerified
         session.authToken = authToken
+        session.team = data.team
         session.sessionID = uuidv4().slice(0, 16).toUpperCase()
         await session.save()
 

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { FieldPacket } from 'mysql2';
 import pool from '@/app/lib/db'; // Your database connection
-import { getSession } from '@/app/lib/actions';
 interface Counter {
     count: number
 }
@@ -14,18 +13,21 @@ export async function GET(req: NextRequest)
         const page = parseInt(searchParams.get('page') || '1', 10)
         const pageSize = parseInt(searchParams.get('pageSize') || '10', 10)
         const search = searchParams.get('search') || ''
-        const team = Number(searchParams.get('t') || 0)
+        // const team = Number(searchParams.get('t') || 0)
         const offset = (page - 1) * pageSize
 
-        const session = await getSession()
+        if (!search.match('^[a-zA-Z0-9_.-]*$') && search !== '')
+            return NextResponse.json({ data: [], total: 0 }, { status: 400 })
 
-        console.log("TEAM:", team)
+        // const session = await getSession()
+
+        // console.log("TEAM:", session)
 
         let whereClause = ''
         let queryParams: (string | number)[] = [pageSize, offset]
         if (search) {
-            whereClause = `WHERE (fullName LIKE ? OR description LIKE ? OR contactNumber LIKE ?) AND team = ?`
-            queryParams = [`%${search}%`, `%${search}%`, `%${search}%`, Number(session.team), ...queryParams]
+            whereClause = `WHERE (fullName LIKE ? OR description LIKE ? OR contactNumber LIKE ?)`
+            queryParams = [`%${search}%`, `%${search}%`, `%${search}%`, ...queryParams]
         }
 
         const reports = await connection.query(`SELECT * FROM reports ${whereClause} ORDER BY createdAt DESC LIMIT ? OFFSET ?`, queryParams)

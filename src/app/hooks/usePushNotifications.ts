@@ -26,7 +26,7 @@ export default function usePushNotifications()
         // Listen for messages from service worker
         navigator.serviceWorker.addEventListener("message", (event) =>
         {
-            console.log("🚀 Received push event in React:", event.data) // Debug log
+            console.log("🚀 Received push event:", event.data) // Debug log
 
             const { title, body } = event.data
             console.log(event.data)

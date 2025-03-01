@@ -10,6 +10,7 @@ import { MockDelCam } from "@/components/mockDelCam";
 // import Image from "next/image";
 import AblyConnectionComponent from '@/components/admin/RealtimeAbly';
 import { Paper } from "@mui/material";
+import GdriveFetchVideos from "@/components/admin/gdrive/GdriveFetchVideos";
 
 const mockCameras = [
   { id: 1, name: "Camera 1", location: "1st Street", feed: "/mock.png" },
@@ -57,9 +58,11 @@ const CamManagement = () => {
 
   return (
     <>
-      <Paper sx={{ height: 'auto', width: '100%', padding: 3, marginBottom: 2 }}>
-        <div className="mb-3">
-          <h2 className="font-bold text-lg">Camera Management</h2>
+      <Paper sx={{ height: 'auto', width: '100%', padding: 3, marginBottom: 3 }}>
+        <div className="mb-6">
+          <header className="bg-blue-600 text-white p-4 mb-3 mt-3 rounded-lg shadow-md">
+            <h1 className="text-xl font-semibold">Live Feed Camera</h1>
+          </header>
           <div className="bg-blue-100 border border-blue-500 text-blue-700 px-4 py-3 rounded mb-4 flex items-start">
             <span className="mr-2 text-xl">ℹ️</span>
             <p>Below are active cameras and their live video feed.</p>
@@ -71,7 +74,7 @@ const CamManagement = () => {
           </div>
           
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-3">
             {cameras.map((camera) => (
               
               <div key={camera.id} className="bg-white shadow-lg rounded-lg overflow-hidden">
@@ -114,6 +117,7 @@ const CamManagement = () => {
               <MockDelCam isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} camera={selectedCamera} onDelete={handleDelete} />
           )}
         </div>
+        <GdriveFetchVideos />
       </Paper>
     </>
   )

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, SetStateAction } from 'react';
-import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridPaginationModel, GridRenderCellParams, GridTreeNodeWithRender } from '@mui/x-data-grid';
 import Paper from '@mui/material/Paper';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
@@ -14,10 +14,11 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination as Pagination1 } from 'swiper/modules';
-import { Button, MenuItem, Select, TextField, Tooltip } from '@mui/material';
+import { Button, MenuItem, Select, SelectChangeEvent, TextField, Tooltip } from '@mui/material';
 import CustomPagination from './CustomPagination';
 import { getSession } from '@/app/lib/actions';
 import axios from 'axios';
+import { toast } from "react-toastify";
 
 
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -42,6 +43,7 @@ interface Report {
   platenumber?: string | null;
   status: 'unread' | 'on_investigation' | 'dropped' | 'solved';
   reportID: string;
+  users_team: number;
   remarks: string;
   createdAt: string;
   updatedAt: string;
@@ -53,6 +55,12 @@ const statusColors: Record<string, string> =
   on_investigation: "#fb923c", // Orange-400
   dropped: "#ef4444", // Red-500
   solved: "#3b82f6", // Blue-500
+}
+
+const statusTeam: Record<number, string> =
+{
+  0: "#374151",
+  1: "#3b82f6", // Yellow-500
 }
 
 function dateConv(date: string) : string
@@ -73,6 +81,14 @@ export default function DataTable() {
   const [initReports, setInitReports] = useState<string[]>([])
   const [remarkModal, setRemarkModal] = useState(false)
   const [remark, setRemark] = useState('')
+  const [selectedValue, setSelectedValue] = useState<number | undefined>(undefined)
+
+  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+  const handleChange = (event: SelectChangeEvent<number>, params: GridRenderCellParams<any, any, any, GridTreeNodeWithRender>) => {
+    const newValue = Number(event.target.value)
+    setSelectedValue(newValue); // Update the local state
+    updateTeam(params.row.reportID, newValue); // Call the API function
+  }
 
   const fetchReports = async (isLoad: SetStateAction<boolean>) =>
   {
@@ -87,6 +103,9 @@ export default function DataTable() {
         {
           setReports(data)
           setTotalRows(total)
+        } else {
+          setReports([])
+          setTotalRows(0)
         }
     } catch (error) {
       console.error('Failed to fetch reports:', error)
@@ -99,13 +118,25 @@ export default function DataTable() {
   {
     const session = await getSession()
 
+    let nStatus;
+    if (status === "0" || status === "1")
+      nStatus = status
+    else
+      nStatus = status.charAt(0).toUpperCase() + status.substring(1) // uppercase first letter
+
     // notification message
-    const nStatus = status.charAt(0).toUpperCase() + status.substring(1) // uppercase first letter
+    // const nStatus = (status !== "0" && status !== "1") ? status.charAt(0).toUpperCase() + status.substring(1) : status // uppercase first letter
+    
+console.log(nStatus, type)
     let title, desc;
     if (type === 'bulk')
     {
-        title = "🔔 Bulk Delete Report Status Notification"
-        desc = "Reports [" + reportId.join(", ") + "] has been deleted by " + session.name + " (" + session.username + ")"
+      title = "🔔 Bulk Delete Report Status Notification"
+      desc = "Reports [" + reportId.join(", ") + "] has been deleted by " + session.name + " (" + session.username + ")"
+    } else if (type === "team")
+    {
+      title = "🔔 Report Team Update Status Notification"
+      desc = "Report [" + reportId.join(", ") + "] has been assigned to \"" + (Number(nStatus) === 1 ? "Task Force" : "Help Desk") + "\" by " + session.name + " (" + session.username + ")"
     } else if (type !== 'delete')
     {
       title = "🔔" + nStatus + " Status Notification"
@@ -135,6 +166,21 @@ export default function DataTable() {
       const res = await axios.put(`/api/reports/${id}`, { status: newStatus })
       if (res.status === 200)
         await sendNotif([id], newStatus, '')
+
+      fetchReports(true)
+    } catch (error) {
+      console.error("Error updating status:", error)
+    }
+  }
+
+  const updateTeam = async (id: string, newTeam: number): Promise<void> =>
+  {
+    try
+    {
+      // console.log(id, newTeam)
+      const res = await axios.post(`/api/reports/${id}`, { reportID: id, status: newTeam })
+      if (res.status === 200)
+        await sendNotif([id], String(newTeam), 'team')
 
       fetchReports(true)
     } catch (error) {
@@ -294,6 +340,47 @@ export default function DataTable() {
         );
       }
     },
+    {
+      field: "users_team",
+      headerName: "Assginee",
+      flex: 2, // ✅ Auto-width based on content
+      minWidth: 190,
+      maxWidth: 250,
+      renderCell: (params) =>
+      {
+        const handleTeamChange = (event: SelectChangeEvent<number>) => handleChange(event, params)
+
+        return (
+          <Select
+            value={selectedValue} // Bind state
+            onChange={handleTeamChange}
+            variant="outlined"
+            size="small"
+            sx={{
+              height: "32px",
+              minWidth: "100px",
+              fontSize: "14px",
+              padding: "0",
+              color: statusTeam[Number(selectedValue)] || "#374151",
+              fontWeight: "bold",
+            }}
+          >
+            {Object.keys(statusTeam).map((option) => (
+              <MenuItem
+                key={option}
+                value={Number(option)}
+                sx={{
+                  color: statusTeam[Number(option)],
+                  fontWeight: "bold",
+                }}
+              >
+                {Number(option) === 1 ? "Task Force" : "Help Desk"}
+              </MenuItem>
+            ))}
+          </Select>
+        );
+      }
+    },
     // { field: 'contactNumber', headerName: 'Contact Number', width: 150 },
     { field: 'isOwner', headerName: 'Owner?', width: 70 },
     { field: 'vehicleType', headerName: 'Vehicle Type', flex: 2 },
@@ -396,7 +483,7 @@ export default function DataTable() {
 
   const exportToCSV = () => {
     if (reports.length === 0) {
-      // message.warning("No data to export.");
+      toast.error("Cannot export empty data!");
       return;
     }
 
