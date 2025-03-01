@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, SetStateAction } from 'react';
-import { DataGrid, GridColDef, GridPaginationModel, GridRenderCellParams, GridTreeNodeWithRender } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
 import Paper from '@mui/material/Paper';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
@@ -14,7 +14,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination as Pagination1 } from 'swiper/modules';
-import { Button, MenuItem, Select, SelectChangeEvent, TextField, Tooltip } from '@mui/material';
+import { Button, MenuItem, Select, TextField, Tooltip } from '@mui/material';
 import CustomPagination from './CustomPagination';
 import { getSession } from '@/app/lib/actions';
 import axios from 'axios';
@@ -81,14 +81,6 @@ export default function DataTable() {
   const [initReports, setInitReports] = useState<string[]>([])
   const [remarkModal, setRemarkModal] = useState(false)
   const [remark, setRemark] = useState('')
-  const [selectedValue, setSelectedValue] = useState<number | undefined>(undefined)
-
-  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-  const handleChange = (event: SelectChangeEvent<number>, params: GridRenderCellParams<any, any, any, GridTreeNodeWithRender>) => {
-    const newValue = Number(event.target.value)
-    setSelectedValue(newValue); // Update the local state
-    updateTeam(params.row.reportID, newValue); // Call the API function
-  }
 
   const fetchReports = async (isLoad: SetStateAction<boolean>) =>
   {
@@ -118,7 +110,7 @@ export default function DataTable() {
   {
     const session = await getSession()
 
-    let nStatus;
+    let nStatus, title, desc;
     if (status === "0" || status === "1")
       nStatus = status
     else
@@ -126,9 +118,6 @@ export default function DataTable() {
 
     // notification message
     // const nStatus = (status !== "0" && status !== "1") ? status.charAt(0).toUpperCase() + status.substring(1) : status // uppercase first letter
-    
-console.log(nStatus, type)
-    let title, desc;
     if (type === 'bulk')
     {
       title = "🔔 Bulk Delete Report Status Notification"
@@ -177,7 +166,6 @@ console.log(nStatus, type)
   {
     try
     {
-      // console.log(id, newTeam)
       const res = await axios.post(`/api/reports/${id}`, { reportID: id, status: newTeam })
       if (res.status === 200)
         await sendNotif([id], String(newTeam), 'team')
@@ -342,18 +330,23 @@ console.log(nStatus, type)
     },
     {
       field: "users_team",
-      headerName: "Assginee",
+      headerName: "Assignee",
       flex: 2, // ✅ Auto-width based on content
       minWidth: 190,
       maxWidth: 250,
       renderCell: (params) =>
       {
-        const handleTeamChange = (event: SelectChangeEvent<number>) => handleChange(event, params)
+        const { value } = params
+        const textColor = statusTeam[value] || "#374151"
 
         return (
           <Select
-            value={selectedValue} // Bind state
-            onChange={handleTeamChange}
+            value={value}
+            onChange={(event) =>
+            {
+              const val = Number(event.target.value)
+              updateTeam(params.row.reportID, val)
+            }}
             variant="outlined"
             size="small"
             sx={{
@@ -361,7 +354,7 @@ console.log(nStatus, type)
               minWidth: "100px",
               fontSize: "14px",
               padding: "0",
-              color: statusTeam[Number(selectedValue)] || "#374151",
+              color: textColor,
               fontWeight: "bold",
             }}
           >
@@ -529,23 +522,25 @@ console.log(nStatus, type)
           onChange={(e) => debouncedSearch(e.target.value)}
           sx={{ mb: 2 }}
         />
-        <Button
-          variant="contained"
-          color="error"
-          disabled={selectedRows.length === 0}
-          onClick={handleDeleteReports}
-          sx={{ mb: 2 }}
-        >
-          Delete Selected
-        </Button>
-        <Button
-         variant="contained"
-         color="success"
-         onClick={exportToCSV}
-         sx={{ mb: 2, ml: 2 }}
-        >
-          Export CSV
-        </Button>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Button
+            variant="contained"
+            color="error"
+            disabled={selectedRows.length === 0}
+            onClick={handleDeleteReports}
+          >
+            Delete Selected
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={exportToCSV}
+            sx={{ ml: 'auto' }} // Moves the button to the right
+          >
+            Export CSV
+          </Button>
+        </Box>
+
         <DataGrid
           rows={reports}
           columns={columns}
