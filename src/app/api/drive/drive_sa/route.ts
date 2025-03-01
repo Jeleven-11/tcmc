@@ -5,7 +5,7 @@ const getAuthClient = async () =>
 {
     // const keyPath = path.join(process.cwd(), "config", "sa.json") // retrieve using path file
     // const keyFile = await fs.readFile(keyPath, "utf8")
-    const credentials = JSON.parse(String(process.env.GOOGLE_GDRIVE_SECRET!))
+    const credentials = JSON.parse(String(process.env.SERVICE_ACCOUNT!))
     const auth = new google.auth.GoogleAuth({
         credentials,
         scopes: ["https://www.googleapis.com/auth/drive.readonly"],

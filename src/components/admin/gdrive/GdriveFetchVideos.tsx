@@ -126,7 +126,7 @@ const VideoList: React.FC = () => {
   return (
     <>
       <header className="bg-blue-600 text-white p-4 mb-3 mt-3 rounded-lg shadow-md">
-        <h1 className="text-xl font-semibold">Captured Videos</h1>
+        <h1 className="text-xl font-semibold">Recorded Videos</h1>
       </header>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {videos.map((video, index) => (
