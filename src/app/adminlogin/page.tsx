@@ -7,13 +7,13 @@ import { MdArrowBack } from "react-icons/md";
 import Image from 'next/image';
 import { getSession } from '../lib/actions';
 
-export default function Adminlogin()
-{
+export default function Adminlogin() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
+  // const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() =>
   {
@@ -21,7 +21,10 @@ export default function Adminlogin()
     getSession().then((session) =>
     {
       if (session.isLoggedIn)
+      {
+        // setIsLoggedIn(true)
         router.push('/admin')
+      }
     })
   }, [])
 
