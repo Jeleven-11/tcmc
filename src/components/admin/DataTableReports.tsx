@@ -329,7 +329,7 @@ export default function DataTable() {
       }
     },
     {
-      field: "users_team",
+      field: "team",
       headerName: "Assignee",
       flex: 2, // ✅ Auto-width based on content
       minWidth: 190,
