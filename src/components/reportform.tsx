@@ -100,7 +100,10 @@ const ReportForm = () =>
     color: '',
     description: '',
   })
-
+// Correct function to accept partial updates
+const updateFormData = (updatedFields: Partial<FormData>) => {
+  setFormData((prev) => ({ ...prev, ...updatedFields }));
+};
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) =>
   {
     e.preventDefault()
@@ -389,8 +392,10 @@ const ReportForm = () =>
             required
           ></textarea>
           {/*test*/}
-          
-<AddressSelector formData={formData} setFormData={setFormData} />
+          <AddressSelector 
+    formData={formData} 
+    setFormData={(updatedFields) => setFormData((prev) => ({ ...prev, ...updatedFields }))} 
+  />
         </div>
 
         <div className="mb-4">

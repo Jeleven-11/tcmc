@@ -65,11 +65,12 @@ export async function GET(request: Request) {
         }
         break;
       default:
-        return NextResponse.json({ error: "Invalid type parameter" }, { status: 400 });
+        return NextResponse.json({ message: "Invalid type parameter" }, { status: 400 });
     }
 
     return NextResponse.json(data, { status: 200 });
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ message: "Failed to fetch data" }, { status: 500 });
   }
 }
+

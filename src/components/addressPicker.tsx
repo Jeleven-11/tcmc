@@ -1,14 +1,31 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
+interface FormData {
+  fullName: string;
+  age: string;
+  sex: string;
+  address: string;
+  region: string;
+  province: string;
+  city: string;
+  barangay: string;
+  contactNumber: string;
+  isOwner: string;
+  driversLicense: string;
+  vehicleRegistration: string;
+  orCr: string;
+  reason: string;
+  vehicleType: string;
+  vehicleImage: string;
+  platenumber: string;
+  color: string;
+  description: string;
+}
+
 interface AddressPickerProps {
-  formData: {
-    region: string;
-    province: string;
-    city: string;
-    barangay: string;
-  };
-  setFormData: (formData: any) => void;
+  formData: FormData;
+  setFormData: (updatedFields: Partial<FormData>) => void; // Accepts partial updates
 }
 
 const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) => {
@@ -26,7 +43,10 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
   useEffect(() => {
     if (region) {
       axios.get(`/api/addressPicker?type=provinces&code=${region}`).then((res) => setProvinces(res.data));
-      setFormData((prev: any) => ({ ...prev, province: "", city: "", barangay: "" }));
+      
+      // ✅ Corrected setFormData call
+      setFormData({ province: "", city: "", barangay: "" });
+
       setCities([]);
       setBarangays([]);
     }
@@ -35,7 +55,10 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
   useEffect(() => {
     if (province) {
       axios.get(`/api/addressPicker?type=cities&code=${province}`).then((res) => setCities(res.data));
-      setFormData((prev: any) => ({ ...prev, city: "", barangay: "" }));
+      
+      // ✅ Corrected setFormData call
+      setFormData({ city: "", barangay: "" });
+
       setBarangays([]);
     }
   }, [province]);
@@ -43,7 +66,9 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
   useEffect(() => {
     if (city) {
       axios.get(`/api/addressPicker?type=barangays&code=${city}`).then((res) => setBarangays(res.data));
-      setFormData((prev: any) => ({ ...prev, barangay: "" }));
+
+      // ✅ Corrected setFormData call
+      setFormData({ barangay: "" });
     }
   }, [city]);
 
@@ -54,7 +79,7 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
         <label className="block text-sm font-medium">Region</label>
         <select
           value={region}
-          onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+          onChange={(e) => setFormData({ region: e.target.value })}
           className="w-full border p-2 rounded"
         >
           <option value="">Select Region</option>
@@ -71,7 +96,7 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
         <label className="block text-sm font-medium">Province</label>
         <select
           value={province}
-          onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+          onChange={(e) => setFormData({ province: e.target.value })}
           className="w-full border p-2 rounded"
           disabled={!region}
         >
@@ -89,7 +114,7 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
         <label className="block text-sm font-medium">City</label>
         <select
           value={city}
-          onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+          onChange={(e) => setFormData({ city: e.target.value })}
           className="w-full border p-2 rounded"
           disabled={!province}
         >
@@ -107,7 +132,7 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
         <label className="block text-sm font-medium">Barangay</label>
         <select
           value={barangay}
-          onChange={(e) => setFormData({ ...formData, barangay: e.target.value })}
+          onChange={(e) => setFormData({ barangay: e.target.value })}
           className="w-full border p-2 rounded"
           disabled={!city}
         >
