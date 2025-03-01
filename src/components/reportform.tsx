@@ -17,6 +17,7 @@ interface FormData {
   orCr: string;
   reason: string;
   vehicleType: string;
+  vehicleImage: string;
   platenumber: string;
   color: string;
   description: string;
@@ -57,9 +58,14 @@ const ReportForm = () =>
   const [orCrVal, setOrCr] = React.useState("") // url
   const [fileOR, setFileOR] = React.useState<File>()
   const [progress3, setProgress3] = React.useState(0)
+
+  const [vehicleImgVal, setVehicleImgVal] = React.useState("") // url
+  const [fileVehicleImg, setFileVehicleImg] = React.useState<File>()
+  // const [progress4, setProgress4] = React.useState(0)
+
   const [totalUploadProgress, setTotalUploadProgress] = React.useState(0)
   React.useEffect(() => {
-    setTotalUploadProgress((progress1 + progress2 + progress3) / 3);
+    setTotalUploadProgress((progress1 + progress2 + progress3 ) / 3);
   }, [progress1, progress2, progress3]);
   const [formData, setFormData] = React.useState<FormData>({
     fullName: '',
@@ -73,6 +79,7 @@ const ReportForm = () =>
     orCr: "",
     reason: 'Stolen? Involved in an incident/accident?',
     vehicleType: 'Motorcycle',
+    vehicleImage:'',
     platenumber: '',
     color: '',
     description: '',
@@ -89,6 +96,8 @@ const ReportForm = () =>
       ...formData,
       reportID: generatedReportID
     }
+    // const upload
+    if(!fileVehicleImg) return alert('Please upload an image of the reported vehicle for verification purposes!');
     if (formData.isOwner === 'Yes') {
       const uploadFiles = async () => {
         if(!fileDL || !fileVR || !fileOR) return alert('Please upload ALL required files for verification purposes!');
@@ -167,7 +176,7 @@ const ReportForm = () =>
         setDvrLicense(res1.url);
         setVRegistration(res2.url);
         setOrCr(res3.url);
-        setTotalUploadProgress(100)
+        
 
         // const totalProgress = (progress1 + progress2 + progress3) / 3;
         // setTotalUploadProgress(totalProgress);
@@ -213,7 +222,18 @@ const ReportForm = () =>
       formDataToSend.driversLicense = dvrLicenseVal;
       formDataToSend.vehicleRegistration = vRegistrationVal;
       formDataToSend.orCr = orCrVal;
+      formDataToSend.vehicleImage = vehicleImgVal;
     }
+    const vehicleImageUpload = await edgestore.publicFiles.upload({
+      file: fileVehicleImg,
+      onProgressChange: async (progress) => {
+        setProgress1(progress);
+        setTotalUploadProgress((progress+progress2+progress3)/3)
+        console.log("Progress1 : ", progress)
+      },
+    })
+    setVehicleImgVal(vehicleImageUpload.url)
+    setTotalUploadProgress(100)
 
     try
     {
@@ -242,6 +262,7 @@ const ReportForm = () =>
           orCr: "",
           reason: '',
           vehicleType: 'Motorcycle',
+          vehicleImage:'',
           platenumber: '',
           color: '',
           description: '',
@@ -389,6 +410,7 @@ const ReportForm = () =>
                 onChange={(e) => {
                   setFileDL(e.target.files?.[0])
                 }}
+                accept="image/*, .pdf"
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight"
               />
 
@@ -424,6 +446,7 @@ const ReportForm = () =>
                 onChange={(e) => {
                   setFileVR(e.target.files?.[0])
                 }}
+                accept="image/*, .pdf"
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight"
               />
 
@@ -459,6 +482,7 @@ const ReportForm = () =>
                 onChange={(e) => {
                   setFileOR(e.target.files?.[0])
                 }}
+                accept="image/*, .pdf"
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight"
               />
 
@@ -517,7 +541,7 @@ const ReportForm = () =>
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight"
               required
             />
-            </div>
+          </div>
 
           <div>
             <label className="block text-gray-700 text-sm font-bold mb-2">Plate Number</label>
@@ -528,6 +552,21 @@ const ReportForm = () =>
               onChange={handleChange}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight"
             
+            />
+            
+            
+          </div>
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2">Image of Reported Vehicle</label>
+            <input
+              type="file"
+              name="platenumber"
+              value={formData.vehicleImage}
+              onChange={(e) => {
+                setFileVehicleImg(e.target.files?.[0])
+              }}
+              accept="image/*"
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight"
             />
           </div>
         </div>

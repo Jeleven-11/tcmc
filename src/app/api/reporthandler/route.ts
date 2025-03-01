@@ -20,6 +20,7 @@ export async function POST(request: NextRequest)
       orCr,
       reason,
       vehicleType,
+      vehicleImage,
       platenumber,
       color,
       description,
@@ -29,10 +30,10 @@ export async function POST(request: NextRequest)
     const query = `
       INSERT INTO reports (
         fullName, age, sex, address, contactNumber, isOwner,
-        driversLicense, vehicleRegistration, orCr, reason, vehicleType, platenumber, color,
+        driversLicense, vehicleRegistration, orCr, reason, vehicleType, reportedVehicleImage, platenumber, color,
         description, reportID, status, createdAt
       ) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unread', ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unread', ?)
     `
     const values = [
       fullName,
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest)
       orCr || '',
       reason,
       vehicleType,
+      vehicleImage,
       platenumber,
       color,
       description,

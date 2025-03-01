@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS `reports` (
   `driversLicense` varchar(255) DEFAULT '',
   `vehicleRegistration` varchar(255) DEFAULT '',
   `orCr` varchar(255) DEFAULT '',
+  `reportedVehicleImage` varchar(255) DEFAULT '',
   `reason` text NOT NULL,
   `vehicleType` enum('Motorcycle','Car','Van','Truck','Other') NOT NULL,
   `platenumber` varchar(10) DEFAULT NULL,
