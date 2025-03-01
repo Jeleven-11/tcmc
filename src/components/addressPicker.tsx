@@ -1,6 +1,26 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
+interface Region {
+  region_code: string;
+  region_name: string;
+}
+
+interface Province {
+  province_code: string;
+  province_name: string;
+}
+
+interface City {
+  city_code: string;
+  city_name: string;
+}
+
+interface Barangay {
+  brgy_code: string;
+  brgy_name: string;
+}
+
 interface FormData {
   fullName: string;
   age: string;
@@ -25,51 +45,88 @@ interface FormData {
 
 interface AddressPickerProps {
   formData: FormData;
-  setFormData: (updatedFields: Partial<FormData>) => void; // Accepts partial updates
+  setFormData: (updatedFields: Partial<FormData>) => void;
 }
 
 const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) => {
   const { region, province, city, barangay } = formData;
 
-  const [regions, setRegions] = useState([]);
-  const [provinces, setProvinces] = useState([]);
-  const [cities, setCities] = useState([]);
-  const [barangays, setBarangays] = useState([]);
+  const [regions, setRegions] = useState<Region[]>([]);
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [cities, setCities] = useState<City[]>([]);
+  const [barangays, setBarangays] = useState<Barangay[]>([]);
 
+  // Fetch Regions
   useEffect(() => {
-    axios.get("/api/addressPicker?type=regions").then((res) => setRegions(res.data));
+    const fetchRegions = async () => {
+      try {
+        const res = await axios.get("/api/addressPicker?type=regions");
+        setRegions(res.data);
+      } catch (error) {
+        console.error("Failed to fetch regions:", error);
+      }
+    };
+    fetchRegions();
   }, []);
 
+  // Fetch Provinces based on selected Region
   useEffect(() => {
-    if (region) {
-      axios.get(`/api/addressPicker?type=provinces&code=${region}`).then((res) => setProvinces(res.data));
-      
-      // ✅ Corrected setFormData call
-      setFormData({ province: "", city: "", barangay: "" });
+    const fetchProvinces = async () => {
+      if (!region) {
+        setProvinces([]);
+        return;
+      }
 
-      setCities([]);
-      setBarangays([]);
-    }
+      try {
+        const res = await axios.get(`/api/addressPicker?type=provinces&code=${region}`);
+        setProvinces(res.data);
+        setFormData({ province: "", city: "", barangay: "" }); // Reset dependent fields
+        setCities([]);
+        setBarangays([]);
+      } catch (error) {
+        console.error("Failed to fetch provinces:", error);
+      }
+    };
+    fetchProvinces();
   }, [region]);
 
+  // Fetch Cities based on selected Province
   useEffect(() => {
-    if (province) {
-      axios.get(`/api/addressPicker?type=cities&code=${province}`).then((res) => setCities(res.data));
-      
-      // ✅ Corrected setFormData call
-      setFormData({ city: "", barangay: "" });
+    const fetchCities = async () => {
+      if (!province) {
+        setCities([]);
+        return;
+      }
 
-      setBarangays([]);
-    }
+      try {
+        const res = await axios.get(`/api/addressPicker?type=cities&code=${province}`);
+        setCities(res.data);
+        setFormData({ city: "", barangay: "" }); // Reset dependent fields
+        setBarangays([]);
+      } catch (error) {
+        console.error("Failed to fetch cities:", error);
+      }
+    };
+    fetchCities();
   }, [province]);
 
+  // Fetch Barangays based on selected City
   useEffect(() => {
-    if (city) {
-      axios.get(`/api/addressPicker?type=barangays&code=${city}`).then((res) => setBarangays(res.data));
+    const fetchBarangays = async () => {
+      if (!city) {
+        setBarangays([]);
+        return;
+      }
 
-      // ✅ Corrected setFormData call
-      setFormData({ barangay: "" });
-    }
+      try {
+        const res = await axios.get(`/api/addressPicker?type=barangays&code=${city}`);
+        setBarangays(res.data);
+        setFormData({ barangay: "" }); // Reset dependent field
+      } catch (error) {
+        console.error("Failed to fetch barangays:", error);
+      }
+    };
+    fetchBarangays();
   }, [city]);
 
   return (
@@ -83,7 +140,7 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
           className="w-full border p-2 rounded"
         >
           <option value="">Select Region</option>
-          {regions.map((region: any) => (
+          {regions.map((region) => (
             <option key={region.region_code} value={region.region_code}>
               {region.region_name}
             </option>
@@ -101,7 +158,7 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
           disabled={!region}
         >
           <option value="">Select Province</option>
-          {provinces.map((province: any) => (
+          {provinces.map((province) => (
             <option key={province.province_code} value={province.province_code}>
               {province.province_name}
             </option>
@@ -119,7 +176,7 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
           disabled={!province}
         >
           <option value="">Select City</option>
-          {cities.map((city: any) => (
+          {cities.map((city) => (
             <option key={city.city_code} value={city.city_code}>
               {city.city_name}
             </option>
@@ -137,7 +194,7 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
           disabled={!city}
         >
           <option value="">Select Barangay</option>
-          {barangays.map((barangay: any) => (
+          {barangays.map((barangay) => (
             <option key={barangay.brgy_code} value={barangay.brgy_code}>
               {barangay.brgy_name}
             </option>

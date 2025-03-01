@@ -100,10 +100,7 @@ const ReportForm = () =>
     color: '',
     description: '',
   })
-// Correct function to accept partial updates
-const updateFormData = (updatedFields: Partial<FormData>) => {
-  setFormData((prev) => ({ ...prev, ...updatedFields }));
-};
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) =>
   {
     e.preventDefault()

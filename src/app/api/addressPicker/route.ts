@@ -70,7 +70,9 @@ export async function GET(request: Request) {
 
     return NextResponse.json(data, { status: 200 });
   } catch (err) {
+    console.error("Error fetching address data:", err);
     return NextResponse.json({ message: "Failed to fetch data" }, { status: 500 });
   }
+  
 }
 
