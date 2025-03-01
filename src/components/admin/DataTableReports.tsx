@@ -43,7 +43,7 @@ interface Report {
   platenumber?: string | null;
   status: 'unread' | 'on_investigation' | 'dropped' | 'solved';
   reportID: string;
-  users_team: number;
+  team: number;
   remarks: string;
   createdAt: string;
   updatedAt: string;
