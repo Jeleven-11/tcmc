@@ -258,7 +258,7 @@ const CheckUpdates = () => {
               <p><strong>Vehicle Type:</strong> {report.vehicleType}</p>
               <p><strong>Color:</strong> {report.color}</p>
               <p><strong>Reason:</strong> {report.reason}</p>
-              <p><strong>Test:</strong> {report.driversLicense}</p>
+              {/* <p><strong>Test:</strong> {report.driversLicense}</p> */}
 
               {/* Lazy Loaded Image with Toggle Functionality */}
               {report.driversLicense && (

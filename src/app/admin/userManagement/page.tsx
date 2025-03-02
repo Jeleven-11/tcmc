@@ -27,7 +27,7 @@ export default function UserManagement() {
 
       const usersWithId = data.map((user: User, index: number) => ({
         ...user,
-        id: user.user_id || `temp-id-${index}`,
+        user_id: user.user_id || `temp-id-${index}`,
       }));
 
       setUsers(usersWithId);
@@ -124,7 +124,7 @@ export default function UserManagement() {
                 body: JSON.stringify({ userId: pendingUserId }),
               });
               if (response.ok)
-                setUsers(users.filter((user: User) => user.id !== pendingUserId));
+                setUsers(users.filter((user: User) => user.user_id !== pendingUserId));
               else throw new Error('Failed to delete user');
             } catch (error) {
               console.error('Error deleting user:', error);
@@ -175,14 +175,14 @@ export default function UserManagement() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
             {users.map((user, index) => (
-              <div key={user.user_id || user.id || `user-${index}`} className="bg-white border dark:border-gray-200 rounded-lg shadow-sm p-4">
+              <div key={user.user_id || `user-${index}`} className="bg-white border dark:border-gray-200 rounded-lg shadow-sm p-4">
                 <UserCard user={user} onEdit={handleEdit} onDelete={() => handleDelete(user.user_id || '')} />
               </div>
             ))}
           </div>
         </section>
         {isEditing && currentUser && <EditUserModal user={currentUser} onClose={closeEditModal} onUpdate={(updatedUser) => {
-          setUsers(users.map(user => user.id === updatedUser.id ? updatedUser : user));
+          setUsers(users.map(user => user.user_id === updatedUser.user_id ? updatedUser : user));
           closeEditModal();
         }} />}
         {/* {isAdding && <AddUserModal onClose={closeAddUserModal} onAddUser={(newUser) => setUsers([...users, newUser])} />} */}

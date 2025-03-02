@@ -14,11 +14,11 @@ function generateAuthToken(userData:User, remember:boolean=false) {
   }
   
   // Extract relevant user data to include in the JWT payload
-  const { id, username, name, contact_num, password, user_id }: User = userData;
+  const { username, name, contact_num, password, user_id }: User = userData;
 
   // Define the payload to be included in the token
   const payload = {
-    id,
+    // id,
     username,
     name,
     contact_num,
@@ -74,7 +74,7 @@ export async function POST(req: Request){
             return NextResponse.json({ message: 'Invalid credentials' }, { status: 400 })
 
         const userData = {
-            id: data.id,
+            // id: data.id,
             username: data.username,
             name: data.name,
             team: data.team,

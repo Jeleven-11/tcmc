@@ -33,7 +33,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUpdate }
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    let updatedUser = { id: user.id, user_id: user.user_id, username, currPassword, newPassword, password, name, team, contact_num: contactNumber, email }; // Include id and name
+    let updatedUser = { user_id: user.user_id, username, currPassword, newPassword, password, name, team, contact_num: contactNumber, email }; // Include id and name
     try {
       const response = await fetch(`/api/masterLogin/updateUser`, {
         method: 'PUT', // Ensure this is PUT
@@ -45,7 +45,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUpdate }
       if (response.ok) {
           updatedUser = {
             ...user, 
-            id: user.id,
             user_id: user.user_id,
             username,
             password: result.data.hPassword, 

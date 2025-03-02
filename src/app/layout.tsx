@@ -3,7 +3,7 @@
 
 // import { SessionProvider } from 'next-auth/react';
 import './globals.css'; // Adjust path if needed
-
+// import { NotificationsProvider } from '@toolpad/core/useNotifications';
 export const dynamic = 'force-dynamic'
 
 export default function RootLayout({

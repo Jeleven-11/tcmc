@@ -27,11 +27,10 @@ function generateAuthToken(userData:User, remember:boolean=false) {
   }
   
   // Extract relevant user data to include in the JWT payload
-  const { id, username, name, team, contact_num, user_id }: User = userData;
+  const { username, name, team, contact_num, user_id }: User = userData;
 
   // Define the payload to be included in the token
   const payload = {
-    id,
     username,
     name,
     team,
@@ -73,6 +72,7 @@ export async function POST(req: NextRequest)
     try
     {
       const { username, password } = await req.json();
+      console.log("Password: ", password);
       if (!username || !password)
         return NextResponse.json({ message: 'Invalid credentials' }, { status: 400 })
 
@@ -86,6 +86,7 @@ export async function POST(req: NextRequest)
 
       //const data = JSON.parse(JSON.stringify(rows[0])) as User
       const data = rows[0]
+      console.log("Data:", data)
       const isPassValid = await bcrypt.compare(password, data.password)
       if (!isPassValid)
         return NextResponse.json({ message: 'Invalid credentials' }, { status: 400 })
@@ -93,7 +94,6 @@ export async function POST(req: NextRequest)
       if(session)
       {
         const userData = {
-          id: data.id,
           username: data.username,
           name: data.name,
           team: data.team,
@@ -104,7 +104,6 @@ export async function POST(req: NextRequest)
         }
         const authToken = generateAuthToken(userData, true)
         session.isLoggedIn = true
-        session.id = data.id
         session.username = data.username
         session.name = data.name
         session.contact_num = data.contact_num

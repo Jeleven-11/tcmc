@@ -27,15 +27,21 @@ export async function POST(req: Request)
 
     //const data = JSON.parse(JSON.stringify(rows[0])) as User
     const data = rows[0]
-    const isPassValid = await bcrypt.compare(current_password, data.password)
-    if (!isPassValid)
+    let updateQuery:string='';
+    let values;
+    if(new_password!=='' && current_password !== ''){
+      const isPassValid = await bcrypt.compare(current_password, data.password)
+      if (!isPassValid)
       NextResponse.json({message: 'Entered current password is incorrect!'})
+      const hashedPassword: string = await bcrypt.hash(new_password, 10);
+      updateQuery = "UPDATE users SET name=?, contact_num=?, team=?, email=?, password =? WHERE user_id=?"
+      values=[name, contact_num, team, email, hashedPassword, session.user_id];
+    } else {
+      updateQuery = "UPDATE users SET name=?, contact_num=?, team=?, email=?  WHERE user_id=?"
+      values=[name, contact_num, team, email, session.user_id];
+    }
 
-    
-    const hashedPassword: string = await bcrypt.hash(new_password, 10);
-
-
-    const [result]: [ResultSetHeader, FieldPacket[]] = await pool.query("UPDATE users SET name=?, contact_num=?, team=?, email=?, password =? WHERE user_id=?", [name, contact_num, team, email, hashedPassword, session.user_id]) as [ResultSetHeader, FieldPacket[]]
+    const [result]: [ResultSetHeader, FieldPacket[]] = await pool.query(updateQuery, values) as [ResultSetHeader, FieldPacket[]]
     if (result.affectedRows === 0)
         return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
 

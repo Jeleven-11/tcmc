@@ -21,11 +21,10 @@ function generateAuthToken(userData:User, remember:boolean=false) {
   }
   
   // Extract relevant user data to include in the JWT payload
-  const { id, username, name, team, contact_num, password, user_id }: User = userData;
+  const { username, name, team, contact_num, password, user_id }: User = userData;
 
   // Define the payload to be included in the token
   const payload = {
-    id,
     username,
     name,
     team,
@@ -98,7 +97,6 @@ export async function POST(req: NextRequest)
       //   await session.update()
       //   return NextResponse.json({ message: "Login successful"}, { status: 200 })
       const userData = {
-        id: data.id,
         username: data.username,
         name: data.name,
         team: data.team,

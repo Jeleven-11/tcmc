@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, SetStateAction } from 'react';
-import { DataGrid, GridColDef, GridPaginationModel, GridRenderCellParams, GridTreeNodeWithRender } from '@mui/x-data-grid';
+import type { FormEvent } from 'react';
+import { DataGrid, GridColDef, GridPaginationModel/*, GridRenderCellParams, GridTreeNodeWithRender */} from '@mui/x-data-grid';
 import Paper from '@mui/material/Paper';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import Image from 'next/image';
 
 import debounce from 'lodash.debounce';
@@ -14,7 +16,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination as Pagination1 } from 'swiper/modules';
-import { Button, MenuItem, Select, SelectChangeEvent, TextField, Tooltip } from '@mui/material';
+import { Button, MenuItem, Select, /*SelectChangeEvent,*/ TextField, Tooltip } from '@mui/material';
 import CustomPagination from './CustomPagination';
 import { getSession } from '@/app/lib/actions';
 import axios from 'axios';
@@ -22,8 +24,9 @@ import { toast } from "react-toastify";
 
 
 import DeleteIcon from '@mui/icons-material/Delete'
-import EditIcon from '@mui/icons-material/Edit';
-
+// import EditIcon from '@mui/icons-material/Edit';
+import UpdateIcon from '@mui/icons-material/Update';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 interface Report {
   driversLicense: string;
@@ -48,26 +51,44 @@ interface Report {
   createdAt: string;
   updatedAt: string;
 }
-
+type ReportActionType = 'solved' | 'dropped' | 'save';
 const statusColors: Record<string, string> =
-{
-  unread: "#facc15", // Yellow-500
-  on_investigation: "#fb923c", // Orange-400
-  dropped: "#ef4444", // Red-500
-  solved: "#3b82f6", // Blue-500
+{ // FROM MUI MATERIAL UI DEFAULT THEME:
+  unread: "#01579B", //info Deep Cerulean
+  on_investigation: "#E65100",  // warning Burnt Orange
+  dropped: "#C62828",  // error Dark Red
+  solved: "#1565C0", //primary Deep Azure
 }
 
-const statusTeam: Record<number, string> =
-{
-  0: "#374151",
-  1: "#3b82f6", // Yellow-500
-}
+// const statusTeam: Record<number, string> =
+// {
+//   0: "#374151",
+//   1: "#3b82f6", // Yellow-500
+// }
 
 function dateConv(date: string) : string
 {
   return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ", " + new Date(date).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })  
 }
+const formatStatus = (status: string) => {
+  if (status === "on_investigation") {
+      return status
+          .split("_") // Split into words
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
+          .join(" "); // Join back with space
+  }
+  return status.charAt(0).toUpperCase() + status.slice(1);
+};
 
+const getStatusColor = (status: string) => {
+  const colors: Record<string, "warning" | "info" | "success" | "error"> = {
+      on_investigation: "warning",
+      unread: "info",
+      solved: "success",
+      dropped: "error",
+  };
+  return colors[status] || "default"; // Provide a fallback color if needed
+};
 export default function DataTable() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(false);
@@ -79,16 +100,19 @@ export default function DataTable() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRows, setSelectedRows] = useState<number[]>([])
   const [initReports, setInitReports] = useState<string[]>([])
-  const [remarkModal, setRemarkModal] = useState(false)
-  const [remark, setRemark] = useState('')
-  const [selectedValue, setSelectedValue] = useState<number | undefined>(undefined)
+  // const [remarkModal, setRemarkModal] = useState(false)
+  const [isUpdatingReport, setIsUpdatingReport] = useState<boolean>(false);
+  const [details, setDetails] = useState<string>('');
+  const [title, setTitle] = useState<string>('');
+  // const [remark, setRemark] = useState('')
+  // const [selectedValue, setSelectedValue] = useState<number | undefined>(undefined)
 
   // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-  const handleChange = (event: SelectChangeEvent<number>, params: GridRenderCellParams<any, any, any, GridTreeNodeWithRender>) => {
-    const newValue = Number(event.target.value)
-    setSelectedValue(newValue); // Update the local state
-    updateTeam(params.row.reportID, newValue); // Call the API function
-  }
+  // const handleChange = (event: SelectChangeEvent<number>, params: GridRenderCellParams<any, any, any, GridTreeNodeWithRender>) => {
+  //   const newValue = Number(event.target.value)
+  //   setSelectedValue(newValue); // Update the local state
+  //   updateTeam(params.row.reportID, newValue); // Call the API function
+  // }
 
   const fetchReports = async (isLoad: SetStateAction<boolean>) =>
   {
@@ -173,20 +197,20 @@ console.log(nStatus, type)
     }
   }
 
-  const updateTeam = async (id: string, newTeam: number): Promise<void> =>
-  {
-    try
-    {
-      // console.log(id, newTeam)
-      const res = await axios.post(`/api/reports/${id}`, { reportID: id, status: newTeam })
-      if (res.status === 200)
-        await sendNotif([id], String(newTeam), 'team')
+  // const updateTeam = async (id: string, newTeam: number): Promise<void> =>
+  // {
+  //   try
+  //   {
+  //     // console.log(id, newTeam)
+  //     const res = await axios.post(`/api/reports/${id}`, { reportID: id, status: newTeam })
+  //     if (res.status === 200)
+  //       await sendNotif([id], String(newTeam), 'team')
 
-      fetchReports(true)
-    } catch (error) {
-      console.error("Error updating status:", error)
-    }
-  }
+  //     fetchReports(true)
+  //   } catch (error) {
+  //     console.error("Error updating status:", error)
+  //   }
+  // }
 
   const handleDeleteReports = async () =>
   {
@@ -247,7 +271,7 @@ console.log(nStatus, type)
   const handleOpenEditModal = (report: Report) =>
   {
     setSelectedReport(report)
-    setRemarkModal(true)
+    setIsUpdatingReport(true)
   }
 
   const handleCloseModal = () =>
@@ -268,49 +292,59 @@ console.log(nStatus, type)
     setSelectedRows(selectedIds)
   }
 
-  const handleRemarkSubmit = async () =>
-  {
-    try
-    {
-      const reportID = selectedReport?.reportID || 0
-      const response = await fetch("/api/reports/updateReport",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ remark, reportID }),
-      })
-
-      if (!response.ok)
-        throw new Error("Failed to submit remark")
-
-      const res = await response.json()
-      setRemark(res.remark)
-      fetchReports(true)
-    } catch (error) {
-      console.error(error)
+  const handleUpdateReport = async (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      // Get the clicked button's value with proper type assertion
+      const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+      const action = submitter?.value as ReportActionType | undefined;
+  
+      // Validate we have a valid action
+      if (!action || !['solved', 'dropped', 'save'].includes(action)) {
+        console.error('Invalid action type');
+        return;
+      }
+      try {
+        if(selectedReport && selectedReport.id){
+          const response = await fetch(`/api/addReportUpdate/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({'title':title, 'details':details, 'action':action, 'reportId':selectedReport.id}),
+          });
+    
+          if (response.ok) {
+            alert('Added a Report Update Successfully');
+            if(action!=='save')
+            await sendNotif([Number(selectedReport.id).toString()], action, '')
+          } else {
+            const data = await response.json();
+            alert(data.message);
+          }
+        } else {
+          throw new Error("Selected report has no id");
+        }
+      } catch (error) {
+        console.error('Error updating report:', error);
+        alert('An error occurred while updating the report');
+      }
+      setIsUpdatingReport(false)
     }
-
-    setRemarkModal(false)
-  }
 
   const loadCarousel = (reportId: string) => setLoadedImages((prev) => ({ ...prev, [reportId]: true }))
 
   const columns: GridColDef[] = [
-    { field: 'id', headerName: '#', width: 70 },
-    {
-      field: "status",
-      headerName: "Status",
-      flex: 2, // ✅ Auto-width based on content
-      minWidth: 190,
-      maxWidth: 250,
+    { field: 'id', headerName: '#', width:75 },
+    { field: 'status', headerName: 'Status', flex: 1,
       renderCell: (params) => {
         const { value } = params;
-        const textColor = statusColors[value] || "#374151";
-
         return (
-          <Select
+        
+          (value!=='unread')?(<span 
+            style={{ color: statusColors[value] }} 
+            onClick={() => handleOpenModal(params.row)}
+          >
+            {formatStatus(value)}
+          </span>):(
+            <Select
             value={value}
             onChange={(event) => updateStatus(params.row.reportID, event.target.value)}
             variant="outlined"
@@ -320,7 +354,7 @@ console.log(nStatus, type)
               minWidth: "100px",
               fontSize: "14px",
               padding: "0",
-              color: textColor,
+              color: statusColors[value],
               fontWeight: "bold",
             }}
           >
@@ -333,63 +367,104 @@ console.log(nStatus, type)
                   fontWeight: "bold",
                 }}
               >
-                {option.charAt(0).toUpperCase() + option.substring(1)}
+                {formatStatus(option)}
               </MenuItem>
             ))}
           </Select>
-        );
-      }
-    },
-    {
-      field: "users_team",
-      headerName: "Assginee",
-      flex: 2, // ✅ Auto-width based on content
-      minWidth: 190,
-      maxWidth: 250,
-      renderCell: (params) =>
-      {
-        const handleTeamChange = (event: SelectChangeEvent<number>) => handleChange(event, params)
+          )
+      )}
+     },
+    // {
+    //   field: "status",
+    //   headerName: "Status",
+    //   flex: 2, // ✅ Auto-width based on content
+    //   minWidth: 190,
+    //   maxWidth: 250,
+    //   renderCell: (params) => {
+    //     const { value } = params;
+    //     const textColor = statusColors[value] || "#374151";
 
-        return (
-          <Select
-            value={selectedValue} // Bind state
-            onChange={handleTeamChange}
-            variant="outlined"
-            size="small"
-            sx={{
-              height: "32px",
-              minWidth: "100px",
-              fontSize: "14px",
-              padding: "0",
-              color: statusTeam[Number(selectedValue)] || "#374151",
-              fontWeight: "bold",
-            }}
-          >
-            {Object.keys(statusTeam).map((option) => (
-              <MenuItem
-                key={option}
-                value={Number(option)}
-                sx={{
-                  color: statusTeam[Number(option)],
-                  fontWeight: "bold",
-                }}
-              >
-                {Number(option) === 1 ? "Task Force" : "Help Desk"}
-              </MenuItem>
-            ))}
-          </Select>
-        );
-      }
-    },
-    // { field: 'contactNumber', headerName: 'Contact Number', width: 150 },
-    { field: 'isOwner', headerName: 'Owner?', width: 70 },
-    { field: 'vehicleType', headerName: 'Vehicle Type', flex: 2 },
-    { field: 'platenumber', headerName: 'Plate Number', width: 150 },
+    //     return (
+    //       value
+    //       // <Select
+    //       //   value={value}
+    //       //   // onChange={(event) => updateStatus(params.row.reportID, event.target.value)}
+    //       //   variant="outlined"
+    //       //   size="small"
+    //       //   sx={{
+    //       //     height: "32px",
+    //       //     minWidth: "100px",
+    //       //     fontSize: "14px",
+    //       //     padding: "0",
+    //       //     color: textColor,
+    //       //     fontWeight: "bold",
+    //       //   }}
+    //       // >
+    //       //   {Object.keys(statusColors).map((option) => (
+    //       //     <MenuItem
+    //       //       key={option}
+    //       //       value={option}
+    //       //       sx={{
+    //       //         color: statusColors[option],
+    //       //         fontWeight: "bold",
+    //       //       }}
+    //       //     >
+    //       //       {option.charAt(0).toUpperCase() + option.substring(1)}
+    //       //     </MenuItem>
+    //       //   ))}
+    //       // </Select>
+    //     );
+    //   }
+    // },
+    // {
+    //   field: "users_team",
+    //   headerName: "Assginee",
+    //   flex: 2, // ✅ Auto-width based on content
+    //   minWidth: 190,
+    //   maxWidth: 250,
+    //   renderCell: (params) =>
+    //   {
+    //     const handleTeamChange = (event: SelectChangeEvent<number>) => handleChange(event, params)
+
+    //     return (
+    //       <Select
+    //         value={selectedValue} // Bind state
+    //         onChange={handleTeamChange}
+    //         variant="outlined"
+    //         size="small"
+    //         sx={{
+    //           height: "32px",
+    //           minWidth: "100px",
+    //           fontSize: "14px",
+    //           padding: "0",
+    //           color: statusTeam[Number(selectedValue)] || "#374151",
+    //           fontWeight: "bold",
+    //         }}
+    //       >
+    //         {Object.keys(statusTeam).map((option) => (
+    //           <MenuItem
+    //             key={option}
+    //             value={Number(option)}
+    //             sx={{
+    //               color: statusTeam[Number(option)],
+    //               fontWeight: "bold",
+    //             }}
+    //           >
+    //             {Number(option) === 1 ? "Task Force" : "Help Desk"}
+    //           </MenuItem>
+    //         ))}
+    //       </Select>
+    //     );
+    //   }
+    // },
+    { field: 'contactNumber', headerName: 'Contact Number', flex:1 },
+    { field: 'isOwner', headerName: 'Owner', width:70 },
+    { field: 'vehicleType', headerName: 'Vehicle Type', flex: 1 },
+    { field: 'platenumber', headerName: 'Plate Number', flex: 1 },
     { 
       field: 'fullName', 
       headerName: 'Full Name', 
-      flex: 2, // auto-width based on content
-      width: 200,
+      flex: 1, // auto-width based on content
       renderCell: (params) => (
         <Tooltip title={params.row.reportID} arrow>
           <span 
@@ -401,21 +476,19 @@ console.log(nStatus, type)
         </Tooltip>
       )
     },
-    { field: 'age', headerName: 'Age', flex: 1, width: 50 },
+    { field: 'age', headerName: 'Age', width: 50 },
     // { field: 'sex', headerName: 'Sex', width: 50 },
     { field: 'sex', 
-      flex: 1, // auto-width based on content
+      width: 50, // auto-width based on content
       headerName: 'Sex',
-      width: 200,
       renderCell: (params) => (
         <span className="text-sm">{params.row.sex.replace('Male', 'M').replace('Female', 'F')}</span>
       )
     },
-    // { field: 'status', headerName: 'Status', width: 130 },
+    
     { field: 'createdAt',
-      flex: 2, // auto-width based on content
-      headerName: 'Created At',
-      width: 175,
+      flex: 1, // auto-width based on content
+      headerName: 'Date Created',
       renderCell: (params) => {
         // const formattedDate = new Date(params.row.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ", " + new Date(params.row.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
         const formattedDate = dateConv(params.row.createdAt)
@@ -427,9 +500,8 @@ console.log(nStatus, type)
       }
     },
     { field: 'updatedAt',
-      flex: 2, // auto-width based on content
-      headerName: 'Updated At',
-      width: 180,
+      flex: 1, // auto-width based on content
+      headerName: 'Last Update',
       renderCell: (params) => {
         const formattedDate = dateConv(params.row.updatedAt)
         // const formattedDate = new Date(params.row.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ", " + new Date(params.row.updatedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
@@ -443,41 +515,37 @@ console.log(nStatus, type)
     {
       field: 'actions',
       headerName: 'Action',
-      flex: 2, // auto-width based on content
-      minWidth: 100,
-      maxWidth: 100,
-      renderCell: (params) => (
+      flex: 1, // auto-width based on content
+      renderCell: (params) => {
+        const rowStatus = params.row.status;
+        return (
         <>
-          {/* <Button
-            className="mr-2"
-            variant="contained"
-            color="info"
-            onClick={() => handleOpenModal(params.row)}
-          > */}
-          <Tooltip title="Edit Report" arrow>
-            <EditIcon
+          <Tooltip title="View Report" arrow>
+            <VisibilityIcon
+              className="mr-2 cursor-pointer"
+              color="action"
+              // onClick={() => setRemarkModal(true)}
+              onClick={() => handleOpenModal(params.row)}
+            />
+          </Tooltip>
+          {(rowStatus!=='solved'&&rowStatus!=='unread')&&(
+          <Tooltip title="Update Report" arrow>
+            <UpdateIcon
               className="mr-2 cursor-pointer"
               color="info"
               // onClick={() => setRemarkModal(true)}
               onClick={() => handleOpenEditModal(params.row)}
             />
-          </Tooltip>
-          {/* </Button> */}
-          {/* <Button
-            color="error"
-            size="small"
-            onClick={() => deleteSingleReport(params.row.reportID, params.row.status)}
-          > */}
-           <Tooltip title="Delete Report" arrow>
+          </Tooltip>)}
+          <Tooltip title="Delete Report" arrow>
             <DeleteIcon
               className="cursor-pointer"
               color="error"
               onClick={() => deleteSingleReport(params.row.reportID, params.row.status)}
             />
           </Tooltip>
-          {/* </Button> */}
         </>
-      ),
+      )},
     }
   ];
 
@@ -606,8 +674,10 @@ console.log(nStatus, type)
               <>
                 {/* Renamed from complainant to Informant/Reporting Party */}
                 {/* Complainant Details */}
-                <h2 className="text-2xl font-bold mb-3">Informant / Reporting Party Details</h2>
-                <span className="text-sm font-bold mt-6"><p className="mb-6">Report ID: {selectedReport.reportID}</p></span>
+                <div className="flex justify-between items-center w-full">
+                  <h2 className="text-2xl font-bold">Informant / Reporting Party Details</h2>
+                  <p className="text-sm font-bold">Report ID: {selectedReport.reportID}</p>
+                </div>
                 {/* <div className="mb-6">
                   <label className="block text-gray-700 text-sm font-bold">Status:</label>
                   <button style={{backgroundColor: (statusColors[selectedReport.status] || "gray"), fontWeight: "bold"}} className="text-white px-2 py-2 rounded-full w-auto text-sm text-center">
@@ -616,9 +686,12 @@ console.log(nStatus, type)
                 </div> */}
                 <div className="mb-6">
                   <label className="block text-gray-700 text-sm font-bold">Status:</label>
-                  <button style={{backgroundColor: (statusColors[selectedReport.status] || "gray"), fontWeight: "bold"}} className="text-white px-2 py-2 rounded-full w-auto text-sm text-center">
-                    {selectedReport.status.charAt(0).toUpperCase() + selectedReport.status.substring(1)}
-                  </button>
+                  <Chip
+                    label={formatStatus(selectedReport.status)}
+                    color={getStatusColor(selectedReport.status)}
+                    variant="filled"
+                  />
+                  
                 </div>
                 <div className="mb-4">
                   <label className="block text-gray-700 text-sm font-bold">Full Name:</label>
@@ -711,25 +784,49 @@ console.log(nStatus, type)
           </Box>
         </Modal>
 
-        {/* Edit Profile Modal */}
-        {remarkModal && (
-          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-            <div className="bg-white p-6 rounded-md shadow-lg w-96">
-              <h2 className="text-xl font-bold mb-4">Editing Report [{selectedReport?.reportID}]</h2>
-              <h4 className="text-sm font-bold mb-4">Report by: {selectedReport?.fullName}</h4>
-              <textarea
-                className="border p-2 w-full rounded-md mb-2"
-                defaultValue={selectedReport?.remarks}
-                placeholder="Add remarks to the report, or leave notes"
-                required
-                onChange={(e) => setRemark(e.target.value)}
-              />
-              <div className="mt-4 flex justify-end space-x-2">
-                <button className="px-4 py-2 bg-gray-300 rounded" onClick={() => setRemarkModal(false)}>Cancel</button>
-                <button className="px-4 py-2 bg-green-500 text-white rounded" onClick={handleRemarkSubmit}>
-                  Save
-                </button>
-              </div>
+        {/* Add Report Update Modal */}
+        { isUpdatingReport && ( // a boolean will be set to true when Add update is clicked
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white p-6 rounded-lg w-1/2">
+            <h2 className="text-lg font-semibold">Report Update</h2>
+                <form onSubmit={handleUpdateReport}>
+                  <label className="block mb-2">
+                    Title:
+                    <input
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="border p-2 w-full"
+                      required
+                    />
+                  </label>
+
+                  <label className="block mb-2">
+                    Update details:
+                    <textarea
+                      value={details}
+                      onChange={(e) => setDetails(e.target.value)}
+                      className="border p-2 w-full h-32"
+                      required
+                    />
+                  </label>
+                  
+                  
+                  <div className="flex justify-center mt-4">
+                    <button type="submit" name="action" value="solved" className="bg-blue-500 text-white px-4 py-2 rounded">
+                      Save and mark as solved
+                    </button>
+                    <button type="submit" name="action" value="dropped" className="bg-blue-500 text-white px-4 py-2 rounded">
+                      Save and mark as dropped
+                    </button>
+                    <button type="submit" name="action" value="save" className="bg-blue-500 text-white px-4 py-2 rounded">
+                      Just save
+                    </button>
+                    <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setIsUpdatingReport(false)}>
+                      Cancel
+                    </button>
+                  </div>
+                </form>
             </div>
           </div>
         )}
