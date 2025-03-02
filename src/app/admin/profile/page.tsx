@@ -1,13 +1,15 @@
 'use client'
 
 import { UserCircleIcon } from '@heroicons/react/24/outline';
-import { getSession } from '@/app/lib/actions';
+import { getSession, logout } from '@/app/lib/actions';
 import { useState, useEffect } from 'react';
 import { Paper } from '@mui/material';
+import { useRouter } from 'next/navigation';
 
 type SessionData =
 {
   isLoggedIn: boolean;
+  user_id?: number;
   name?: string;
   contact_num?: string;
   team?: number;
@@ -26,10 +28,12 @@ type EditData = {
 
 export default function Profile()
 {
+  const router = useRouter()
   const [sessionData, setSessionData] = useState<SessionData>(null)
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [password, setPassword] = useState('')
+  const [isDel, setIsDel] = useState(false)
   const [editData, setEditData] = useState<EditData>({
     isLoggedIn: false,
     name: '',
@@ -49,6 +53,7 @@ export default function Profile()
       {
         setSessionData({
           isLoggedIn: currentSession.isLoggedIn,
+          user_id: currentSession.user_id,
           name: currentSession.name,
           contact_num: currentSession.contact_num,
           team: currentSession.team,
@@ -61,7 +66,7 @@ export default function Profile()
   }, [editData])
 
   if (!sessionData)
-    return <p>Loading...</p>;
+    return
 
   if (!sessionData.isLoggedIn)
     return <p>Please log in to view your profile.</p>;
@@ -83,17 +88,45 @@ export default function Profile()
     }
 
     setIsPasswordModalOpen(false)
-    setEditData({
-      isLoggedIn: sessionData.isLoggedIn,
-      name: sessionData.name || '',
-      contact_num: sessionData.contact_num || '',
-      current_password:'',
-      new_password:'',
-      team: sessionData.team || 0,
-      email: sessionData.email || '',
-    })
-    setIsEditModalOpen(true)
+    if (!isDel)
+    {
+      setEditData({
+        isLoggedIn: sessionData.isLoggedIn,
+        name: sessionData.name || '',
+        contact_num: sessionData.contact_num || '',
+        current_password: '',
+        new_password: '',
+        team: sessionData.team || 0,
+        email: sessionData.email || '',
+      })
+      setIsEditModalOpen(true)
+    } else handleDeleteAcc() // ELSE del acc
     setPassword('')
+  }
+
+  const handleDeleteAcc = async () =>
+  {
+    if (confirm('Are you sure you want to delete this user?'))
+    {
+      const userId = sessionData.user_id
+      try
+      {
+        const response = await fetch(`/api/deleteUser?userId=${userId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: userId }),
+        })
+
+        if (response.ok)
+          logout().then(() => router.push('/'))
+        else
+          throw new Error('Failed to delete user')
+      } catch (error) {
+        console.error('Error deleting user:', error)
+      }
+    }
+
+    setIsDel(false)
   }
 
   const handleEditSubmit = async () =>
@@ -148,7 +181,12 @@ export default function Profile()
             <button onClick={() => setIsPasswordModalOpen(true)} className="bg-blue-500 text-white px-4 py-2 rounded">
               Edit Profile
             </button>
-            <button onClick={() => setIsPasswordModalOpen(true)} className="bg-red-500 text-white px-4 py-2 rounded">
+            <button onClick={() =>
+            {
+              setIsDel(true)
+              if (isDel)
+                setIsPasswordModalOpen(true)
+            }} className="bg-red-500 text-white px-4 py-2 rounded">
               Delete Account
             </button>
           </div>
@@ -184,6 +222,7 @@ export default function Profile()
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
           <div className="bg-white p-6 rounded-md shadow-lg w-96">
             <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
+            <label className="text-sm text-black">Full Name:</label>
             <input
               type="text"
               className="border p-2 w-full rounded-md mb-2"
@@ -191,6 +230,7 @@ export default function Profile()
               value={editData.name}
               onChange={(e) => setEditData({ ...editData, name: e.target.value })}
             />
+            <label className="text-sm text-black">Contact #:</label>
             <input
               type="text"
               className="border p-2 w-full rounded-md mb-2"
@@ -198,6 +238,7 @@ export default function Profile()
               value={editData.contact_num}
               onChange={(e) => setEditData({ ...editData, contact_num: e.target.value })}
             />
+            <label className="text-sm text-black">Password:</label>
             <input
               type="password"
               className="border p-2 w-full rounded-md mb-2"
@@ -205,6 +246,7 @@ export default function Profile()
               value={editData.current_password}
               onChange={(e) => setEditData({ ...editData, current_password: e.target.value })}
             />
+            <label className="text-sm text-black">New Password:</label>
             <input
               type="password"
               className="border p-2 w-full rounded-md mb-2"
@@ -212,6 +254,7 @@ export default function Profile()
               value={editData.new_password}
               onChange={(e) => setEditData({ ...editData, new_password: e.target.value })}
             />
+            <label className="text-sm text-black">Email:</label>
             <input
               type="email"
               className="border p-2 w-full rounded-md mb-2"
@@ -219,6 +262,7 @@ export default function Profile()
               value={editData.email}
               onChange={(e) => setEditData({ ...editData, email: e.target.value })}
             />
+            <label className="text-sm text-black">Team Role:</label>
             <select
               className="border p-2 w-full rounded-md mb-2"
               defaultValue={editData.team}
@@ -230,7 +274,7 @@ export default function Profile()
             </select>
             <div className="mt-4 flex justify-end space-x-2">
               <button className="px-4 py-2 bg-gray-300 rounded" onClick={() => setIsEditModalOpen(false)}>Cancel</button>
-              <button className="px-4 py-2 bg-green-500 text-white rounded" onClick={handleEditSubmit}>
+              <button className="px-4 py-2 bg-blue-500 text-white rounded" onClick={handleEditSubmit}>
                 Save
               </button>
             </div>

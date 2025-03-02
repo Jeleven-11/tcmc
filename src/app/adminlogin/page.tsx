@@ -26,7 +26,7 @@ export default function Adminlogin() {
         router.push('/admin')
       }
     })
-  }, [])
+  }, [router])
 
   if (!isClient)
     return null

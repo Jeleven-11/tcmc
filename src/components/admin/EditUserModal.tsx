@@ -75,36 +75,31 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUpdate }
         {message && <p className="text-red-500 text-sm mb-2">{message}</p>}
         <h2 className="text-lg font-semibold">Edit User</h2>
         <form onSubmit={handleSubmit}>
-          <label className="block mb-2">
-            Username:
+            <label className="text-sm text-black">Username:</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="border p-2 w-full"
+              className="border p-2 w-full mb-2 cursor-not-allowed"
               required
               disabled
             />
-          </label>
-          <label className="block mb-2">
-          Current Password: <p className="text-sm"> (Type current password to change pass)</p>
+          <label className="text-sm text-black">Current Password: <p className="text-sm text-blue-600"> (Type current password to change pass)</p></label>
             <input
               type="hidden"
               value={user.password}
               // onChange={(e) => setName(e.target.value)}
-              className="border p-2 w-full"
+              className="border p-2 w-full mb-2"
               disabled
             />
             <input
               type="password"
               placeholder="Type current password to change password"
               onChange={(e) => setCurrPassword(e.target.value)}
-              className="border p-2 w-full"
+              className="border p-2 w-full mb-2"
               required
             />
-          </label>
-          <label className="block mb-2">
-            New Password:
+          <label className="text-sm text-black">New Password:</label>
             <input
               type="password"
               placeholder="Type new password"
@@ -112,20 +107,16 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUpdate }
               className="border p-2 w-full"
               required
             />
-          </label>
 
-          <label className="block mb-2">
-            Name:
+            <label className="text-sm text-black">Name:</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="border p-2 w-full"
+              className="border p-2 w-full mb-2"
               required
             />
-          </label>
-          <label className="block mb-2">
-            Role:
+            <label className="text-sm text-black">Team Role:</label>
             <select
               className="border p-2 w-full rounded-md mb-2"
               value={team}
@@ -142,33 +133,28 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onUpdate }
               className="border p-2 w-full"
               required
             /> */}
-          </label>
-          <label className="block mb-2">
-            Contact Number:
+            <label className="text-sm text-black">Contact #:</label>
             <input
               type="text"
               value={contactNumber}
               onChange={(e) => setContactNumber(e.target.value)}
-              className="border p-2 w-full"
+              className="border p-2 w-full mb-2"
               required
             />
-          </label>
-          <label className="block mb-2">
-            Email:
+            <label className="text-sm text-black">Email:</label>
             <input
               type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="border p-2 w-full"
+              className="border p-2 w-full mb-2"
               required
             />
-          </label>
           <div className="flex justify-between mt-4">
+            <button type="button" onClick={onClose} className="bg-gray-300 px-4 py-2 rounded">
+              Cancel
+            </button>
             <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
               Update
-            </button>
-            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>
-              Cancel
             </button>
           </div>
         </form>

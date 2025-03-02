@@ -480,10 +480,11 @@ export default function DataTable() {
       return;
     }
 
-    const headers = ["Status", "Report ID", "isOwner", "Vehicle Type", "Plate #", "Full Name", "Age", "Sex", "Report Created", "Report UpdatedAt"];
+    const headers = ["Status", "Assignee", "Report ID", "isOwner", "Vehicle Type", "Plate #", "Full Name", "Age", "Sex", "Report Created", "Report UpdatedAt", "Notes/Remarks"];
 
     const csvRows = reports.map((row) => [
-      row.status,
+      row.status.charAt(0).toUpperCase() + row.status.substring(1),
+      row.team === 1 ? "Task Force" : "Help Desk",
       row.reportID,
       row.isOwner,
       row.vehicleType,
@@ -493,12 +494,11 @@ export default function DataTable() {
       row.sex,
       dateConv(row.createdAt),
       dateConv(row.updatedAt),
+      row.remarks
     ]);
 
     // Convert to CSV format
-    const csvString = [headers, ...csvRows]
-      .map((row) => row.map((cell) => `"${cell || 0}"`).join(","))
-      .join("\n");
+    const csvString = [headers, ...csvRows].map((row) => row.map((cell) => `"${cell || 0}"`).join(",")).join("\n");
 
     const blob = new Blob(["\ufeff" + csvString], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);

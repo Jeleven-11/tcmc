@@ -98,10 +98,10 @@ self.addEventListener("push", async (event) =>
 // //     }
 // // });
 
-// self.addEventListener("notificationclick", (event) =>
-// {
-//     event.notification.close()
-//     event.waitUntil(
-//       clients.openWindow("https://tcmc.vercel.app")
-//     )
-// })
+self.addEventListener("notificationclick", (event) =>
+{
+    event.notification.close()
+    event.waitUntil(
+      clients.openWindow("https://tcmc.vercel.app/admin")
+    )
+})
