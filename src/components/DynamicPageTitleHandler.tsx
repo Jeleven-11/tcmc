@@ -30,7 +30,8 @@ export default function DynamicTitlePage()
     // }
 
     // Update the document title
-    document.title = `${pageTitle} | ${process.env.WEBAPP_TITLE as unknown as string}`
+    const title:string = process.env.WEBAPP_TITLE as unknown as string
+    document.title = `${pageTitle} | ${title}`
   }, [route])
 
   return null
