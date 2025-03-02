@@ -1,9 +1,8 @@
 "use client";
+
 import Nav from './Nav';
-// import { useSession } from 'next-auth/react';
 import { TruckIcon, CalendarIcon } from '@heroicons/react/24/outline'; // Importing correct icons from Heroicons
 import { useState, useEffect } from 'react';
-import Footer from './Footer';
 import Homebody from './Homebody';
 import { GoReport } from "react-icons/go";
 import { MdFileDownloadDone } from "react-icons/md";
@@ -72,16 +71,16 @@ const HomeClient = () => {
     <>
       <Nav />
       <Homebody />
-      <div className='px-2 mx-auto'>
-      <h1 className="text-2xl font-bold mt-6 ml-6">Frequently Asked Questions</h1>
-      <FAQAccordion faqs={faqs} />
-      </div>
       <div className="bg-gray-100 min-h-screen p-6">
-        <header className="bg-blue-600 text-white p-4 rounded mb-6">
+        <div className="!bg-white !p-6 rounded shadow-md">
+          <h1 className="text-2xl font-bold">Frequently Asked Questions</h1>
+          <FAQAccordion faqs={faqs} />
+        </div>
+        <header className="bg-blue-600 text-white p-4 rounded mt-6 mb-3">
           <h1 className="text-2xl font-bold">DASHBOARD</h1>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-white p-4 rounded shadow-md flex items-center">
             <GoReport className="h-8 w-8 text-black mr-4" />
             <div>
@@ -140,10 +139,6 @@ const HomeClient = () => {
           </div>
         </div>
       </div>
-      <div>
-        <Footer />
-      </div>
-      
     </>
     
   );

@@ -327,7 +327,10 @@ const ReportForm = () =>
   }
 
   return (
-    <div className="container mx-auto p-6 mt-6">
+    <div className="container mx-auto p-6 mt-3">
+      <header className="bg-blue-600 text-white p-4 rounded mb-3">
+        <h1 className="text-2xl font-bold">File a Report</h1>
+      </header>
       <div className="bg-blue-100 border border-blue-500 text-blue-700 px-4 py-3 rounded mb-4 flex items-start">
         <span className="mr-2 text-xl">ℹ️</span>
         <p>Got any complaints? Submit one through the form below:</p>
