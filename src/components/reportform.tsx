@@ -5,6 +5,9 @@ import { useEdgeStore } from "@/app/lib/edgestore";
 import LinearProgress, { LinearProgressProps } from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
+import AlertDialog from './Dialog';
 //test
 import AddressSelector from './addressPicker';
 interface FormData {
@@ -45,6 +48,7 @@ function LinearProgressWithLabel(props: LinearProgressProps & { value: number })
     </Box>
   );
 }
+
 const ReportForm = () =>
 {
   
@@ -53,30 +57,49 @@ const ReportForm = () =>
 
   const [message, setMessage] = React.useState('')
   const [timer, setTimer] = React.useState(30)
-  const [alertColor, setAlertColor] = React.useState('bg-green-100') // Default color for success
+  // const [alertColor, setAlertColor] = React.useState('bg-green-100') // Default color for success
   const [isModalOpen, setIsModalOpen] = React.useState(false) // State to control modal visibility
   const [reportID, setReportID] = React.useState('')
 
   const [dvrLicenseVal, setDvrLicense] = React.useState("") // url
   const [fileDL, setFileDL] = React.useState<File>()
-  const [progress1, setProgress1] = React.useState(0)
+  const [progress1, setProgress1] = React.useState<number>(0)
 
   const [vRegistrationVal, setVRegistration] = React.useState("") // url
   const [fileVR, setFileVR] = React.useState<File>()
-  const [progress2, setProgress2] = React.useState(0)
+  const [progress2, setProgress2] = React.useState<number>(0)
 
   const [orCrVal, setOrCr] = React.useState("") // url
   const [fileOR, setFileOR] = React.useState<File>()
-  const [progress3, setProgress3] = React.useState(0)
-
+  const [progress3, setProgress3] = React.useState<number>(0)
+  const [numberFiles, setNumberFiles] = React.useState<number>(1)
   const [vehicleImgVal, setVehicleImgVal] = React.useState("") // url
   const [fileVehicleImg, setFileVehicleImg] = React.useState<File>()
-  // const [progress4, setProgress4] = React.useState(0)
+  const [progress4, setProgress4] = React.useState<number>(0)
+  const [uploadProgress, setUploadProgress] = React.useState<number>(0)
 
-  const [totalUploadProgress, setTotalUploadProgress] = React.useState(0)
-  React.useEffect(() => {
-    setTotalUploadProgress((progress1 + progress2 + progress3 ) / 3);
-  }, [progress1, progress2, progress3]);
+  const [isProcessing, setIsProcessing] = React.useState<boolean>(false)
+  const [totalUploadProgress, setTotalUploadProgress] = React.useState<number>(0)
+  
+  const [snackMessage, setSnackMessage] = React.useState<string>('')
+  const [open, setOpen] = React.useState(false);
+
+  const handleClick = () => {
+    setOpen(true);
+  };
+
+  const handleClose = (
+    event: React.SyntheticEvent | Event,
+    reason?: SnackbarCloseReason,
+  ) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen(false);
+  };
+
+
   const [formData, setFormData] = React.useState<FormData>({
     fullName: '',
     age: '',
@@ -100,11 +123,14 @@ const ReportForm = () =>
     color: '',
     description: '',
   })
-
+  React.useEffect(() => {
+    setTotalUploadProgress((progress1+progress2+progress3+progress4)/numberFiles)
+    console.log("Progress: ", uploadProgress)
+  }, [uploadProgress]);
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) =>
   {
     e.preventDefault()
-
+    setIsProcessing(true)
     const generatedReportID = `REP-${uuidv4().slice(0, 8).toUpperCase()}` // Generate unique report ID
     setReportID(generatedReportID) // Set the generated report ID
 
@@ -115,6 +141,7 @@ const ReportForm = () =>
     // const upload
     if(!fileVehicleImg) return alert('Please upload an image of the reported vehicle for verification purposes!');
     if (formData.isOwner === 'Yes') {
+      setNumberFiles(4);
       const uploadFiles = async () => {
         if(!fileDL || !fileVR || !fileOR) return alert('Please upload ALL required files for verification purposes!');
        
@@ -161,17 +188,21 @@ const ReportForm = () =>
           edgestore.publicFiles.upload({
             file: fileDL,
             onProgressChange: async (progress) => {
+              
+              setUploadProgress(progress)
               setProgress1(progress);
-              setTotalUploadProgress((progress+progress2+progress3)/3)
-              console.log("Progress1 : ", progress)
+              // setTotalUploadProgress((progress+progress2+progress3)/3)
+              // console.log("Progress1 : ", progress)
             },
           }),
           edgestore.publicFiles.upload({
             file: fileVR,
             onProgressChange: async(progress) => {
+              
               setProgress2(progress);
-              setTotalUploadProgress((progress1+progress+progress3)/3)
-              console.log("Progress2 : ", progress)
+              setUploadProgress(progress)
+              // setTotalUploadProgress((progress1+progress+progress3)/3)
+              // console.log("Progress2 : ", progress)
               
               // setTotalUploadProgress((progress1+progress2+progress3)/3)
               
@@ -182,8 +213,9 @@ const ReportForm = () =>
             onProgressChange: async(progress) => {
               
               setProgress3(progress);
-              setTotalUploadProgress((progress1+progress2+progress)/3)
-              console.log("Progress3 : ", progress)
+              setUploadProgress(progress)
+              // setTotalUploadProgress((progress1+progress2+progress)/3)
+              // console.log("Progress3 : ", progress)
 
             },
           }),
@@ -243,13 +275,12 @@ const ReportForm = () =>
     const vehicleImageUpload = await edgestore.publicFiles.upload({
       file: fileVehicleImg,
       onProgressChange: async (progress) => {
-        setProgress1(progress);
-        setTotalUploadProgress((progress+progress2+progress3)/3)
-        console.log("Progress1 : ", progress)
+        setUploadProgress(progress)
+        setProgress4(progress);
       },
     })
     setVehicleImgVal(vehicleImageUpload.url)
-    setTotalUploadProgress(100)
+    // setTotalUploadProgress(100)
 
     try
     {
@@ -262,10 +293,15 @@ const ReportForm = () =>
       {
         //const data = await response.json()
         setMessage(`Report submitted successfully! Your report ID is ${generatedReportID}.`)
-        setAlertColor('bg-green-100') // Green for success
+        // setAlertColor('bg-green-100') // Green for success
         setIsModalOpen(true) // Open modal on success
         setTimer(30)
         setTotalUploadProgress(0)
+        setProgress1(0)
+        setProgress2(0)
+        setProgress3(0)
+        setProgress4(0)
+        setNumberFiles(1)
         setFormData({
           fullName: '',
           age: '',
@@ -290,14 +326,16 @@ const ReportForm = () =>
       } else {
         const error = await response.json()
         setMessage(`Error: ${error.error}`)
-        setAlertColor('bg-red-100') // Red for error
+        // setAlertColor('bg-red-100') // Red for error
         setIsModalOpen(true) // Open modal on error
       }
     } catch (err) {
       console.log(err)
       setMessage('An unexpected error occurred. Please try again later.')
-      setAlertColor('bg-red-100') // Red for error
+      // setAlertColor('bg-red-100') // Red for error
       setIsModalOpen(true) // Open modal on error
+    } finally {
+      setIsProcessing(false)
     }
   }
 
@@ -306,7 +344,9 @@ const ReportForm = () =>
   const handleCopyCode = () =>
   {
     navigator.clipboard.writeText(reportID) // Copy the report ID to clipboard
-    alert('Report ID copied to clipboard!') // Show success alert
+    setSnackMessage(`Report ID "${reportID}" copied to clipboard!`)
+    handleClick();
+    // alert('Report ID copied to clipboard!') // Show success alert
   }
 
   // Update the alert box color opacity based on the timer
@@ -321,16 +361,22 @@ const ReportForm = () =>
   }, [timer])
 
   // Dynamically reduce opacity of the modal alert over time
-  const alertStyle = {
-    opacity: `${timer / 30}`,
-    transition: 'opacity 1s ease-out',
-  }
+  // const alertStyle = {
+  //   opacity: `${timer / 30}`,
+  //   transition: 'opacity 1s ease-out',
+  // }
 
   return (
     <div className="container mx-auto p-6 mt-3">
       <header className="bg-blue-600 text-white p-4 rounded mb-3">
         <h1 className="text-2xl font-bold">File a Report</h1>
       </header>
+      <Snackbar
+        open={open}
+        onClose={handleClose}
+        autoHideDuration={5000}
+        message={snackMessage}
+      />
       <div className="bg-blue-100 border border-blue-500 text-blue-700 px-4 py-3 rounded mb-4 flex items-start">
         <span className="mr-2 text-xl">ℹ️</span>
         <p>Got any complaints? Submit one through the form below:</p>
@@ -589,11 +635,10 @@ const ReportForm = () =>
             <input
               type="file"
               name="vehicleImage"
-              value={formData.vehicleImage}
               onChange={(e) => {
                 setFileVehicleImg(e.target.files?.[0])
               }}
-              accept="image/*"
+              accept="image/*, .pdf"
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight"
             />
           </div>
@@ -626,15 +671,16 @@ const ReportForm = () =>
 
         {/* Submit */}
         <div className="flex justify-center mt-8">
-          <button
+          <Button
             type="submit"
+            loading={isProcessing}
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
           >
             Submit Report
-          </button>
+          </Button>
         </div>
         <div className="flex justify-center mt-8">
-          {formData.isOwner === 'Yes' && totalUploadProgress > 0 && (
+          {totalUploadProgress > 0 && (
             <Box sx={{ width: '100%' }}>
               <LinearProgressWithLabel value={totalUploadProgress} />
             </Box>)
@@ -645,7 +691,8 @@ const ReportForm = () =>
       {/*end form */}
 
       {/* Modal */}
-      {isModalOpen && (
+      <AlertDialog title='Report Submission' description={message} open={isModalOpen} isPrimaryButton={true} primaryButtonLabel='Copy' onPrimaryAction={handleCopyCode} onClose={handleCloseModal}/>
+      {/* {isModalOpen && (
         <div className={`fixed top-0 left-0 w-full h-full flex justify-center items-center ${alertStyle}`}>
           <div className={`bg-white p-6 rounded-lg shadow-lg ${alertColor}`}>
             <div className="flex justify-between items-center">
@@ -667,7 +714,8 @@ const ReportForm = () =>
             </div>
           </div>
         </div>
-      )}
+      )} */}
+      
     </div>
   )
 }
