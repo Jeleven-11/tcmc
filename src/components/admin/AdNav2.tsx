@@ -37,7 +37,7 @@ export default function Navbar({ session }: SessionData)
   };
 
   return (
-    <nav className="bg-white border-gray-200 bg-white-900 shadow-md mb-4">
+    <nav className="bg-white border-gray-200 bg-white-900 px-4 shadow-md mb-4">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-3">
         {/* Logo */}
         <Link href="/admin" className="flex items-center space-x-3 rtl:space-x-reverse">

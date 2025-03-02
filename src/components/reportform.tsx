@@ -588,7 +588,7 @@ const ReportForm = () =>
             <label className="block text-gray-700 text-sm font-bold mb-2">Image of Reported Vehicle</label>
             <input
               type="file"
-              name="platenumber"
+              name="vehicleImage"
               value={formData.vehicleImage}
               onChange={(e) => {
                 setFileVehicleImg(e.target.files?.[0])
