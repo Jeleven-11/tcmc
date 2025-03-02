@@ -2,8 +2,6 @@ import pool  from '../../../lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 import { FieldPacket, ResultSetHeader } from 'mysql2';
 
-
-
 export async function PUT(req:NextRequest, {params}: {params: {id: string}}) {
   
   const { id } = params
@@ -50,31 +48,28 @@ export async function DELETE(req:NextRequest, {params}: {params: {id: string}})
   }
 }
 
-export async function POST(req:NextRequest) {
-  
-  const { reportID, status } = await req.json()
+export async function POST(req: NextRequest) 
+{
+  let conn = null
+  try
+  {
+    const { reportID, status } = await req.json()
+    conn = await pool.getConnection()
 
-  console.log(reportID, status)
-  const connection = await pool.getConnection();
-  if (req.method === 'POST') {
-    // const { status } = await req.json();
+    const [result]: [ResultSetHeader, FieldPacket[]] = await conn.query('UPDATE reports SET team = ?, updatedAt = NOW() WHERE reportID = ?', [status, reportID]) as [ResultSetHeader, FieldPacket[]]
+    if (result.affectedRows === 0)
+      return NextResponse.json({ error: 'Report not found' }, { status: 404 } )
 
-    try {
-      
-      const [result]: [ResultSetHeader, FieldPacket[]] = await connection.query('UPDATE reports SET users_team = ?, updatedAt = NOW() WHERE reportID = ?', [status, reportID]) as [ResultSetHeader, FieldPacket[]];
-      connection.release();
-      if (result.affectedRows === 0) {
-        return NextResponse.json({ error: 'Report not found' }, { status: 404 } );
-      }
-      console.log('Report team status updated successfully');
-      return NextResponse.json({ message: 'Report team status updated successfully' } ,{ status: 200 });
-    } catch (error) {
-      connection.release();
-      console.error('Error updating report team status:', error);
-      return NextResponse.json({ error: 'Failed to update report team status' } , { status: 500 });
-    }
+    return NextResponse.json({ message: 'Report team status updated successfully' }, { status: 200 })
+  } catch (error) {
+    console.error('Error updating report team status:', error)
+    return NextResponse.json({ error: 'Failed to update report team status' } , { status: 500 })
+  } finally {
+
+    if (conn)
+      conn.release()
   }
-} 
+}
 
 export const dynamic = 'force-dynamic'
 

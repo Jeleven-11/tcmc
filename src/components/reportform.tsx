@@ -5,11 +5,19 @@ import { useEdgeStore } from "@/app/lib/edgestore";
 import LinearProgress, { LinearProgressProps } from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+//test
+import AddressSelector from './addressPicker';
 interface FormData {
   fullName: string;
   age: string;
   sex: string;
   address: string;
+  //test
+  region: string;
+  province: string;
+  city: string;
+  barangay: string;
+//end test
   contactNumber: string;
   isOwner: string;
   driversLicense: string;
@@ -39,6 +47,8 @@ function LinearProgressWithLabel(props: LinearProgressProps & { value: number })
 }
 const ReportForm = () =>
 {
+  
+
   const { edgestore } = useEdgeStore()
 
   const [message, setMessage] = React.useState('')
@@ -72,6 +82,12 @@ const ReportForm = () =>
     age: '',
     sex: '',
     address: '',
+//test
+      region: "",
+      province: "",
+      city: "",
+      barangay: "",
+ 
     contactNumber: '',
     isOwner: 'No',
     driversLicense: "",
@@ -255,6 +271,10 @@ const ReportForm = () =>
           age: '',
           sex: '',
           address: '',
+          region: '',
+          province: '',
+          city: '',
+          barangay: '',
           contactNumber: '',
           isOwner: 'No',
           driversLicense: "",
@@ -307,7 +327,10 @@ const ReportForm = () =>
   }
 
   return (
-    <div className="container mx-auto p-6 mt-6">
+    <div className="container mx-auto p-6 mt-3">
+      <header className="bg-blue-600 text-white p-4 rounded mb-3">
+        <h1 className="text-2xl font-bold">File a Report</h1>
+      </header>
       <div className="bg-blue-100 border border-blue-500 text-blue-700 px-4 py-3 rounded mb-4 flex items-start">
         <span className="mr-2 text-xl">ℹ️</span>
         <p>Got any complaints? Submit one through the form below:</p>
@@ -368,6 +391,11 @@ const ReportForm = () =>
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight"
             required
           ></textarea>
+          {/*test*/}
+          <AddressSelector 
+    formData={formData} 
+    setFormData={(updatedFields) => setFormData((prev) => ({ ...prev, ...updatedFields }))} 
+  />
         </div>
 
         <div className="mb-4">
@@ -613,6 +641,8 @@ const ReportForm = () =>
           }
         </div>
       </form>
+      
+      {/*end form */}
 
       {/* Modal */}
       {isModalOpen && (

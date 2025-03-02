@@ -3,6 +3,14 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Report } from '@/app/lib/interfaces';
 
+// const statusColors: Record<string, string> =
+// {
+//   unread: "#facc15", // Yellow-500
+//   on_investigation: "#fb923c", // Orange-400
+//   dropped: "#ef4444", // Red-500
+//   solved: "#3b82f6", // Blue-500
+// }
+
 
 const CheckUpdates = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -155,7 +163,10 @@ const CheckUpdates = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 mt-6">
+    <div className="container mx-auto p-4 mt-3">
+      <header className="bg-blue-600 text-white p-4 rounded mb-3">
+        <h1 className="text-2xl font-bold">Report Updates</h1>
+      </header>
       {/* First Segment: Search Area */}
       <div className="bg-blue-100 border border-blue-500 text-blue-700 px-4 py-3 rounded mb-4 flex items-start">
         <span className="mr-2 text-xl">ℹ️</span>
@@ -217,7 +228,7 @@ const CheckUpdates = () => {
       )}
 
       {/* No Results Found */}
-      {searchResults.length === 0 && !loading && !error && <p>No reports found</p>}
+      {/* {searchResults.length === 0 && !loading && !error && <p>No reports found</p>} */}
 
       {/* Third Segment: Reports from Other People (Browse) */}
       <div className="mt-6">
@@ -301,11 +312,11 @@ const CheckUpdates = () => {
 
 
         {/* No Reports Found */}
-        {!loading && !error && searchQuery && searchResults.length === 0 && (
+        {/* {!loading && !error && searchQuery && searchResults.length === 0 && (
           <p>No reports match your search.</p>
-        )}
+        )} */}
         {!loading && !error && !searchQuery && filteredReports.length === 0 && (
-          <p>No reports available in the system.</p>
+          <p className="p-3">No reports available in the system.</p>
         )}
 
 

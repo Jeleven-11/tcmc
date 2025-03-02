@@ -31,6 +31,7 @@ export default function Adminlogin()
   // const [notification, setNotification] = useState<{ message: string, severity: 'error' | 'success' } | null>(null);
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
+  // const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() =>
   {
@@ -38,9 +39,12 @@ export default function Adminlogin()
     getSession().then((session) =>
     {
       if (session.isLoggedIn)
+      {
+        // setIsLoggedIn(true)
         router.push('/admin')
+      }
     })
-  }, [])
+  }, [router])
 
   if (!isClient)
     return null

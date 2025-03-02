@@ -2,7 +2,6 @@
 
 import Navbar from "@/components/admin/AdNav2";
 import { getSession } from "../lib/actions";
-import Footer from "@/components/Footer";
 import DateTimeComponent from "@/components/admin/DateTimeComponent";
 import { Loader } from "lucide-react";
 import React, { Suspense, useEffect, useState } from "react";
@@ -10,13 +9,6 @@ import { IronSession } from "iron-session";
 import { SessionData } from "../lib/session";
 import { ToastContainer } from "react-toastify";
 import usePushNotifications from "../hooks/usePushNotifications";
-
-// const navigation = [
-//   { name: 'Admin Dashboard', href: '/admin' },
-//   { name: 'Products', href: '/admin/products' },
-//   { name: 'Sales', href: '/admin/purchase' },
-//   { name: 'Stock', href: '/admin/listProduct' },
-// ]
 
 export default function RootLayout({
   children,
@@ -26,15 +18,15 @@ export default function RootLayout({
 
   usePushNotifications()
 
-  const [session, setSession] = useState<IronSession<SessionData> | null>(null); // ✅ Use state to store session data
+  const [session, setSession] = useState<IronSession<SessionData> | null>(null);
 
   useEffect(() => {
     async function fetchSession() {
       const initSession = await getSession();
-      setSession(initSession); // ✅ Store session data in state
+      setSession(initSession);
     }
     fetchSession();
-  }, []); // ✅ Run once when component mounts
+  }, []);
 
   return (
     <>
@@ -50,7 +42,6 @@ export default function RootLayout({
           {children}
       </Suspense>
       <ToastContainer position="top-right" autoClose={3000} />
-      <Footer />
     </>
   )
 }

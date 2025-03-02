@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, SetStateAction } from 'react';
 import type { FormEvent } from 'react';
-import { DataGrid, GridColDef, GridPaginationModel/*, GridRenderCellParams, GridTreeNodeWithRender */} from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridPaginationModel} from '@mui/x-data-grid';
 import Paper from '@mui/material/Paper';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
@@ -16,7 +16,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination as Pagination1 } from 'swiper/modules';
-import { Button, MenuItem, Select, /*SelectChangeEvent,*/ TextField, Tooltip } from '@mui/material';
+import { Button, MenuItem, Select, TextField, Tooltip } from '@mui/material';
 import CustomPagination from './CustomPagination';
 import { getSession } from '@/app/lib/actions';
 import axios from 'axios';
@@ -46,7 +46,7 @@ interface Report {
   platenumber?: string | null;
   status: 'unread' | 'on_investigation' | 'dropped' | 'solved';
   reportID: string;
-  users_team: number;
+  team: number;
   remarks: string;
   createdAt: string;
   updatedAt: string;
@@ -142,7 +142,7 @@ export default function DataTable() {
   {
     const session = await getSession()
 
-    let nStatus;
+    let nStatus, title, desc;
     if (status === "0" || status === "1")
       nStatus = status
     else
@@ -150,9 +150,6 @@ export default function DataTable() {
 
     // notification message
     // const nStatus = (status !== "0" && status !== "1") ? status.charAt(0).toUpperCase() + status.substring(1) : status // uppercase first letter
-    
-console.log(nStatus, type)
-    let title, desc;
     if (type === 'bulk')
     {
       title = "🔔 Bulk Delete Report Status Notification"
@@ -555,10 +552,11 @@ console.log(nStatus, type)
       return;
     }
 
-    const headers = ["Status", "Report ID", "isOwner", "Vehicle Type", "Plate #", "Full Name", "Age", "Sex", "Report Created", "Report UpdatedAt"];
+    const headers = ["Status", "Assignee", "Report ID", "isOwner", "Vehicle Type", "Plate #", "Full Name", "Age", "Sex", "Report Created", "Report UpdatedAt", "Notes/Remarks"];
 
     const csvRows = reports.map((row) => [
-      row.status,
+      row.status.charAt(0).toUpperCase() + row.status.substring(1),
+      row.team === 1 ? "Task Force" : "Help Desk",
       row.reportID,
       row.isOwner,
       row.vehicleType,
@@ -568,12 +566,11 @@ console.log(nStatus, type)
       row.sex,
       dateConv(row.createdAt),
       dateConv(row.updatedAt),
+      row.remarks
     ]);
 
     // Convert to CSV format
-    const csvString = [headers, ...csvRows]
-      .map((row) => row.map((cell) => `"${cell || 0}"`).join(","))
-      .join("\n");
+    const csvString = [headers, ...csvRows].map((row) => row.map((cell) => `"${cell || 0}"`).join(",")).join("\n");
 
     const blob = new Blob(["\ufeff" + csvString], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -597,23 +594,25 @@ console.log(nStatus, type)
           onChange={(e) => debouncedSearch(e.target.value)}
           sx={{ mb: 2 }}
         />
-        <Button
-          variant="contained"
-          color="error"
-          disabled={selectedRows.length === 0}
-          onClick={handleDeleteReports}
-          sx={{ mb: 2 }}
-        >
-          Delete Selected
-        </Button>
-        <Button
-         variant="contained"
-         color="success"
-         onClick={exportToCSV}
-         sx={{ mb: 2, ml: 2 }}
-        >
-          Export CSV
-        </Button>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Button
+            variant="contained"
+            color="error"
+            disabled={selectedRows.length === 0}
+            onClick={handleDeleteReports}
+          >
+            Delete Selected
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={exportToCSV}
+            sx={{ ml: 'auto' }} // Moves the button to the right
+          >
+            Export CSV
+          </Button>
+        </Box>
+
         <DataGrid
           rows={reports}
           columns={columns}

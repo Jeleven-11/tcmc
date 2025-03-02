@@ -1,11 +1,12 @@
-'use client';
+'use client'
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiLogIn } from "react-icons/fi";
+import { FiLogIn } from "react-icons/fi"; 
 import { Menu, X } from "lucide-react";
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import { getSession } from "@/app/lib/actions";
 
 // Mobile Navigation Component
 type MobileNavProps = {
@@ -49,7 +50,17 @@ function MobileNav({ isOpen, toggleOpen, currentPath }: MobileNavProps) {
 // Main Navbar Component
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const currentPath: string = usePathname();
+  const currentPath: string = usePathname()
+  const [loading, setLoading] = useState<boolean>(true)
+
+  useEffect(() =>
+  {
+    getSession().then(data =>
+    {
+      if (data.isLoggedIn)
+        setLoading(false)
+    }).catch(() => setLoading(false))
+  }, [])
 
   const getLinkClass = (path: string) =>
     currentPath === path
@@ -83,9 +94,15 @@ export default function Navbar() {
           <Link href="/report-updates" className={`text-lg ${getLinkClass("/report-updates")}`}>
             CHECK REPORT UPDATE
           </Link>
-          <Link href="/adminlogin" className="text-gray-900 hover:text-blue-600">
-            <AdminPanelSettingsIcon />
-          </Link>
+          {!loading ? (
+            <Link href= "/admin" className="text-gray-900 hover:text-blue-600">
+              <AdminPanelSettingsIcon />
+            </Link>
+          ) : (
+            <Link href="/adminlogin" className="text-gray-900 hover:text-blue-600">
+              <AdminPanelSettingsIcon />
+            </Link>
+          )}
         </div>
       </div>
     </nav>

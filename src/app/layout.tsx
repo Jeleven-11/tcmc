@@ -1,10 +1,8 @@
-// app/layout.js (or app/layout.tsx if using TypeScript)
 'use client'
 
-// import { SessionProvider } from 'next-auth/react';
-import './globals.css'; // Adjust path if needed
-// import { NotificationsProvider } from '@toolpad/core/useNotifications';
-export const dynamic = 'force-dynamic'
+import Footer from '@/components/Footer';
+import './globals.css';
+import DynamicTitlePage from '@/components/DynamicPageTitleHandler';
 
 export default function RootLayout({
   children,
@@ -12,13 +10,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
 
-
   return (
     <html>
+      <DynamicTitlePage />
       <body>
         <main>
           {children}
         </main>
+        <Footer />
       </body>
     </html>
   )
