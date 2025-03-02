@@ -159,6 +159,8 @@ export default function Adminlogin()
         }
         setError("Password have been reset successfully");
         setPassword('')
+        setUsername('')
+        attemptCounter.current = 0;
         setLoginNotAllowed(false);
       } catch (error) {
         console.log(error);
