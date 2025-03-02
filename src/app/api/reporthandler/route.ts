@@ -6,6 +6,7 @@ import { Report } from '@/app/lib/interfaces';
 export async function POST(request: NextRequest)
 {
   const records = await request.json();
+  console.log("Records: ", records)
   try
   {
     const {

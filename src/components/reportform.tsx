@@ -73,11 +73,11 @@ const ReportForm = () =>
   const [fileOR, setFileOR] = React.useState<File>()
   const [progress3, setProgress3] = React.useState<number>(0)
   const [numberFiles, setNumberFiles] = React.useState<number>(1)
-  const [vehicleImgVal, setVehicleImgVal] = React.useState("") // url
+  // const [vehicleImgVal, setVehicleImgVal] = React.useState("") // url
   const [fileVehicleImg, setFileVehicleImg] = React.useState<File>()
   const [progress4, setProgress4] = React.useState<number>(0)
   const [uploadProgress, setUploadProgress] = React.useState<number>(0)
-
+  
   const [isProcessing, setIsProcessing] = React.useState<boolean>(false)
   const [totalUploadProgress, setTotalUploadProgress] = React.useState<number>(0)
   
@@ -131,6 +131,7 @@ const ReportForm = () =>
   {
     e.preventDefault()
     setIsProcessing(true)
+    console.log("Form data:", formData)
     const generatedReportID = `REP-${uuidv4().slice(0, 8).toUpperCase()}` // Generate unique report ID
     setReportID(generatedReportID) // Set the generated report ID
 
@@ -267,10 +268,8 @@ const ReportForm = () =>
       // if (total != 100 && dvrLicenseVal === "" || vRegistrationVal === "" || orCrVal === "")
       //   return alert('Please upload all required files for verification purposes!');
       
-      formDataToSend.driversLicense = dvrLicenseVal;
-      formDataToSend.vehicleRegistration = vRegistrationVal;
-      formDataToSend.orCr = orCrVal;
-      formDataToSend.vehicleImage = vehicleImgVal;
+      // setVehicleImgVal(vehicleImageUpload.url)
+      
     }
     const vehicleImageUpload = await edgestore.publicFiles.upload({
       file: fileVehicleImg,
@@ -279,9 +278,11 @@ const ReportForm = () =>
         setProgress4(progress);
       },
     })
-    setVehicleImgVal(vehicleImageUpload.url)
     // setTotalUploadProgress(100)
-
+    formDataToSend.driversLicense = dvrLicenseVal;
+      formDataToSend.vehicleRegistration = vRegistrationVal;
+      formDataToSend.orCr = orCrVal;
+      formDataToSend.vehicleImage = vehicleImageUpload.url;
     try
     {
       const response = await fetch('/api/reporthandler', {
@@ -429,7 +430,14 @@ const ReportForm = () =>
         </div>
 
         <div className="mb-4">
+
           <label className="block text-gray-700 text-sm font-bold mb-2">Address</label>
+          <AddressSelector 
+            formData={formData} 
+            setFormData={(updatedFields) => setFormData((prev) => ({ ...prev, ...updatedFields }))} 
+          />
+          </div>
+          <div className="mb-4">
           <textarea
             name="address"
             value={formData.address}
@@ -438,10 +446,7 @@ const ReportForm = () =>
             required
           ></textarea>
           {/*test*/}
-          <AddressSelector 
-    formData={formData} 
-    setFormData={(updatedFields) => setFormData((prev) => ({ ...prev, ...updatedFields }))} 
-  />
+          
         </div>
 
         <div className="mb-4">

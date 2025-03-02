@@ -8,6 +8,7 @@ import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Image from 'next/image';
+// import { DateTime } from 'luxon';
 
 import debounce from 'lodash.debounce';
 
@@ -104,6 +105,7 @@ export default function DataTable() {
   const [isUpdatingReport, setIsUpdatingReport] = useState<boolean>(false);
   const [details, setDetails] = useState<string>('');
   const [title, setTitle] = useState<string>('');
+  const [userTeam, setUserTeam] = useState<number>(0);
   // const [remark, setRemark] = useState('')
   // const [selectedValue, setSelectedValue] = useState<number | undefined>(undefined)
 
@@ -119,6 +121,7 @@ export default function DataTable() {
     try
     {
         const session = await getSession()
+        setUserTeam(session.team as unknown as number)
         setLoading(isLoad)
 
         const res = await fetch(`/api/getReports/getReportsLazy?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}&search=${encodeURIComponent(searchQuery)}${Number(session.team) === 1 ? '&t=' + session.team : ''}`)
@@ -500,7 +503,7 @@ export default function DataTable() {
       flex: 1, // auto-width based on content
       headerName: 'Last Update',
       renderCell: (params) => {
-        const formattedDate = dateConv(params.row.updatedAt)
+        const formattedDate = params.row.updatedAt!==null?dateConv(params.row.updatedAt):''
         // const formattedDate = new Date(params.row.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ", " + new Date(params.row.updatedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
         return (
           <Tooltip title={formattedDate} arrow>
@@ -565,7 +568,7 @@ export default function DataTable() {
       row.age,
       row.sex,
       dateConv(row.createdAt),
-      dateConv(row.updatedAt),
+      row.updatedAt!==null?dateConv(row.updatedAt):'',
       row.remarks
     ]);
 
@@ -585,7 +588,7 @@ export default function DataTable() {
   return (
     <Paper sx={{ height: 'auto', width: '100%', padding: 3, marginBottom: 2 }}>
         <header className="bg-blue-600 text-white p-4 mb-3 rounded-lg shadow-md">
-          <h1 className="text-xl font-semibold">Reports List</h1>
+          <h1 className="text-xl font-semibold">Reports List | {(userTeam===0)?'Help Desk': 'Task Force'}</h1>
         </header>
         <TextField
           label="Search Reports..."

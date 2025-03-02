@@ -42,6 +42,12 @@ interface FormData {
   color: string;
   description: string;
 }
+// interface addressCode {
+//   regionCode: string;
+//   provinceCode: string;
+//   cityCode: string;
+//   barangayCode: string;
+// }
 
 interface AddressPickerProps {
   formData: FormData;
@@ -50,12 +56,22 @@ interface AddressPickerProps {
 
 const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) => {
   const { region, province, city, barangay } = formData;
+  const [cityName, setCityName] = useState<string>('')
+  const [regionCode, setRegionCode] = useState<string>('');
+  const [provinceCode, setProvinceCode] = useState<string>('');
+  const [cityCode, setCityCode] = useState<string>('');
+  const [barangayCode, setBarangayCode] = useState<string>('');
+
 
   const [regions, setRegions] = useState<Region[]>([]);
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [cities, setCities] = useState<City[]>([]);
   const [barangays, setBarangays] = useState<Barangay[]>([]);
 
+  // const [regionName, setRegionName] = useState<string>('');
+  // const [provinceName, setProvinceName] = useState<string>('');
+  // const [cityName, setCityName] = useState<string>('');
+  // const [barangayName, setBarangayName] = useState<string>('');
   // Fetch Regions
   useEffect(() => {
     const fetchRegions = async () => {
@@ -72,15 +88,18 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
   // Fetch Provinces based on selected Region
   useEffect(() => {
     const fetchProvinces = async () => {
-      if (!region) {
+      if (!regionCode) {
         setProvinces([]);
         return;
       }
 
       try {
-        const res = await axios.get(`/api/addressPicker?type=provinces&code=${region}`);
+        const res = await axios.get(`/api/addressPicker?type=provinces&code=${regionCode}`);
         setProvinces(res.data);
-        setFormData({ province: "", city: "", barangay: "" }); // Reset dependent fields
+        const reg = regions.reduce((name, index) => index.region_code===regionCode?name=index.region_name:name,'')
+        console.log("REGION NAME: ", reg)
+        // setRegionName(reg)
+        setFormData({region:reg, province: "", city: "", barangay: "" }); // Reset dependent fields
         setCities([]);
         setBarangays([]);
       } catch (error) {
@@ -88,46 +107,60 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
       }
     };
     fetchProvinces();
-  }, [region]);
+  }, [regionCode]);
 
   // Fetch Cities based on selected Province
   useEffect(() => {
     const fetchCities = async () => {
-      if (!province) {
+      if (!provinceCode) {
         setCities([]);
         return;
       }
 
       try {
-        const res = await axios.get(`/api/addressPicker?type=cities&code=${province}`);
+        const res = await axios.get(`/api/addressPicker?type=cities&code=${provinceCode}`);
         setCities(res.data);
-        setFormData({ city: "", barangay: "" }); // Reset dependent fields
+        const prov = provinces.reduce((name, index) => index.province_code===provinceCode?name=index.province_name:name,'')
+        console.log("PROVINCE NAME: ", prov)
+        // setProvinceName(prov)
+        setFormData({province:prov, city: "", barangay: "" }); // Reset dependent fields
         setBarangays([]);
       } catch (error) {
         console.error("Failed to fetch cities:", error);
       }
     };
     fetchCities();
-  }, [province]);
+  }, [provinceCode]);
 
   // Fetch Barangays based on selected City
   useEffect(() => {
     const fetchBarangays = async () => {
-      if (!city) {
+      if (!cityCode) {
         setBarangays([]);
         return;
       }
 
       try {
-        const res = await axios.get(`/api/addressPicker?type=barangays&code=${city}`);
+        const res = await axios.get(`/api/addressPicker?type=barangays&code=${cityCode}`);
         setBarangays(res.data);
-        setFormData({ barangay: "" }); // Reset dependent field
+        const c = cities.reduce((name, index) => index.city_code===cityCode?name=index.city_name:name,'')
+        console.log("CITY NAME: ", c)
+        setCityName(c)
+        setFormData({ city:c , barangay: "" }); // Reset dependent field
       } catch (error) {
         console.error("Failed to fetch barangays:", error);
       }
     };
     fetchBarangays();
-  }, [city]);
+  }, [cityCode]);
+
+  useEffect(() => {
+    const b = barangays.reduce((name, index) => index.brgy_code===barangayCode?name=index.brgy_name:name,'')
+    // setBarangayName(b)
+    
+    setFormData({city:cityName, barangay:b })
+    console.log("BARANGAY NAME:", b);
+  }, [barangayCode]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -135,8 +168,8 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
       <div>
         <label className="block text-sm font-medium">Region</label>
         <select
-          value={region}
-          onChange={(e) => setFormData({ region: e.target.value })}
+          value={regionCode}
+          onChange={(e) => setRegionCode( e.target.value )}
           className="w-full border p-2 rounded"
         >
           <option value="">Select Region</option>
@@ -152,10 +185,11 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
       <div>
         <label className="block text-sm font-medium">Province</label>
         <select
-          value={province}
-          onChange={(e) => setFormData({ province: e.target.value })}
+          value={provinceCode}
+          defaultValue={'Select Region'}
+          onChange={(e) => setProvinceCode( e.target.value )}
           className="w-full border p-2 rounded"
-          disabled={!region}
+          disabled={(!region)&&!barangay}
         >
           <option value="">Select Province</option>
           {provinces.map((province) => (
@@ -170,8 +204,8 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
       <div>
         <label className="block text-sm font-medium">City</label>
         <select
-          value={city}
-          onChange={(e) => setFormData({ city: e.target.value })}
+          value={cityCode}
+          onChange={(e) => setCityCode( e.target.value )}
           className="w-full border p-2 rounded"
           disabled={!province}
         >
@@ -188,8 +222,8 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
       <div>
         <label className="block text-sm font-medium">Barangay</label>
         <select
-          value={barangay}
-          onChange={(e) => setFormData({ barangay: e.target.value })}
+          value={barangayCode}
+          onChange={(e) => setBarangayCode( e.target.value )}
           className="w-full border p-2 rounded"
           disabled={!city}
         >

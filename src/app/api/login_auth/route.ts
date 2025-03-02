@@ -81,6 +81,7 @@ export async function POST(req: NextRequest)
 
       const queryValues = [username || "", password || ""].filter(Boolean)
       const rows: [User, FieldPacket[]] = await query(sqlQuery, queryValues) as [User, FieldPacket[]]
+      console.log('Rows: ', rows[0].password)
       if (!rows || !rows[0])
         return NextResponse.json({ message: 'User not found or invalid credentials' }, { status: 400 })
 
