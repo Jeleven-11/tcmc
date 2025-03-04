@@ -187,7 +187,7 @@ const AdminDashboard = () => {
     <h2 className="text-lg sm:text-xl font-semibold mb-4 text-center">
       Annual Report Status Comparison
     </h2>
-    <AnnualReports apiEndpoint="/api/getChart/AnnualReportStats" />
+    <AnnualReports apiEndpoint="/api/getChart/AnnualComp" />
   </div>
 </div>
 
