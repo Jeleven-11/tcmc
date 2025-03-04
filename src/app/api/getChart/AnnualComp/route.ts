@@ -6,21 +6,21 @@ export const dynamic = "force-dynamic";
 export async function GET() {
     const connection = await pool.getConnection();
     const [rows] = await connection.query(
-        `SELECT 
-            months.month, 
+        `WITH months AS (
+            SELECT 1 AS month UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+            UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8
+            UNION ALL SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12
+        )
+        SELECT 
+            m.month, 
             COALESCE(r.status, 'unread') AS status, 
-            COALESCE(COUNT(r.id), 0) AS total_reports
-        FROM 
-            (SELECT 1 AS month UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION 
-             SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION 
-             SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12) AS months
-        LEFT JOIN reports r ON months.month = MONTH(r.created_at)
-        GROUP BY months.month, r.status
-        ORDER BY months.month, r.status;
-        `,
-        []
+            COUNT(r.id) AS total_reports
+        FROM months m
+        LEFT JOIN reports r ON m.month = MONTH(r.created_at)
+        GROUP BY m.month, r.status
+        ORDER BY m.month, r.status;`
     );
-    connection.release();
 
+    connection.release();
     return NextResponse.json(rows);
 }
