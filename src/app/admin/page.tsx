@@ -155,39 +155,44 @@ const AdminDashboard = () => {
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-          {[
-            { title: "Daily Reports", Component: LGDaily },
-            { title: "Weekly Reports", Component: LGWeekly },
-            { title: "Monthly Reports", Component: LGMonthly },
-            { title: "Yearly Reports", Component: LGYearly },
-          ].map((chart, index) => (
-            <div key={index} className="bg-white p-4 rounded shadow-md">
-              <h2 className="text-lg sm:text-xl font-semibold mb-4">{chart.title}</h2>
-              <chart.Component />
-            </div>
-          ))}
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+  {/* Daily, Weekly, Monthly, Yearly Reports */}
+  {[
+    { title: "Daily Reports", Component: LGDaily },
+    { title: "Weekly Reports", Component: LGWeekly },
+    { title: "Monthly Reports", Component: LGMonthly },
+    { title: "Yearly Reports", Component: LGYearly },
+  ].map((chart, index) => (
+    <div key={index} className="bg-white p-4 rounded shadow-md">
+      <h2 className="text-lg sm:text-xl font-semibold mb-4">{chart.title}</h2>
+      <chart.Component />
+    </div>
+  ))}
 
-          {/* Report Breakdown Chart */}
-          <div className="col-span-1 md:col-span-2 flex justify-center bg-white p-4 rounded shadow-md">
-            <div className="w-full max-w-md md:max-w-lg">
-              <h2 className="text-lg sm:text-xl font-semibold mb-4 text-center">
-                Report Breakdown
-              </h2>
-              <ReportDoughnutChart />
-            </div>
-          </div>
-        </div>
+  {/* Donut & Annual Comparison Side by Side */}
+  <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+    {/* Report Breakdown Chart */}
+    <div className="bg-white p-4 rounded shadow-md flex justify-center">
+      <div className="w-full max-w-md md:max-w-lg">
+        <h2 className="text-lg sm:text-xl font-semibold mb-4 text-center">
+          Report Breakdown
+        </h2>
+        <ReportDoughnutChart />
+      </div>
+    </div>
 
-         {/* Report Line Chart Comparison*/}
-         <div className="col-span-1 md:col-span-2 flex justify-center bg-white p-4 rounded shadow-md">
-            <div className="w-full max-w-md md:max-w-lg">
-              <h2 className="text-lg sm:text-xl font-semibold mb-4 text-center">
-                Annual Report Status Comparison
-              </h2>
-              <AnnualReports />
-            </div>
-          </div>
+    {/* Annual Report Status Comparison */}
+    <div className="bg-white p-4 rounded shadow-md flex justify-center">
+      <div className="w-full max-w-md md:max-w-lg">
+        <h2 className="text-lg sm:text-xl font-semibold mb-4 text-center">
+          Annual Report Status Comparison
+        </h2>
+        <AnnualReports />
+      </div>
+    </div>
+  </div>
+</div>
+
        
 
         {/* Report Modal */}

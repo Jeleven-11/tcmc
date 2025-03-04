@@ -40,40 +40,34 @@ const AnnualReports = () => {
             try {
                 const response = await fetch("/api/getChart/AnnualComp");
                 const data: AnnualReportData[] = await response.json();
-
+            
                 // Extract unique years
                 const years = [...new Set(data.map((entry) => entry.year))];
-
-                // Group data by status
+            
+                // Define status categories for the X-axis
                 const statuses = ["unread", "on_investigation", "solved", "dropped"];
-                const statusColors = {
-                    unread: "yellow",
-                    on_investigation: "blue",
-                    solved: "green",
-                    dropped: "red",
-                };
-
-                const datasets = statuses.map((status) => {
-                    return {
-                        label: status.replace("_", " ").toUpperCase(),
-                        data: years.map(
-                            (year) =>
-                                data.find((entry) => entry.year === year && entry.status === status)?.count || 0
-                        ),
-                        borderColor: statusColors[status as keyof typeof statusColors],
-                        fill: false,
-                        tension: 0.4,
-                    };
-                });
-
+                const statusColors = ["yellow", "blue", "green", "red"];
+            
+                // Each dataset should represent a YEAR (not a status)
+                const datasets = years.map((year, index) => ({
+                    label: `${year}`, // Year as the dataset label
+                    data: statuses.map(
+                        (status) =>
+                            data.find((entry) => entry.year === year && entry.status === status)?.count || 0
+                    ),
+                    borderColor: statusColors[index % statusColors.length], // Rotate colors for different years
+                    fill: false,
+                    tension: 0.4,
+                }));
+            
                 setChartData({
-                    labels: years.map((year) => year.toString()),
-                    datasets,
+                    labels: statuses.map((status) => status.replace("_", " ").toUpperCase()), // X-axis is status
+                    datasets, // Each line represents a different year
                 });
             } catch (error) {
                 console.error("Error fetching annual chart data:", error);
             }
-        };
+        };            
 
         fetchChartData();
     }, []);
