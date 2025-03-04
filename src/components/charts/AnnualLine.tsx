@@ -1,100 +1,101 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    Tooltip,
-    PointElement,
-    LineElement,
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-interface AnnualReportData {
-    year: number;
-    status: string;
-    count: number;
+interface ReportEntry {
+  month: number;
+  status: string;
+  total_reports: number;
 }
 
+// Define a color palette for different statuses
+const statusColors: Record<string, string> = {
+  Pending: "rgba(255, 99, 132, 1)", // Red
+  Resolved: "rgba(54, 162, 235, 1)", // Blue
+  "In Progress": "rgba(255, 206, 86, 1)", // Yellow
+  Closed: "rgba(75, 192, 192, 1)", // Teal
+  Default: "rgba(153, 102, 255, 1)", // Purple (fallback)
+};
+
 const AnnualReports = () => {
-    const [chartData, setChartData] = useState<{
-        labels: string[];
-        datasets: {
-            label: string;
-            data: number[];
-            borderColor: string;
-            fill: boolean;
-            tension: number;
-        }[];
-    }>({
-        labels: [],
-        datasets: [],
-    });
-    
+  const [chartData, setChartData] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchChartData = async () => {
-            try {
-                const response = await fetch("/api/getChart/AnnualComp");
-                const data: AnnualReportData[] = await response.json();
-            
-                // Extract unique years
-                const years = [...new Set(data.map((entry) => entry.year))];
-            
-                // Define status categories for the X-axis
-                const statuses = ["unread", "on_investigation", "solved", "dropped"];
-                const statusColors = ["yellow", "blue", "green", "red"];
-            
-                // Each dataset should represent a YEAR (not a status)
-                const datasets = years.map((year, index) => ({
-                    label: `${year}`, // Year as the dataset label
-                    data: statuses.map(
-                        (status) =>
-                            data.find((entry) => entry.year === year && entry.status === status)?.count || 0
-                    ),
-                    borderColor: statusColors[index % statusColors.length], // Rotate colors for different years
-                    fill: false,
-                    tension: 0.4,
-                }));
-            
-                setChartData({
-                    labels: statuses.map((status) => status.replace("_", " ").toUpperCase()), // X-axis is status
-                    datasets, // Each line represents a different year
-                });
-            } catch (error) {
-                console.error("Error fetching annual chart data:", error);
-            }
-        };            
+  useEffect(() => {
+    const fetchAnnualData = async () => {
+      try {
+        const response = await fetch("/api/getChart/AnnualReportStats");
+        if (!response.ok) throw new Error("Failed to fetch data");
 
-        fetchChartData();
-    }, []);
+        const data: ReportEntry[] = await response.json();
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    return (
-        <Line
-            data={chartData}
-            options={{
-                responsive: true,
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: "Year",
-                        },
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: "Report Count",
-                        },
-                        beginAtZero: true,
-                    },
-                },
-            }}
-        />
-    );
+        // Group data by status
+        const statusMap: Record<string, number[]> = {};
+
+        data.forEach(({ month, status, total_reports }) => {
+          if (!statusMap[status]) {
+            statusMap[status] = new Array(12).fill(0); // Initialize array with 12 zeros
+          }
+          statusMap[status][month - 1] = total_reports || 0; // Assign report count to corresponding month
+        });
+
+        // Convert grouped data into datasets
+        const datasets = Object.entries(statusMap).map(([status, counts]) => ({
+          label: status,
+          data: counts,
+          borderColor: statusColors[status] || statusColors.Default,
+          backgroundColor: (statusColors[status] || statusColors.Default).replace("1)", "0.5)"),
+          fill: false,
+          tension: 0.4,
+        }));
+
+        setChartData({ labels: months, datasets });
+      } catch (error) {
+        console.error("Error fetching annual report data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnnualData();
+  }, []);
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: "top" as const },
+      tooltip: {
+        callbacks: {
+          label: (tooltipItem: any) => `Reports: ${tooltipItem.raw}`,
+        },
+      },
+    },
+    scales: {
+      x: { title: { display: true, text: "Month" } },
+      y: { title: { display: true, text: "Report Count" }, beginAtZero: true },
+    },
+  };
+
+  return (
+    <div className="w-full max-w-3xl mx-auto">
+      <h2 className="text-center font-semibold text-lg mb-4">Annual Report Status Comparison</h2>
+      {loading ? <p className="text-center">Loading...</p> : <Line data={chartData} options={chartOptions} />}
+    </div>
+  );
 };
 
 export default AnnualReports;
