@@ -1,19 +1,22 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+// Ensure environment variables are used
+const dbConfig = {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: Number(process.env.DB_PORT) || 3306,
+};
+
+export async function GET() {
   try {
-    const connection = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      port: Number(process.env.DB_PORT), // If needed
-    });
+    const connection = await mysql.createConnection(dbConfig);
 
     const [rows] = await connection.execute(`
       SELECT 
-        YEAR(created_at) AS year,
+        YEAR(createdAt) AS year,
         SUM(CASE WHEN status = 'unread' THEN 1 ELSE 0 END) AS unread,
         SUM(CASE WHEN status = 'dropped' THEN 1 ELSE 0 END) AS dropped,
         SUM(CASE WHEN status = 'on_investigation' THEN 1 ELSE 0 END) AS on_investigation,
@@ -25,9 +28,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await connection.end();
 
-    res.status(200).json(rows);
+    return NextResponse.json(rows, { status: 200 });
   } catch (error) {
     console.error("Database error:", error);
-    res.status(500).json({ error: "Failed to fetch data" });
+    return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
   }
 }
