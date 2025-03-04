@@ -29,11 +29,11 @@ interface AnnualReportsProps {
 
 // Define a color palette for different statuses
 const statusColors: Record<string, string> = {
-  Pending: "rgba(255, 99, 132, 1)", // Red
-  Resolved: "rgba(54, 162, 235, 1)", // Blue
-  "In Progress": "rgba(255, 206, 86, 1)", // Yellow
-  Closed: "rgba(75, 192, 192, 1)", // Teal
-  Default: "rgba(153, 102, 255, 1)", // Purple (fallback)
+  unread: "rgba(255, 99, 132, 1)", // Red
+  dropped: "rgba(54, 162, 235, 1)", // Blue
+  on_investigation: "rgba(255, 206, 86, 1)", // Yellow
+  solved: "rgba(75, 192, 192, 1)", // Teal
+  default: "rgba(153, 102, 255, 1)", // Purple (fallback)
 };
 
 const AnnualReports: React.FC<AnnualReportsProps> = ({ apiEndpoint, title = "Annual Report Status Comparison" }) => {
@@ -49,22 +49,27 @@ const AnnualReports: React.FC<AnnualReportsProps> = ({ apiEndpoint, title = "Ann
         const data: ReportEntry[] = await response.json();
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-        // Group data by status
-        const statusMap: Record<string, number[]> = {};
+        // Initialize an object to store monthly counts for each status
+        const statusMap: Record<string, number[]> = {
+          unread: new Array(12).fill(0),
+          dropped: new Array(12).fill(0),
+          on_investigation: new Array(12).fill(0),
+          solved: new Array(12).fill(0),
+        };
 
+        // Populate the statusMap with actual data
         data.forEach(({ month, status, total_reports }) => {
-          if (!statusMap[status]) {
-            statusMap[status] = new Array(12).fill(0); // Initialize array with 12 zeros
+          if (statusMap[status] !== undefined) {
+            statusMap[status][month - 1] = total_reports || 0;
           }
-          statusMap[status][month - 1] = total_reports || 0; // Assign report count to corresponding month
         });
 
         // Convert grouped data into datasets
         const datasets = Object.entries(statusMap).map(([status, counts]) => ({
-          label: status,
+          label: status.replace("_", " ").toUpperCase(), // Format status labels
           data: counts,
-          borderColor: statusColors[status] || statusColors.Default,
-          backgroundColor: (statusColors[status] || statusColors.Default).replace("1)", "0.5)"),
+          borderColor: statusColors[status] || statusColors.default,
+          backgroundColor: (statusColors[status] || statusColors.default).replace("1)", "0.5)"),
           fill: false,
           tension: 0.4,
         }));
@@ -82,7 +87,10 @@ const AnnualReports: React.FC<AnnualReportsProps> = ({ apiEndpoint, title = "Ann
 
   const chartOptions: ChartOptions<"line"> = {
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: false, // Ensures it adjusts to container size
+    layout: { 
+      padding: { top: 10, bottom: 10 } // Prevents excessive space issues 
+    },
     plugins: {
       legend: { position: "top" },
       tooltip: {
@@ -92,15 +100,24 @@ const AnnualReports: React.FC<AnnualReportsProps> = ({ apiEndpoint, title = "Ann
       },
     },
     scales: {
-      x: { title: { display: true, text: "Month" } },
-      y: { title: { display: true, text: "Report Count" }, beginAtZero: true },
+      x: { 
+        title: { display: true, text: "Month" } 
+      },
+      y: { 
+        title: { display: true, text: "Report Count" }, 
+        beginAtZero: true 
+      },
     },
   };
+  
+
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
+    <div className="w-full max-w-3xl mx-auto h-[400px] overflow-hidden">
       <h2 className="text-center font-semibold text-lg mb-4">{title}</h2>
-      {loading ? <p className="text-center">Loading...</p> : chartData && <Line data={chartData} options={chartOptions} />}
+      <div className="h-[400px]">
+        {loading ? <p className="text-center">Loading...</p> : chartData && <Line data={chartData} options={chartOptions} />}
+      </div>
     </div>
   );
 };
