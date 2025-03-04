@@ -3,12 +3,17 @@ import { query } from "@/app/lib/db";
 
 export const dynamic = "force-dynamic";
 
+interface ReportRow {
+    month: number;
+    status: "unread" | "dropped" | "on_investigation" | "solved";
+    total_reports: number;
+}
+
 export async function GET() {
     try {
         console.log("📊 Fetching Annual Report Data");
 
-        // Generate months dynamically (1-12)
-        const months = Array.from({ length: 12 }, (_, i) => i + 1);
+        const year = new Date().getFullYear();
 
         const queryStr = `
             SELECT 
@@ -23,32 +28,40 @@ export async function GET() {
 
         console.log("🟡 Executing Query:", queryStr);
 
-        const year = new Date().getFullYear();
-        const rows = await query(queryStr, [year]) as { month: number; status: string; total_reports: number }[];
+        const rows = await query(queryStr, [year]) as ReportRow[];
 
-        console.log("✅ Query Success: Rows returned:", rows.length);
+        console.log("🟡 Raw Query Result:", rows);
 
-        if (!rows || rows.length === 0) {
+        if (!Array.isArray(rows)) {
+            console.error("❌ Query did not return an array. Check the database response.");
+            return NextResponse.json({ error: "Unexpected database response" }, { status: 500 });
+        }
+
+        if (rows.length === 0) {
+            console.warn("⚠ No report data available for this year.");
             return NextResponse.json({ message: "No report data available for this year" }, { status: 404 });
         }
 
-        // Format data into a structured response
-        const statusMap: Record<string, number[]> = {
+        // Initialize the structure
+        const data: Record<string, number[]> = {
             unread: new Array(12).fill(0),
             dropped: new Array(12).fill(0),
             on_investigation: new Array(12).fill(0),
             solved: new Array(12).fill(0),
         };
 
+        // Populate data
         rows.forEach(({ month, status, total_reports }) => {
-            if (statusMap[status]) {
-                statusMap[status][month - 1] = total_reports;
+            if (data[status]) {
+                data[status][month - 1] = total_reports; // Month is 1-based, array is 0-based
+            } else {
+                console.warn(`⚠ Unknown status "${status}" found in database.`);
             }
         });
 
-        return NextResponse.json({ year, months, data: statusMap });
+        return NextResponse.json(data);
     } catch (error) {
-        console.error("❌ Error Fetching Reports:", error);
-        return NextResponse.json({ error: "Failed to fetch reports" }, { status: 500 });
+        console.error("❌ Error fetching Annual Report Data:", error);
+        return NextResponse.json({ error: "Failed to fetch Annual Report Data" }, { status: 500 });
     }
 }
