@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 
-export async function GET(req: NextRequest) {
+export async function GET() {  
     try {
         const connection = await mysql.createConnection({
             host: process.env.DB_HOST,
