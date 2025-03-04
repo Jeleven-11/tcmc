@@ -52,9 +52,10 @@ interface FormData {
 interface AddressPickerProps {
   formData: FormData;
   setFormData: (updatedFields: Partial<FormData>) => void;
+  isReset:boolean
 }
 
-const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) => {
+const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData, isReset }) => {
   const { region, province, city, barangay } = formData;
   const [cityName, setCityName] = useState<string>('')
   const [regionCode, setRegionCode] = useState<string>('');
@@ -73,6 +74,11 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData }) 
   // const [cityName, setCityName] = useState<string>('');
   // const [barangayName, setBarangayName] = useState<string>('');
   // Fetch Regions
+  useEffect(() => {
+    if(isReset){
+      setFormData({region:'',province:'',city:'',barangay:''})
+    }
+  });
   useEffect(() => {
     const fetchRegions = async () => {
       try {

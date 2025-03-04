@@ -83,6 +83,7 @@ const ReportForm = () =>
   
   const [snackMessage, setSnackMessage] = React.useState<string>('')
   const [open, setOpen] = React.useState(false);
+  const [isReset, setIsReset] = React.useState<boolean>(false);
 
   const handleClick = () => {
     setOpen(true);
@@ -289,7 +290,6 @@ const ReportForm = () =>
         method: 'POST',
         body: JSON.stringify(formDataToSend),
       })
-
       if (response.ok)
       {
         //const data = await response.json()
@@ -303,6 +303,7 @@ const ReportForm = () =>
         setProgress3(0)
         setProgress4(0)
         setNumberFiles(1)
+        setIsReset(true);
         setFormData({
           fullName: '',
           age: '',
@@ -341,7 +342,7 @@ const ReportForm = () =>
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>  setFormData({...formData, [e.target.name]: e.target.value})
-  const handleCloseModal = () => setIsModalOpen(false) // Close the modal when the user clicks close
+  const handleCloseModal = () => {setIsModalOpen(false); setIsReset(false)} // Close the modal when the user clicks close
   const handleCopyCode = () =>
   {
     navigator.clipboard.writeText(reportID) // Copy the report ID to clipboard
@@ -434,17 +435,20 @@ const ReportForm = () =>
           <label className="block text-gray-700 text-sm font-bold mb-2">Address</label>
           <AddressSelector 
             formData={formData} 
+            isReset={isReset}
             setFormData={(updatedFields) => setFormData((prev) => ({ ...prev, ...updatedFields }))} 
           />
           </div>
           <div className="mb-4">
-          <textarea
+          <input
+            type='text'
             name="address"
             value={formData.address}
             onChange={handleChange}
+            placeholder='Street Name, Building, House No.'
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight"
             required
-          ></textarea>
+          />
           {/*test*/}
           
         </div>

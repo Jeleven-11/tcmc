@@ -9,11 +9,35 @@ export async function POST(request: NextRequest)
   console.log("Records: ", records)
   try
   {
+//     fullName: '',
+//     age: '',
+//     sex: '',
+//     address: '',
+// //test
+//       region: "",
+//       province: "",
+//       city: "",
+//       barangay: "",
+//     contactNumber: "",
+//     isOwner: 'No',
+//     driversLicense: "",
+//     vehicleRegistration: "",
+//     orCr: "",
+//     reason: 'Stolen? Involved in an incident/accident?',
+//     vehicleType: 'Motorcycle',
+//     vehicleImage:'',
+//     platenumber: '',
+//     color: '',
+//     description: '',
     const {
       fullName,
       age,
       sex,
       address,
+      region,
+      province,
+      city,
+      barangay,
       contactNumber,
       isOwner,
       driversLicense,
@@ -36,11 +60,12 @@ export async function POST(request: NextRequest)
       ) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unread', ?)
     `
+    const concatenatedAddress= address+", "+barangay+", "+city+", "+province+", "+region;
     const values = [
       fullName,
       age,
       sex,
-      address,
+      concatenatedAddress,
       contactNumber,
       isOwner,
       driversLicense || '',
