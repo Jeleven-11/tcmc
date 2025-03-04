@@ -21,7 +21,7 @@ const ReportStatusChart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<ReportData[]>("/api/report-status");
+        const response = await axios.get<ReportData[]>("/api/getChart/AnnualComp");
         setChartData(response.data);
       } catch (error) {
         console.error("Error fetching report status data:", error);
