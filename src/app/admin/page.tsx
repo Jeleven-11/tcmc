@@ -181,15 +181,16 @@ const AdminDashboard = () => {
       </div>
     </div>
 
-    {/* Annual Report Status Comparison */}
-    <div className="bg-white p-4 rounded shadow-md flex justify-center">
-      <div className="w-full max-w-md md:max-w-lg">
-        <h2 className="text-lg sm:text-xl font-semibold mb-4 text-center">
-          Annual Report Status Comparison
-        </h2>
-        <AnnualReports />
-      </div>
-    </div>
+   {/* Annual Report Status Comparison */}
+<div className="bg-white p-4 rounded shadow-md flex justify-center">
+  <div className="w-full max-w-md md:max-w-lg">
+    <h2 className="text-lg sm:text-xl font-semibold mb-4 text-center">
+      Annual Report Status Comparison
+    </h2>
+    <AnnualReports apiEndpoint="/api/getChart/AnnualReportStats" />
+  </div>
+</div>
+
   </div>
 </div>
 

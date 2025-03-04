@@ -9,6 +9,8 @@ import {
   Title,
   Tooltip,
   Legend,
+  ChartOptions,
+  ChartData,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 
@@ -20,6 +22,11 @@ interface ReportEntry {
   total_reports: number;
 }
 
+interface AnnualReportsProps {
+  apiEndpoint: string;
+  title?: string;
+}
+
 // Define a color palette for different statuses
 const statusColors: Record<string, string> = {
   Pending: "rgba(255, 99, 132, 1)", // Red
@@ -29,14 +36,14 @@ const statusColors: Record<string, string> = {
   Default: "rgba(153, 102, 255, 1)", // Purple (fallback)
 };
 
-const AnnualReports = () => {
-  const [chartData, setChartData] = useState<any | null>(null);
+const AnnualReports: React.FC<AnnualReportsProps> = ({ apiEndpoint, title = "Annual Report Status Comparison" }) => {
+  const [chartData, setChartData] = useState<ChartData<"line"> | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAnnualData = async () => {
       try {
-        const response = await fetch("/api/getChart/AnnualReportStats");
+        const response = await fetch(apiEndpoint);
         if (!response.ok) throw new Error("Failed to fetch data");
 
         const data: ReportEntry[] = await response.json();
@@ -71,16 +78,16 @@ const AnnualReports = () => {
     };
 
     fetchAnnualData();
-  }, []);
+  }, [apiEndpoint]);
 
-  const chartOptions = {
+  const chartOptions: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: "top" as const },
+      legend: { position: "top" },
       tooltip: {
         callbacks: {
-          label: (tooltipItem: any) => `Reports: ${tooltipItem.raw}`,
+          label: (tooltipItem) => `Reports: ${tooltipItem.raw as number}`,
         },
       },
     },
@@ -92,8 +99,8 @@ const AnnualReports = () => {
 
   return (
     <div className="w-full max-w-3xl mx-auto">
-      <h2 className="text-center font-semibold text-lg mb-4">Annual Report Status Comparison</h2>
-      {loading ? <p className="text-center">Loading...</p> : <Line data={chartData} options={chartOptions} />}
+      <h2 className="text-center font-semibold text-lg mb-4">{title}</h2>
+      {loading ? <p className="text-center">Loading...</p> : chartData && <Line data={chartData} options={chartOptions} />}
     </div>
   );
 };
