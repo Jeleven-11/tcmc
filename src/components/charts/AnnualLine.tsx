@@ -1,125 +1,78 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartOptions,
-  ChartData,
-} from "chart.js";
+
 import { Line } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-interface ReportEntry {
-  month: number;
-  status: string;
-  total_reports: number;
+interface ReportData {
+  year: number;
+  unread: number;
+  dropped: number;
+  on_investigation: number;
+  solved: number;
 }
 
-interface AnnualReportsProps {
-  apiEndpoint: string;
-  title?: string;
-}
-
-// Define a color palette for different statuses
-const statusColors: Record<string, string> = {
-  unread: "rgba(255, 99, 132, 1)", // Red
-  dropped: "rgba(54, 162, 235, 1)", // Blue
-  on_investigation: "rgba(255, 206, 86, 1)", // Yellow
-  solved: "rgba(75, 192, 192, 1)", // Teal
-  default: "rgba(153, 102, 255, 1)", // Purple (fallback)
-};
-
-const AnnualReports: React.FC<AnnualReportsProps> = ({ apiEndpoint, title = "Annual Report Status Comparison" }) => {
-  const [chartData, setChartData] = useState<ChartData<"line"> | null>(null);
-  const [loading, setLoading] = useState(true);
+const ReportStatusChart = () => {
+  const [chartData, setChartData] = useState<ReportData[]>([]);
 
   useEffect(() => {
-    const fetchAnnualData = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch("api/getChart/AnnualComp");
-        if (!response.ok) throw new Error("Failed to fetch data");
-
-        const data: ReportEntry[] = await response.json();
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-        // Initialize an object to store monthly counts for each status
-        const statusMap: Record<string, number[]> = {
-          unread: new Array(12).fill(0),
-          dropped: new Array(12).fill(0),
-          on_investigation: new Array(12).fill(0),
-          solved: new Array(12).fill(0),
-        };
-
-        // Populate the statusMap with actual data
-        data.forEach(({ month, status, total_reports }) => {
-          if (statusMap[status] !== undefined) {
-            statusMap[status][month - 1] = total_reports || 0;
-          }
-        });
-
-        // Convert grouped data into datasets
-        const datasets = Object.entries(statusMap).map(([status, counts]) => ({
-          label: status.replace("_", " ").toUpperCase(), // Format status labels
-          data: counts,
-          borderColor: statusColors[status] || statusColors.default,
-          backgroundColor: (statusColors[status] || statusColors.default).replace("1)", "0.5)"),
-          fill: false,
-          tension: 0.4,
-        }));
-
-        setChartData({ labels: months, datasets });
+        const response = await axios.get<ReportData[]>("/api/report-status");
+        setChartData(response.data);
       } catch (error) {
-        console.error("Error fetching annual report data:", error);
-      } finally {
-        setLoading(false);
+        console.error("Error fetching report status data:", error);
       }
     };
 
-    fetchAnnualData();
-  }, [apiEndpoint]);
+    fetchData();
+  }, []);
 
-  const chartOptions: ChartOptions<"line"> = {
-    responsive: true,
-    maintainAspectRatio: false, // Ensures it adjusts to container size
-    layout: { 
-      padding: { top: 10, bottom: 10 } // Prevents excessive space issues 
-    },
-    plugins: {
-      legend: { position: "top" },
-      tooltip: {
-        callbacks: {
-          label: (tooltipItem) => `Reports: ${tooltipItem.raw as number}`,
-        },
+  const years = chartData.map((data) => data.year);
+
+  const data = {
+    labels: years,
+    datasets: [
+      {
+        label: "Unread",
+        data: chartData.map((data) => data.unread),
+        borderColor: "yellow",
+        backgroundColor: "rgba(255, 255, 0, 0.5)",
+        tension: 0.4,
       },
-    },
-    scales: {
-      x: { 
-        title: { display: true, text: "Month" } 
+      {
+        label: "Dropped",
+        data: chartData.map((data) => data.dropped),
+        borderColor: "red",
+        backgroundColor: "rgba(255, 0, 0, 0.5)",
+        tension: 0.4,
       },
-      y: { 
-        title: { display: true, text: "Report Count" }, 
-        beginAtZero: true 
+      {
+        label: "On Investigation",
+        data: chartData.map((data) => data.on_investigation),
+        borderColor: "blue",
+        backgroundColor: "rgba(0, 0, 255, 0.5)",
+        tension: 0.4,
       },
-    },
+      {
+        label: "Solved",
+        data: chartData.map((data) => data.solved),
+        borderColor: "green",
+        backgroundColor: "rgba(0, 255, 0, 0.5)",
+        tension: 0.4,
+      },
+    ],
   };
-  
-
 
   return (
-    <div className="w-full max-w-3xl mx-auto h-[400px] overflow-hidden">
-      <h2 className="text-center font-semibold text-lg mb-4">{title}</h2>
-      <div className="h-[400px]">
-        {loading ? <p className="text-center">Loading...</p> : chartData && <Line data={chartData} options={chartOptions} />}
-      </div>
+    <div className="p-4 bg-white shadow-md rounded-lg">
+      <h2 className="text-xl font-semibold mb-4">Annual Report Status Comparison</h2>
+      <Line data={data} options={{ responsive: true, maintainAspectRatio: false }} />
     </div>
   );
 };
 
-export default AnnualReports;
+export default ReportStatusChart;
