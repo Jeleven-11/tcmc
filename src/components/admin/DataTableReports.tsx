@@ -41,6 +41,10 @@ interface Report {
   age: number;
   sex: 'Male' | 'Female' | 'Other';
   address: string;
+  barangay: string;
+  city: string;
+  province: string;
+  region: string;
   contactNumber: string;
   isOwner: 'Yes' | 'No';
   vehicleType: 'Motorcycle' | 'Car' | 'Van' | 'Truck' | 'Other';
@@ -713,8 +717,7 @@ export default function DataTable() {
 
                 <div className="mb-4">
                   <label className="block text-gray-700 text-sm font-bold">Address:</label>
-                  {selectedReport.address}
-                </div>
+                  {[selectedReport.address, selectedReport.city, selectedReport.province, selectedReport.region].join(', ')}                </div>
 
                 <div className="mb-4">
                   <label className="block text-gray-700 text-sm font-bold">Contact Number:</label>

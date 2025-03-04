@@ -14,6 +14,7 @@ import LGWeekly from "@/components/charts/LGWeekly";
 import LGMonthly from "@/components/charts/LGMonthly";
 import LGYearly from "@/components/charts/LGYearly";
 import ReportDoughnutChart from "@/components/charts/ReportDonut";
+import AnnualReports from "@/components/charts/AnnualLine";
 import ReportModal from "@/components/ReportCardModals";
 import axios from "axios";
 import { Paper } from "@mui/material";
@@ -177,6 +178,17 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
+
+         {/* Report Line Chart Comparison*/}
+         <div className="col-span-1 md:col-span-2 flex justify-center bg-white p-4 rounded shadow-md">
+            <div className="w-full max-w-md md:max-w-lg">
+              <h2 className="text-lg sm:text-xl font-semibold mb-4 text-center">
+                Annual Report Status Comparison
+              </h2>
+              <AnnualReports />
+            </div>
+          </div>
+       
 
         {/* Report Modal */}
         {loading ? (
