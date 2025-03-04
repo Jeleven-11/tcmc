@@ -43,7 +43,7 @@ const AnnualReports: React.FC<AnnualReportsProps> = ({ apiEndpoint, title = "Ann
   useEffect(() => {
     const fetchAnnualData = async () => {
       try {
-        const response = await fetch(apiEndpoint);
+        const response = await fetch("api/getChart/AnnualReports");
         if (!response.ok) throw new Error("Failed to fetch data");
 
         const data: ReportEntry[] = await response.json();
