@@ -19,7 +19,7 @@ import ReportModal from "@/components/ReportCardModals";
 import axios from "axios";
 import { Paper } from "@mui/material";
 
-export const dynamic = "force-dynamic";
+// export const dynamic = "force-dynamic";
 
 const AdminDashboard = () => {
   const [reportData, setReportData] = useState({
