@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
 // import oauth2Client from "@/utils/gdrive";
-import path from "path";
-import fs from "fs/promises";
+// import path from "path";
+// import fs from "fs/promises";
 
 const getAuthClient = async () =>
 {
-  const keyPath = path.join(process.cwd(), "/src/config", "sa.json")
-  const keyFile = await fs.readFile(keyPath, "utf8")
-  const credentials = JSON.parse(keyFile)
+  // const keyPath = path.join(process.cwd(), "/src/config", "sa.json")
+  // const keyFile = await fs.readFile(keyPath, "utf8")
+  const credentials = JSON.parse(String(process.env.SERVICE_ACCOUNT!))
 
   const auth = new google.auth.GoogleAuth({
     credentials,
