@@ -6,6 +6,6 @@ export async function GET() {
         const activeUsers = getActiveUsers();
         return NextResponse.json(activeUsers);
     } catch (error) {
-        return NextResponse.json({ error: 'Failed to get active users' }, { status: 500 });
+        return NextResponse.json({ error: Error }, { status: 500 });
     }
 }
