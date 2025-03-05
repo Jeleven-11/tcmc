@@ -8,14 +8,36 @@ import { HiDocumentCheck } from "react-icons/hi2";
 import { TbMessageCancel } from "react-icons/tb";
 import { FaTruckArrowRight } from "react-icons/fa6";
 import { DocumentTextIcon } from "@heroicons/react/24/outline";
-import LoggedVehicles from "@/components/VehicleLogModal";
-import LGDaily from "@/components/charts/LGDaily";
-import LGWeekly from "@/components/charts/LGWeekly";
-import LGMonthly from "@/components/charts/LGMonthly";
-import LGYearly from "@/components/charts/LGYearly";
-import ReportDoughnutChart from "@/components/charts/ReportDonut";
-import AnnualReports from "@/components/charts/AnnualLine";
-import ReportModal from "@/components/ReportCardModals";
+
+//temporary fix, load components dynamically (might affect performance)
+import dynamic from "next/dynamic";
+
+
+const LoggedVehicles = dynamic(() => import("@/components/VehicleLogModal"), {
+  ssr: false,
+});
+const LGDaily = dynamic(() => import("@/components/charts/LGDaily"), {
+  ssr: false,
+});
+const LGWeekly = dynamic(() => import("@/components/charts/LGWeekly"), {
+  ssr: false,
+});
+const LGMonthly = dynamic(() => import("@/components/charts/LGMonthly"), {
+  ssr: false,
+});
+const LGYearly = dynamic(() => import("@/components/charts/LGYearly"), {
+  ssr: false,
+});
+const ReportDoughnutChart = dynamic(() => import("@/components/charts/ReportDonut"), {
+  ssr: false,
+});
+const AnnualReports = dynamic(() => import("@/components/charts/AnnualLine"), {
+  ssr: false,
+});
+const ReportModal = dynamic(() => import("@/components/ReportCardModals"), {
+  ssr: false,
+});
+
 import axios from "axios";
 import { Paper } from "@mui/material";
 
