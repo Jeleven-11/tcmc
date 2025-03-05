@@ -10,6 +10,7 @@ import LogoutModal from '../LogoutModal';
 import PushNotifSubscribe from './PushNotifSubscribe';
 import { Button } from '@mui/material';
 import { AccountBox, Logout /*Update*/ } from '@mui/icons-material';
+import ActiveUsers from '../Arise';
 
 
 interface SessionData {
@@ -48,6 +49,8 @@ export default function Navbar({ session }: SessionData)
         {/* Right-side Icons: Notification, User Avatar, and Mobile Menu */}
         <div className="flex items-center md:order-2 space-x-4 md:space-x-3 rtl:space-x-reverse">
           <PushNotifSubscribe />
+          {/* test */}
+          <ActiveUsers />
 
           {/* User Avatar */}
           <button
