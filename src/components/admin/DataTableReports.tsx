@@ -680,7 +680,7 @@ export default function DataTable() {
                   
                 </div>
                 <Flex gap='large' justify="space-between">
-                <Flex vertical justify="space-around">
+                <Flex vertical justify="space-around" style={{flex:1}}>
                   <div>
                   <label className="block text-gray-700 text-sm font-bold">Full Name:</label>
                   {selectedReport.fullName}
@@ -702,12 +702,12 @@ export default function DataTable() {
                   {selectedReport.contactNumber}
                   </div>
                 </Flex>
-                <Flex vertical justify='space-evenly' gap='large'>
+                <Flex vertical justify='space-evenly' gap='large' style={{flex:1}}>
                 <label className="block text-gray-700 text-sm font-bold">Submitted Files:</label>
                   <Flex>
                   <Card cover={
                       <Image
-                        width={200}
+                        width={250}
                         alt="Reported Vehicle"
                         src={selectedReport.reportedVehicleImage}
                         placeholder={
@@ -715,7 +715,7 @@ export default function DataTable() {
                             preview={false}
                             alt='Reported Vehicle'
                             src={selectedReport.reportedVehicleImage}
-                            width={200}
+                            width={250}
                           />
                         }
                       />}>
@@ -726,7 +726,7 @@ export default function DataTable() {
                     <Flex justify='space-between' gap='large' style={{flex:2}}>
                     <Card cover={
                       <Image
-                        width={200}
+                        width={250}
                         alt="Driver's license"
                         src={selectedReport.driversLicense}
                         placeholder={
@@ -734,7 +734,7 @@ export default function DataTable() {
                             preview={false}
                             alt="Driver's License"
                             src={selectedReport.driversLicense}
-                            width={200}
+                            width={250}
                           />
                         }
                       />}>
@@ -742,7 +742,7 @@ export default function DataTable() {
                   </Card>
                       <Card cover={
                       <Image
-                        width={200}
+                        width={250}
                         alt="Vehicle Registration"
                         src={selectedReport.vehicleRegistration}
                         placeholder={
@@ -750,7 +750,7 @@ export default function DataTable() {
                             preview={false}
                             alt='Vehicle Registration'
                             src={selectedReport.vehicleRegistration}
-                            width={200}
+                            width={250}
                           />
                         }
                       />}>
@@ -758,7 +758,7 @@ export default function DataTable() {
                   </Card>
                       <Card cover={
                       <Image
-                        width={200}
+                        width={250}
                         alt="OR/CR"
                         src={selectedReport.orCr}
                         placeholder={
@@ -766,7 +766,7 @@ export default function DataTable() {
                             preview={false}
                             alt='OR/CR'
                             src={selectedReport.orCr}
-                            width={200}
+                            width={250}
                           />
                         }
                       />}>
