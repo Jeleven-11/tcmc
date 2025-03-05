@@ -4,10 +4,10 @@ import React, { useState, useEffect, useCallback, SetStateAction } from 'react';
 import type { FormEvent } from 'react';
 import { DataGrid, GridColDef, GridPaginationModel} from '@mui/x-data-grid';
 import Paper from '@mui/material/Paper';
-import Modal from '@mui/material/Modal';
+// import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
-import Image from 'next/image';
+// import Image from 'next/image';
 // import { DateTime } from 'luxon';
 
 import debounce from 'lodash.debounce';
@@ -15,14 +15,15 @@ import debounce from 'lodash.debounce';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination as Pagination1 } from 'swiper/modules';
+// import { Swiper, SwiperSlide } from 'swiper/react';
+// import { Navigation, Pagination as Pagination1 } from 'swiper/modules';
 import { Button, MenuItem, Select, TextField, Tooltip } from '@mui/material';
 import CustomPagination from './CustomPagination';
 import { getSession } from '@/app/lib/actions';
 import axios from 'axios';
 import { toast } from "react-toastify";
-
+import { Flex, Card, Image} from 'antd';
+const { Meta } = Card;
 
 import DeleteIcon from '@mui/icons-material/Delete'
 // import EditIcon from '@mui/icons-material/Edit';
@@ -33,6 +34,7 @@ interface Report {
   driversLicense: string;
   vehicleRegistration: string;
   orCr: string;
+  reportedVehicleImage: string,
   reason: string;
   description: string;
   color: string;
@@ -101,7 +103,7 @@ export default function DataTable() {
   const [totalRows, setTotalRows] = useState(0);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({})
+  // const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({})
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRows, setSelectedRows] = useState<number[]>([])
   const [initReports, setInitReports] = useState<string[]>([])
@@ -278,11 +280,11 @@ export default function DataTable() {
     setIsUpdatingReport(true)
   }
 
-  const handleCloseModal = () =>
-  {
-    setIsModalOpen(false)
-    setSelectedReport(null)
-  }
+  // const handleCloseModal = () =>
+  // {
+  //   setIsModalOpen(false)
+  //   setSelectedReport(null)
+  // }
 
   const handleRowSelection = (selectedIds: number[]) =>
   {
@@ -333,7 +335,7 @@ export default function DataTable() {
       setIsUpdatingReport(false)
     }
 
-  const loadCarousel = (reportId: string) => setLoadedImages((prev) => ({ ...prev, [reportId]: true }))
+  // const loadCarousel = (reportId: string) => setLoadedImages((prev) => ({ ...prev, [reportId]: true }))
 
   const columns: GridColDef[] = [
     { field: 'id', headerName: '#', width:75 },
@@ -659,23 +661,7 @@ export default function DataTable() {
           rowSelectionModel={selectedRows}
         />
 
-        {/* Modal */}
-        <Modal open={isModalOpen} onClose={handleCloseModal}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: "80vw", // 80% of viewport width
-            maxHeight: "90vh", // 90% of viewport height
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 2,
-            overflowY: "auto", // Enables scrolling
-          }}
-        >
+        {isModalOpen&&(<Card autoFocus={true}>
             {selectedReport && (
               <>
                 {/* Renamed from complainant to Informant/Reporting Party */}
@@ -684,12 +670,6 @@ export default function DataTable() {
                   <h2 className="text-2xl font-bold">Informant / Reporting Party Details</h2>
                   <p className="text-sm font-bold">Report ID: {selectedReport.reportID}</p>
                 </div>
-                {/* <div className="mb-6">
-                  <label className="block text-gray-700 text-sm font-bold">Status:</label>
-                  <button style={{backgroundColor: (statusColors[selectedReport.status] || "gray"), fontWeight: "bold"}} className="text-white px-2 py-2 rounded-full w-auto text-sm text-center">
-                    {selectedReport.status.charAt(0).toUpperCase()  + selectedReport.status.substring(1)}
-                  </button>
-                </div> */}
                 <div className="mb-6">
                   <label className="block text-gray-700 text-sm font-bold">Status:</label>
                   <Chip
@@ -699,62 +679,106 @@ export default function DataTable() {
                   />
                   
                 </div>
-                <div className="mb-4">
+                <Flex gap='large' justify="space-between">
+                <Flex vertical justify="space-around">
+                  <div>
                   <label className="block text-gray-700 text-sm font-bold">Full Name:</label>
                   {selectedReport.fullName}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-2">
+                  </div>
                   <div>
                     <label className="block text-gray-700 text-sm font-bold">Age:</label>
                     {selectedReport.age}
-                  </div>
+                    </div>
                   <div>
                     <label className="block text-gray-700 text-sm font-bold">Sex:</label>
                     {selectedReport.sex}
-                  </div>
-                </div>
-
-                <div className="mb-4">
+                    </div>
+                <div>
                   <label className="block text-gray-700 text-sm font-bold">Address:</label>
-                  {[selectedReport.address, selectedReport.city, selectedReport.province, selectedReport.region].join(', ')}                </div>
-
-                <div className="mb-4">
+                  {selectedReport.address}  
+                </div>              
+                <div>
                   <label className="block text-gray-700 text-sm font-bold">Contact Number:</label>
                   {selectedReport.contactNumber}
-                </div>
-        
-                <div className="mb-6">
-                  <label className="block text-gray-700 text-sm font-bold">Submitted Files:</label>
-                  {selectedReport.isOwner === 'Yes' ? (
-                    !loadedImages[selectedReport.id] ? (
-                      <button onClick={() => loadCarousel(selectedReport.id.toString())} className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg">Load Images</button>
-                    ) : (
-                      <Swiper 
-                        navigation 
-                        pagination={{ clickable: true }} 
-                        modules={[Navigation, Pagination1]} 
-                        className="my-4"
-                      >
-                        {[selectedReport.driversLicense, selectedReport.vehicleRegistration, selectedReport.orCr]
-                          .filter(Boolean)
-                          .map((image, index) => (
-                            <SwiperSlide key={index} className="relative w-full h-64">
-                                  {/* <img 
-                                    src={image} 
-                                    alt={`Document ${index + 1}`} 
-                                    className="w-auto h-auto max-w-full max-h-full object-contain rounded-lg" 
-                                    layout="responsive"
-                                  /> */}
-                              <Image src={image} alt={`Document ${index + 1}`} width={500} height={256} className="w-full h-64 object-cover rounded-lg" />
-                            </SwiperSlide>
-                          ))}
-                      </Swiper>
-                    )
-                  ) : 'None' }
-                </div>
-
-                {/* Vehicle Details */}
+                  </div>
+                </Flex>
+                <Flex vertical justify='space-evenly' gap='large'>
+                <label className="block text-gray-700 text-sm font-bold">Submitted Files:</label>
+                  <Flex>
+                  <Card cover={
+                      <Image
+                        width={200}
+                        alt="Reported Vehicle"
+                        src={selectedReport.reportedVehicleImage}
+                        placeholder={
+                          <Image
+                            preview={false}
+                            alt='Reported Vehicle'
+                            src={selectedReport.reportedVehicleImage}
+                            width={200}
+                          />
+                        }
+                      />}>
+                        <Meta title="Reported Vehicle"/>
+                    </Card>
+                    </Flex>
+                    {selectedReport.isOwner === 'Yes'&&(
+                    <Flex justify='space-between' gap='large' style={{flex:2}}>
+                    <Card cover={
+                      <Image
+                        width={200}
+                        alt="Driver's license"
+                        src={selectedReport.driversLicense}
+                        placeholder={
+                          <Image
+                            preview={false}
+                            alt="Driver's License"
+                            src={selectedReport.driversLicense}
+                            width={200}
+                          />
+                        }
+                      />}>
+                      <Meta title="Driver's License" />
+                  </Card>
+                      <Card cover={
+                      <Image
+                        width={200}
+                        alt="Vehicle Registration"
+                        src={selectedReport.vehicleRegistration}
+                        placeholder={
+                          <Image
+                            preview={false}
+                            alt='Vehicle Registration'
+                            src={selectedReport.vehicleRegistration}
+                            width={200}
+                          />
+                        }
+                      />}>
+                      <Meta title="Vehicle Registration" />
+                  </Card>
+                      <Card cover={
+                      <Image
+                        width={200}
+                        alt="OR/CR"
+                        src={selectedReport.orCr}
+                        placeholder={
+                          <Image
+                            preview={false}
+                            alt='OR/CR'
+                            src={selectedReport.orCr}
+                            width={200}
+                          />
+                        }
+                      />}>
+                      <Meta title="OR/CR" />
+                  </Card>
+                  </Flex>
+                  
+                    )}
+                    
+                      
+                  </Flex>
+                </Flex>
                 <h2 className="text-2xl font-bold mb-4">Vehicle Details</h2>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -786,8 +810,8 @@ export default function DataTable() {
                 </div>
               </>
             )}
-          </Box>
-        </Modal>
+          {/* </Box> */}
+        </Card>)}
 
         {/* Add Report Update Modal */}
         { isUpdatingReport && ( // a boolean will be set to true when Add update is clicked

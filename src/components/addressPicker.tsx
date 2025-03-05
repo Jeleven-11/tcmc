@@ -37,7 +37,7 @@ interface FormData {
   orCr: string;
   reason: string;
   vehicleType: string;
-  vehicleImage: string;
+  reportedVehicleImage: string;
   platenumber: string;
   color: string;
   description: string;
@@ -77,6 +77,10 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ formData, setFormData, is
   useEffect(() => {
     if(isReset){
       setFormData({region:'',province:'',city:'',barangay:''})
+      setRegionCode('')
+      setProvinceCode('')
+      setCityCode('')
+      setBarangayCode('')
     }
   });
   useEffect(() => {

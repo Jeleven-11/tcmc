@@ -26,7 +26,7 @@ export interface Report {
     orCr: string,
     reason: string,
     vehicleType: string,
-    vehicleImage: string,
+    reportedVehicleImage: string,
     platenumber: string,
     color: string,
     description: string,

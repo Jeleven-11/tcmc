@@ -28,7 +28,7 @@ interface FormData {
   orCr: string;
   reason: string;
   vehicleType: string;
-  vehicleImage: string;
+  reportedVehicleImage: string;
   platenumber: string;
   color: string;
   description: string;
@@ -61,15 +61,15 @@ const ReportForm = () =>
   const [isModalOpen, setIsModalOpen] = React.useState(false) // State to control modal visibility
   const [reportID, setReportID] = React.useState('')
 
-  const [dvrLicenseVal, setDvrLicense] = React.useState("") // url
+  // const [dvrLicenseVal, setDvrLicense] = React.useState("") // url
   const [fileDL, setFileDL] = React.useState<File>()
   const [progress1, setProgress1] = React.useState<number>(0)
 
-  const [vRegistrationVal, setVRegistration] = React.useState("") // url
+  // const [vRegistrationVal, setVRegistration] = React.useState("") // url
   const [fileVR, setFileVR] = React.useState<File>()
   const [progress2, setProgress2] = React.useState<number>(0)
 
-  const [orCrVal, setOrCr] = React.useState("") // url
+  // const [orCrVal, setOrCr] = React.useState("") // url
   const [fileOR, setFileOR] = React.useState<File>()
   const [progress3, setProgress3] = React.useState<number>(0)
   const [numberFiles, setNumberFiles] = React.useState<number>(1)
@@ -119,7 +119,7 @@ const ReportForm = () =>
     orCr: "",
     reason: 'Stolen? Involved in an incident/accident?',
     vehicleType: 'Motorcycle',
-    vehicleImage:'',
+    reportedVehicleImage:'',
     platenumber: '',
     color: '',
     description: '',
@@ -140,150 +140,68 @@ const ReportForm = () =>
       ...formData,
       reportID: generatedReportID
     }
-    // const upload
-    if(!fileVehicleImg) return alert('Please upload an image of the reported vehicle for verification purposes!');
     if (formData.isOwner === 'Yes') {
       setNumberFiles(4);
       const uploadFiles = async () => {
-        if(!fileDL || !fileVR || !fileOR) return alert('Please upload ALL required files for verification purposes!');
+        if(!fileDL || !fileVR || !fileOR || !fileVehicleImg) return alert('Please upload ALL required files for verification purposes!');
        
-      //   const filesToUpload = [fileDL, fileVR, fileOR];
-      //   // const uploadIncrement = 100 / filesToUpload.length;
-      //   const uploadPromises = filesToUpload.map(async (file, index) => {
-      //     try {
-      //       return await edgestore.publicFiles.upload({
-      //         file,
-      //         onProgressChange: async(progress) => {
-      //           if (index === 0) {
-      //             setProgress1(progress);
-      //           } else if (index === 1) {
-      //             setProgress2(progress);
-      //           } else if (index === 2) {
-      //             setProgress3(progress);
-      //           }
-      //           setTotalUploadProgress(progress1 + progress2 + progress3);
-      //           // setTotalUploadProgress(totalUploadProgress+((progress/100) * uploadIncrement));
-      //         },
-
-      //       });
-      //     } catch (error) {
-      //       console.error('Error uploading file:', error);
-      //       throw error; // Rethrow the error to handle it outside the map function
-      //     }
-      //   });
-
-      //   try {
-      //     const results = await Promise.all(uploadPromises);
-      //     const urls = results.map((result) => result.url);
-      //     console.log('urls: ', urls);
-      //     setDvrLicense(urls[0]);
-      //     setVRegistration(urls[1]);
-      //     setOrCr(urls[2]);
-      //   } catch (error) {
-      //     console.error('Error uploading files:', error);
-      //     // Handle the error here
-      //     alert('Error encountered during uploading of files.');
-      //   }
-        
-
-        const [res1, res2, res3] = await Promise.all([
+        const [res1, res2, res3, res4] = await Promise.all([
           edgestore.publicFiles.upload({
             file: fileDL,
             onProgressChange: async (progress) => {
-              
               setUploadProgress(progress)
               setProgress1(progress);
-              // setTotalUploadProgress((progress+progress2+progress3)/3)
-              // console.log("Progress1 : ", progress)
             },
           }),
           edgestore.publicFiles.upload({
             file: fileVR,
             onProgressChange: async(progress) => {
-              
               setProgress2(progress);
               setUploadProgress(progress)
-              // setTotalUploadProgress((progress1+progress+progress3)/3)
-              // console.log("Progress2 : ", progress)
-              
-              // setTotalUploadProgress((progress1+progress2+progress3)/3)
-              
             },
           }),
           edgestore.publicFiles.upload({
             file: fileOR,
             onProgressChange: async(progress) => {
-              
               setProgress3(progress);
               setUploadProgress(progress)
-              // setTotalUploadProgress((progress1+progress2+progress)/3)
-              // console.log("Progress3 : ", progress)
-
             },
           }),
-          // setTotalUploadProgress((progress1+progress2+progress3)/3)
+          edgestore.publicFiles.upload({
+            file: fileVehicleImg,
+            onProgressChange: async(progress) => {
+              setProgress3(progress);
+              setUploadProgress(progress)
+            },
+          }),
         ]);
-        setDvrLicense(res1.url);
-        setVRegistration(res2.url);
-        setOrCr(res3.url);
-        
-
-        // const totalProgress = (progress1 + progress2 + progress3) / 3;
-        // setTotalUploadProgress(totalProgress);
-        // if(totalUploadProgress==100)
-        // return totalUploadProgress
-        
-
-
-
-
-
-        // const res1 = await edgestore.publicFiles.upload({
-        //   file: fileDL,
-        //   onProgressChange: (progress1) => {
-        //     setProgress1(progress1)
-        //   },
-        // })
-        // setDvrLicense(res1.url)
-      
-        // const res2 = await edgestore.publicFiles.upload({
-        //   file: fileVR,
-        //   onProgressChange: (progress2) => {
-        //     setProgress2(progress2)
-        //   },
-        // })
-        // setVRegistration(res2.url)
-      
-        // const res3 = await edgestore.publicFiles.upload({
-        //   file: fileOR,
-        //   onProgressChange: (progress3) => {
-        //     setProgress3(progress3)
-        //   },
-        // })
-        // setOrCr(res3.url)
-        // setTotalUploadProgress((progress1+progress2+progress3)/3)
-        // return totalUploadProgress;
+        // setDvrLicense(res1.url);
+        // setVRegistration(res2.url);
+        // setOrCr(res3.url);
+        formDataToSend.driversLicense=res1.url;
+        formDataToSend.vehicleRegistration=res2.url;
+        formDataToSend.orCr=res3.url;
+        formDataToSend.reportedVehicleImage=res4.url;
       }
-      // const total = await uploadFiles()
       await uploadFiles()
-      // if (total != 100 && dvrLicenseVal === "" || vRegistrationVal === "" || orCrVal === "")
-      //   return alert('Please upload all required files for verification purposes!');
       
-      // setVehicleImgVal(vehicleImageUpload.url)
-      
+    } else {
+      if(!fileVehicleImg) return alert('Please upload an image of the reported vehicle for verification purposes!');
+      const vehicleImageUpload = await edgestore.publicFiles.upload({
+        file: fileVehicleImg,
+        onProgressChange: async (progress) => {
+          setUploadProgress(progress)
+          setProgress4(progress);
+        },
+      })
+      formDataToSend.reportedVehicleImage = vehicleImageUpload.url;
     }
-    const vehicleImageUpload = await edgestore.publicFiles.upload({
-      file: fileVehicleImg,
-      onProgressChange: async (progress) => {
-        setUploadProgress(progress)
-        setProgress4(progress);
-      },
-    })
+    
     // setTotalUploadProgress(100)
-    formDataToSend.driversLicense = dvrLicenseVal;
-      formDataToSend.vehicleRegistration = vRegistrationVal;
-      formDataToSend.orCr = orCrVal;
-      formDataToSend.vehicleImage = vehicleImageUpload.url;
+    // formDataToSend.driversLicense = dvrLicenseVal;
+    //   formDataToSend.vehicleRegistration = vRegistrationVal;
+    //   formDataToSend.orCr = orCrVal;
+      
     try
     {
       const response = await fetch('/api/reporthandler', {
@@ -304,6 +222,7 @@ const ReportForm = () =>
         setProgress4(0)
         setNumberFiles(1)
         setIsReset(true);
+        setFileVehicleImg(undefined);
         setFormData({
           fullName: '',
           age: '',
@@ -320,7 +239,7 @@ const ReportForm = () =>
           orCr: "",
           reason: '',
           vehicleType: 'Motorcycle',
-          vehicleImage:'',
+          reportedVehicleImage:'',
           platenumber: '',
           color: '',
           description: '',
@@ -610,6 +529,7 @@ const ReportForm = () =>
               <option value="Motorcycle">Motorcycle</option>
               <option value="Car">Car</option>
               <option value="Truck">Truck</option>
+              <option value="Van">Van</option>
               <option value="Other">Other</option>
             </select>
           </div>
@@ -643,7 +563,7 @@ const ReportForm = () =>
             <label className="block text-gray-700 text-sm font-bold mb-2">Image of Reported Vehicle</label>
             <input
               type="file"
-              name="vehicleImage"
+              name="reportedVehicleImage"
               onChange={(e) => {
                 setFileVehicleImg(e.target.files?.[0])
               }}
