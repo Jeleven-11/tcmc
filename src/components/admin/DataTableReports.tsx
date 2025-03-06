@@ -4,20 +4,31 @@ import React, { useState, useEffect, useCallback, SetStateAction } from 'react';
 import type { FormEvent } from 'react';
 import { DataGrid, GridColDef, GridPaginationModel} from '@mui/x-data-grid';
 import Paper from '@mui/material/Paper';
+// import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
+import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
+// import AlertDialog from './Dialog';
+// import Image from 'next/image';
+// import { DateTime } from 'luxon';
+
 import debounce from 'lodash.debounce';
+
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+// import { Swiper, SwiperSlide } from 'swiper/react';
+// import { Navigation, Pagination as Pagination1 } from 'swiper/modules';
 import { Button, MenuItem, Select, TextField, Tooltip } from '@mui/material';
 import CustomPagination from './CustomPagination';
 import { getSession } from '@/app/lib/actions';
 import axios from 'axios';
 import { toast } from "react-toastify";
-import { Image, Drawer, Space} from 'antd';
-import { Button as ButtonAntD } from 'antd'
-import DeleteIcon from '@mui/icons-material/Delete';
+import { Flex, Space, Image, Drawer, Button as ButtonAntD} from 'antd';
+
+
+import DeleteIcon from '@mui/icons-material/Delete'
+// import EditIcon from '@mui/icons-material/Edit';
 import UpdateIcon from '@mui/icons-material/Update';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 
@@ -89,6 +100,8 @@ const getStatusColor = (status: string) => {
 };
 export default function DataTable() {
   const [reports, setReports] = useState<Report[]>([]);
+  const [openSnack, setOpenSnack] = React.useState<boolean>(false);
+  const [snackMessage, setSnackMessage] = React.useState<string>('')
   const [loading, setLoading] = useState(false);
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 10 });
   const [totalRows, setTotalRows] = useState(0);
@@ -103,6 +116,7 @@ export default function DataTable() {
   const [details, setDetails] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [userTeam, setUserTeam] = useState<number>(0);
+  const [isProcessingReport, setIsProcessingReport] = useState<boolean>(false);
   // const [remark, setRemark] = useState('')
   // const [selectedValue, setSelectedValue] = useState<number | undefined>(undefined)
 
@@ -112,7 +126,16 @@ export default function DataTable() {
   //   setSelectedValue(newValue); // Update the local state
   //   updateTeam(params.row.reportID, newValue); // Call the API function
   // }
+  const handleCloseSnack = (
+    event: React.SyntheticEvent | Event,
+    reason?: SnackbarCloseReason,
+  ) => {
+    if (reason === 'clickaway') {
+      return;
+    }
 
+    setOpenSnack(false);
+  };
   const fetchReports = async (isLoad: SetStateAction<boolean>) =>
   {
     try
@@ -300,6 +323,7 @@ export default function DataTable() {
         console.error('Invalid action type');
         return;
       }
+      setIsProcessingReport(true);
       try {
         if(selectedReport && selectedReport.id){
           const response = await fetch(`/api/addReportUpdate/`, {
@@ -309,20 +333,30 @@ export default function DataTable() {
           });
     
           if (response.ok) {
-            alert('Added a Report Update Successfully');
+            // alert('Added a Report Update Successfully');
+            setSnackMessage('Added a Report Update Successfully')
+            setOpenSnack(true);
             if(action!=='save')
             await sendNotif([Number(selectedReport.id).toString()], action, '')
+            setTitle('')
+            setDetails('')
+            fetchReports(true)
           } else {
             const data = await response.json();
-            alert(data.message);
+            // alert(data.message);
+            setSnackMessage(data.message)
+            setOpenSnack(true);
           }
         } else {
           throw new Error("Selected report has no id");
         }
       } catch (error) {
         console.error('Error updating report:', error);
-        alert('An error occurred while updating the report');
+        setSnackMessage('An error occurred while updating the report')
+        setOpenSnack(true);
+        // alert('An error occurred while updating the report');
       }
+      setIsProcessingReport(false);
       setIsUpdatingReport(false)
     }
 
@@ -612,7 +646,12 @@ export default function DataTable() {
             Export CSV
           </Button>
         </Box>
-
+        <Snackbar
+          open={openSnack}
+          onClose={handleCloseSnack}
+          autoHideDuration={5000}
+          message={snackMessage}
+        />
         <DataGrid
           rows={reports}
           columns={columns}
@@ -660,13 +699,25 @@ export default function DataTable() {
             onClose={handleCloseModal}
             open={isModalOpen}
             extra={
+              <>
+              {selectedReport.status==='unread'?(
               <Space>
                 <ButtonAntD onClick={()=>{updateStatus(selectedReport.reportID, 'dropped'); handleCloseModal()}}>Mark as Dropped</ButtonAntD>
                 <ButtonAntD type="primary" onClick={()=>{updateStatus(selectedReport.reportID, 'on_investigation'); handleCloseModal()}}>
                   Mark as On Investigation
                 </ButtonAntD>
-              </Space>
-            }
+              </Space>):((selectedReport.status==='dropped')?(''):(
+                (selectedReport.status==='on_investigation')?(
+                <Space>
+                <ButtonAntD onClick={()=>{updateStatus(selectedReport.reportID, 'dropped'); handleCloseModal()}}>Mark as Dropped</ButtonAntD>
+                <ButtonAntD type="primary" onClick={()=>{updateStatus(selectedReport.reportID, 'on_investigation'); handleCloseModal()}}>
+                  Add Report Update
+                </ButtonAntD>
+              </Space>):(''))
+              )}
+              </>
+
+              }
           >
             {(
               <>
@@ -847,13 +898,20 @@ export default function DataTable() {
         </Drawer>)}
 
         {/* Add Report Update Modal */}
-        { isUpdatingReport && ( // a boolean will be set to true when Add update is clicked
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white p-6 rounded-lg w-1/2">
-            <h2 className="text-lg font-semibold">Report Update</h2>
+        { // a boolean will be set to true when Add update is clicked
+          // <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <Drawer
+            title="Report Update"
+            placement='right'
+            // size='large'
+            onClose={() => setIsUpdatingReport(false)}
+            open={isUpdatingReport}
+            >
+            {/* <div className="bg-white p-6 rounded-lg w-1/2"> */}
+            {/* <h2 className="text-lg font-semibold">Report Update</h2> */}
                 <form onSubmit={handleUpdateReport}>
                   <label className="block mb-2">
-                    Title:
+                    Update Title:
                     <input
                       type="text"
                       value={title}
@@ -874,24 +932,27 @@ export default function DataTable() {
                   </label>
                   
                   
-                  <div className="flex justify-center mt-4">
-                    <button type="submit" name="action" value="solved" className="bg-blue-500 text-white px-4 py-2 rounded">
+                  {/* <div className="flex justify-center mt-4"> */}
+                  <Flex wrap vertical gap={8}>
+                    <Button loading={isProcessingReport} type="submit" name="action" value="solved" className="bg-blue-500 text-white px-4 py-2 rounded">
                       Save and mark as solved
-                    </button>
-                    <button type="submit" name="action" value="dropped" className="bg-blue-500 text-white px-4 py-2 rounded">
+                    </Button>
+                    <Button loading={isProcessingReport} type="submit" name="action" value="dropped" className="bg-blue-500 text-white px-4 py-2 rounded">
                       Save and mark as dropped
-                    </button>
-                    <button type="submit" name="action" value="save" className="bg-blue-500 text-white px-4 py-2 rounded">
+                    </Button>
+                    <Button loading={isProcessingReport} type="submit" name="action" value="save" className="bg-blue-500 text-white px-4 py-2 rounded">
                       Just save
-                    </button>
-                    <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setIsUpdatingReport(false)}>
+                    </Button>
+                    <Button loading={isProcessingReport} type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setIsUpdatingReport(false)}>
                       Cancel
-                    </button>
-                  </div>
+                    </Button>
+                  </Flex>
+                  {/* </div> */}
                 </form>
-            </div>
-          </div>
-        )}
+            {/* </div> */}
+            </Drawer>
+          // </div>
+        }
     </Paper>
   );
 }
