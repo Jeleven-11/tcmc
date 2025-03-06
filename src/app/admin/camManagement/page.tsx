@@ -11,7 +11,8 @@ import { MockDelCam } from "@/components/mockDelCam";
 import AblyConnectionComponent from '@/components/admin/RealtimeAbly';
 import { Paper } from "@mui/material";
 import GdriveFetchVideos from "@/components/admin/gdrive/GdriveFetchVideos";
-
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import StopIcon from '@mui/icons-material/Stop';
 const mockCameras = [
   { id: 1, name: "Camera 1", location: "1st Street", feed: "/mock.png" },
   // { id: 2, name: "Camera 2", location: "Street A", feed: "/mock.png" },
@@ -21,6 +22,7 @@ const mockCameras = [
 
 const CamManagement = () => {
   const [cameras, setCameras] = useState(mockCameras);
+  const [isRecording, setIsRecording] = useState<boolean>(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -85,7 +87,7 @@ const CamManagement = () => {
     height={200} // specify the height
     className="w-full h-40 object-cover" 
   /> */}
-                <AblyConnectionComponent onMessage={handleShowMessage}/>
+                <AblyConnectionComponent onMessage={handleShowMessage} isRecording={isRecording}/>
                 
                 <div className="p-4 flex justify-between items-center">
                   <div>
@@ -94,6 +96,15 @@ const CamManagement = () => {
                   </div>
                   <p className="text-gray-500 text-sm">FPS: {currentFPS}</p>
                   <div className="flex space-x-2">
+                    {
+                    !isRecording?
+                      <button onClick={() => { setIsRecording(true) }} className="text-blue-600 hover:text-blue-800">
+                        <FiberManualRecordIcon color="error" className="w-5 h-5" />
+                      </button>:
+                      <button onClick={() => { setIsRecording(false) }} className="text-blue-600 hover:text-blue-800">
+                        <StopIcon color="error" className="w-5 h-5" />
+                      </button>
+                    }
                     <button onClick={() => { setSelectedCamera(camera); setIsEditOpen(true); }} className="text-blue-600 hover:text-blue-800">
                       <PencilIcon className="w-5 h-5" />
                     </button>

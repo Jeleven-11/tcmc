@@ -9,9 +9,10 @@ type SessionData = {
 } | null;
 interface AblyComponentProps {
   onMessage: (type:string, message: string, file_id?:string, file_name?:string) => void;
+  isRecording: boolean
 }
 
-const AblyConnectionComponent:React.FC<AblyComponentProps> = ({onMessage}) => {
+const AblyConnectionComponent:React.FC<AblyComponentProps> = ({onMessage, isRecording}) => {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const realtime = useRef<Ably.Realtime | null>(null);
   const channel = useRef<Ably.RealtimeChannel | null>(null);
@@ -108,6 +109,32 @@ const AblyConnectionComponent:React.FC<AblyComponentProps> = ({onMessage}) => {
     
           await channel.current.publish('WebRTC-client-register', registrationMessage);
           console.log('Sent registration message:', registrationMessage);
+        }
+        if (isRecording){
+          if (!channel.current){
+            console.log('channel.current is null in icecandidate');
+            return;
+          };
+          await channel.current.publish('WebRTC-client-register', {
+            role: 'Admin',
+            id: myID.current,
+            type: 'Record Start',
+            from: myID.current,
+            camera_stream: true,
+          });
+        }
+        if (!isRecording){
+          if (!channel.current){
+            console.log('channel.current is null in icecandidate');
+            return;
+          };
+          await channel.current.publish('WebRTC-client-register', {
+            role: 'Admin',
+            id: myID.current,
+            type: 'Record Stop',
+            from: myID.current,
+            camera_stream: true,
+          });
         }
         if (type === 'FPS' || type === 'Upload'){
           onMessage(type, message.data.data)

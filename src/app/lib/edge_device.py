@@ -238,7 +238,7 @@ class WebRTCConnection():
         self.newPeerId = None
         self.stream = None
         self.relayed_stream = None
-        self.isRecording = True
+        self.isRecording = False
         self.isAI_On = True
         self.connection_attempts_max = 6
         self.connection_attempts_count = 0
@@ -388,10 +388,10 @@ class WebRTCConnection():
             detections = self.reader.readtext(license_plate_cropped)
             for detection in detections:
                 bbox, text, score = detection
-                text = text.upper().replace(" ", "")
-                if len(text) == 7:
+                # text = text.upper().replace(" ", "")
+                # if len(text) == 7:
                     # return format_license(text), score
-                    return text, score
+                return text, score
             return None, None
         async def save_license_plate_image(self, frame, x1_, y1_, x2_, y2_, car_id, image_name_prefix="license_plate"):
             # Crop the license plate from the frame
