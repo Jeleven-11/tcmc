@@ -39,9 +39,7 @@ const DailyReports = () =>
             yaxis:
             [{
                 title: { text: "Report Count", floating: true },
-                labels: {
-                formatter: (value: number) => Math.round(value),
-                },
+                labels: { formatter: (value: number) => Math.round(value) },
             }],
             stroke: { curve: "smooth", width: 3,},
             colors: ["#0000ff"],

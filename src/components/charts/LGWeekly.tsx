@@ -1,37 +1,37 @@
-"use client";
+'use client'
 
 import { useState, useEffect } from "react";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  TimeScale,
-  Tooltip,
-  PointElement,
-  LineElement,
-} from "chart.js";
-import "chartjs-adapter-date-fns";
-import { Line } from "react-chartjs-2";
+import dynamic from "next/dynamic";
+import { ApexOptions } from "apexcharts";
 
-ChartJS.register(CategoryScale, LinearScale, TimeScale, PointElement, LineElement, Tooltip)
+const Chart = dynamic(() => import("react-apexcharts"), { ssr: false })
 
-interface WeeklyData
+const chartOptions: ApexOptions =
 {
-  labels: string[]
-  datasets:
-  {
-    label: string
-    data: number[]
-    borderColor: string
-    backgroundColor: string
-    fill: boolean
-    tension: number
-  }[]
+    chart:
+    {
+        type: "line",
+        zoom: { enabled: true },
+        toolbar: { show: true },
+    },
+    xaxis:
+    {
+        categories: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        title: { text: "Week Day" }
+    },
+    yaxis:
+    {
+        title: { text: "Report Count" },
+        min: 0
+    },
+    stroke: { curve: "smooth", width: 3 },
+    colors: ["#0000ff"],
 }
 
 const WeeklyChart = () =>
 {
-    const [chartData, setChartData] = useState<WeeklyData>({ labels: [], datasets: [] })
+    const [chartData, setChartData] = useState<number[]>([])
+
     useEffect(() =>
     {
         const fetchChartData = async () =>
@@ -46,23 +46,9 @@ const WeeklyChart = () =>
                 if (!data || data.length === 0)
                     throw new Error("No data available")
 
-                //const labels = data.map((entry: { time: string }) => formatWeek(entry.time))
                 const counts = data.flatMap((entry: { [key: string]: number }) => Object.values(entry))
 
-                setChartData(
-                {
-                    labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-                    datasets: [
-                        {
-                            label: "Weekly Reports",
-                            data: counts,
-                            borderColor: "blue",
-                            backgroundColor: "rgba(0, 0, 255, 0.2)",
-                            fill: true,
-                            tension: 0.4,
-                        },
-                    ],
-                })
+                setChartData(counts)
             } catch (error) {
                 console.error(error)
             }
@@ -71,37 +57,7 @@ const WeeklyChart = () =>
         fetchChartData()
     }, [])
 
-    return (
-        <Line
-            data={chartData}
-            options=
-            {
-                {
-                    scales: {
-                        x: {
-                            type: "category",
-                            title: {
-                                display: true,
-                                text: "Week Day",
-                            },
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: "Report Count",
-                            },
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return Math.round(parseInt(value.toString()))
-                                }
-                            }
-                        },
-                    },
-                }
-            }
-      />
-    )
+    return <Chart options={chartOptions} series={[{ name: "Weekly Reports", data: chartData }]} type="line" height='auto' />
 }
 
 export default WeeklyChart
