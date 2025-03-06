@@ -710,7 +710,7 @@ export default function DataTable() {
                 (selectedReport.status==='on_investigation')?(
                 <Space>
                 <ButtonAntD onClick={()=>{updateStatus(selectedReport.reportID, 'dropped'); handleCloseModal()}}>Mark as Dropped</ButtonAntD>
-                <ButtonAntD type="primary" onClick={()=>{updateStatus(selectedReport.reportID, 'on_investigation'); handleCloseModal()}}>
+                <ButtonAntD type="primary" onClick={()=>{setIsUpdatingReport(true); handleCloseModal()}}>
                   Add Report Update
                 </ButtonAntD>
               </Space>):(''))
