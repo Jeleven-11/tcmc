@@ -24,13 +24,20 @@ import CustomPagination from './CustomPagination';
 import { getSession } from '@/app/lib/actions';
 import axios from 'axios';
 import { toast } from "react-toastify";
-import { Flex, Space, Image, Drawer, Button as ButtonAntD } from 'antd';
+import { Flex, Space, Image, Drawer, Divider, Button as ButtonAntD } from 'antd';
 
 
 import DeleteIcon from '@mui/icons-material/Delete'
 // import EditIcon from '@mui/icons-material/Edit';
 import UpdateIcon from '@mui/icons-material/Update';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+
+type ResponseData = {
+  title:string;
+  details: string;
+  created_at: string;
+  user_name: string;
+};
 
 interface Report {
   driversLicense: string;
@@ -117,6 +124,7 @@ export default function DataTable() {
   const [title, setTitle] = useState<string>('');
   const [userTeam, setUserTeam] = useState<number>(0);
   const [isProcessingReport, setIsProcessingReport] = useState<boolean>(false);
+  const [reportUpdates, setReportUpdates] = useState<ResponseData[]>([]);
   // const [remark, setRemark] = useState('')
   // const [selectedValue, setSelectedValue] = useState<number | undefined>(undefined)
 
@@ -144,7 +152,7 @@ export default function DataTable() {
         setUserTeam(session.team as unknown as number)
         setLoading(isLoad)
 
-        const res = await fetch(`/api/getReports/getReportsLazy?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}&search=${encodeURIComponent(searchQuery)}${Number(session.team) === 1 ? '&t=' + session.team : ''}`)
+        const res = await fetch(`/api/getReports/getReportsLazy?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}&search=${encodeURIComponent(searchQuery)}`)
         const { data, total } = await res.json()
         if (res.ok)
         {
@@ -158,6 +166,19 @@ export default function DataTable() {
       console.error('Failed to fetch reports:', error)
     } finally {
         setLoading(!isLoad)
+    }
+  }
+  const fetchReportUpdate = async(id:string) => {
+    try {
+      const response = await fetch(`/api/getReportUpdates/${id}`);
+      const data = await response.json()
+      if (!response.ok){
+        throw new Error(data.message || 'Failed to fetch updates');
+      }
+      return data.updates || [];
+    } catch(error){
+      console.error('Error fetch updates: ', error);
+      return [];
     }
   }
 
@@ -282,9 +303,14 @@ export default function DataTable() {
 
   useEffect(() => { fetchReports(true) }, [paginationModel, searchQuery])
 
-  const handleOpenModal = (report: Report) =>
+  const handleOpenModal = async(report: Report) =>
   {
     setSelectedReport(report)
+    if(report.updatedAt!==''){
+      console.log("Report IDD: ", report.id)
+      const updates = await fetchReportUpdate(report.id.toString());
+      setReportUpdates(updates);
+    }
     setIsModalOpen(true)
   }
 
@@ -341,6 +367,7 @@ export default function DataTable() {
             setTitle('')
             setDetails('')
             fetchReports(true)
+            handleCloseModal();
           } else {
             const data = await response.json();
             // alert(data.message);
@@ -559,7 +586,8 @@ export default function DataTable() {
               onClick={() => handleOpenModal(params.row)}
             />
           </Tooltip>
-          {(rowStatus!=='solved'&&rowStatus!=='unread')&&(
+          {/* Cannot Add report updates to reports with status: unread, solved, and dropped */}
+          {(rowStatus!=='solved'&&rowStatus!=='unread'&&rowStatus!=='dropped')&&(
           <Tooltip title="Update Report" arrow>
             <UpdateIcon
               className="mr-2 cursor-pointer"
@@ -710,7 +738,7 @@ export default function DataTable() {
                 (selectedReport.status==='on_investigation')?(
                 <Space>
                 <ButtonAntD onClick={()=>{updateStatus(selectedReport.reportID, 'dropped'); handleCloseModal()}}>Mark as Dropped</ButtonAntD>
-                <ButtonAntD type="primary" onClick={()=>{setIsUpdatingReport(true); handleCloseModal()}}>
+                <ButtonAntD type="primary" onClick={()=>setIsUpdatingReport(true)}>
                   Add Report Update
                 </ButtonAntD>
               </Space>):(''))
@@ -723,6 +751,57 @@ export default function DataTable() {
               <>
                 {/* Renamed from complainant to Informant/Reporting Party */}
                 {/* Complainant Details */}
+                <Drawer
+            title="Report Update"
+            placement='right'
+            // size='large'
+            onClose={() => setIsUpdatingReport(false)}
+            open={isUpdatingReport}
+            >
+            {/* <div className="bg-white p-6 rounded-lg w-1/2"> */}
+            {/* <h2 className="text-lg font-semibold">Report Update</h2> */}
+                <form onSubmit={handleUpdateReport}>
+                  <label className="block mb-2">
+                    Update Title:
+                    <input
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="border p-2 w-full"
+                      required
+                    />
+                  </label>
+
+                  <label className="block mb-2">
+                    Update details:
+                    <textarea
+                      value={details}
+                      onChange={(e) => setDetails(e.target.value)}
+                      className="border p-2 w-full h-32"
+                      required
+                    />
+                  </label>
+                  
+                  
+                  {/* <div className="flex justify-center mt-4"> */}
+                  <Flex wrap vertical gap={8}>
+                    <Button loading={isProcessingReport} type="submit" name="action" value="solved" className="bg-blue-500 text-white px-4 py-2 rounded">
+                      Save and mark as solved
+                    </Button>
+                    <Button loading={isProcessingReport} type="submit" name="action" value="dropped" className="bg-blue-500 text-white px-4 py-2 rounded">
+                      Save and mark as dropped
+                    </Button>
+                    <Button loading={isProcessingReport} type="submit" name="action" value="save" className="bg-blue-500 text-white px-4 py-2 rounded">
+                      Just save
+                    </Button>
+                    <Button loading={isProcessingReport} type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setIsUpdatingReport(false)}>
+                      Cancel
+                    </Button>
+                  </Flex>
+                  {/* </div> */}
+                </form>
+            {/* </div> */}
+            </Drawer>
                 <div className="flex justify-between items-center w-full">
                   <h2 className="text-2xl font-bold">Informant / Reporting Party Details</h2>
                   {/* <p className="text-sm font-bold">Report ID: {selectedReport.reportID}</p> */}
@@ -893,6 +972,27 @@ export default function DataTable() {
                     {selectedReport.description}
                   </div>
                 </div>
+
+                {reportUpdates.length!==0&&(
+                  <>
+                  <h2 className="text-2xl font-bold mb-4">Report Updates:</h2>
+                  {reportUpdates.map((update, index) => (
+                  <>
+                  <div key={index} className="mb-4">
+                      <h3 className='font-bold'>{update.title}</h3>
+                      <p className='text-gray-700'>{update.details}</p>
+                      <div className='mt-2 text-sm text-gray-500'>
+                        <span>{new Date(update.created_at).toLocaleDateString()}</span>
+                        <span className='mx-2'>-</span>
+                        <span>Updated by: {update.user_name}</span>
+                      </div>
+                  </div>
+                  <Divider />
+                  </>
+                
+                  ))}
+                  </>
+                )}
               </>
             )}
         </Drawer>)}
@@ -900,57 +1000,7 @@ export default function DataTable() {
         {/* Add Report Update Modal */}
         { // a boolean will be set to true when Add update is clicked
           // <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <Drawer
-            title="Report Update"
-            placement='right'
-            // size='large'
-            onClose={() => setIsUpdatingReport(false)}
-            open={isUpdatingReport}
-            >
-            {/* <div className="bg-white p-6 rounded-lg w-1/2"> */}
-            {/* <h2 className="text-lg font-semibold">Report Update</h2> */}
-                <form onSubmit={handleUpdateReport}>
-                  <label className="block mb-2">
-                    Update Title:
-                    <input
-                      type="text"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      className="border p-2 w-full"
-                      required
-                    />
-                  </label>
-
-                  <label className="block mb-2">
-                    Update details:
-                    <textarea
-                      value={details}
-                      onChange={(e) => setDetails(e.target.value)}
-                      className="border p-2 w-full h-32"
-                      required
-                    />
-                  </label>
-                  
-                  
-                  {/* <div className="flex justify-center mt-4"> */}
-                  <Flex wrap vertical gap={8}>
-                    <Button loading={isProcessingReport} type="submit" name="action" value="solved" className="bg-blue-500 text-white px-4 py-2 rounded">
-                      Save and mark as solved
-                    </Button>
-                    <Button loading={isProcessingReport} type="submit" name="action" value="dropped" className="bg-blue-500 text-white px-4 py-2 rounded">
-                      Save and mark as dropped
-                    </Button>
-                    <Button loading={isProcessingReport} type="submit" name="action" value="save" className="bg-blue-500 text-white px-4 py-2 rounded">
-                      Just save
-                    </Button>
-                    <Button loading={isProcessingReport} type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setIsUpdatingReport(false)}>
-                      Cancel
-                    </Button>
-                  </Flex>
-                  {/* </div> */}
-                </form>
-            {/* </div> */}
-            </Drawer>
+          
           // </div>
         }
     </Paper>
