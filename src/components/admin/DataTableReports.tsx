@@ -24,7 +24,7 @@ import CustomPagination from './CustomPagination';
 import { getSession } from '@/app/lib/actions';
 import axios from 'axios';
 import { toast } from "react-toastify";
-import { Flex, Space, Image, Drawer, Button as ButtonAntD} from 'antd';
+import { Flex, Space, Image, Drawer, Button as ButtonAntD } from 'antd';
 
 
 import DeleteIcon from '@mui/icons-material/Delete'
