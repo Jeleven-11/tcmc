@@ -53,7 +53,7 @@ const CheckUpdates = () => {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await fetch('/api/getReports');
+        const response = await fetch('/api/reports/getReports');
         const data = await response.json();
 
         if (response.ok) {
@@ -100,7 +100,7 @@ const CheckUpdates = () => {
     setError(null);
 
     try {
-      const response = await fetch(`/api/searchReport?query=${searchQuery}`);
+      const response = await fetch(`/api/reports/searchReport?query=${searchQuery}`);
       const data = await response.json();
 
       if (response.ok) {

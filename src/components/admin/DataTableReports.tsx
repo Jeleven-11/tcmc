@@ -152,7 +152,7 @@ export default function DataTable() {
         setUserTeam(session.team as unknown as number)
         setLoading(isLoad)
 
-        const res = await fetch(`/api/getReports/getReportsLazy?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}&search=${encodeURIComponent(searchQuery)}`)
+        const res = await fetch(`/api/reports/getReports/getReportsLazy?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}&search=${encodeURIComponent(searchQuery)}`)
         const { data, total } = await res.json()
         if (res.ok)
         {
@@ -352,7 +352,7 @@ export default function DataTable() {
       setIsProcessingReport(true);
       try {
         if(selectedReport && selectedReport.id){
-          const response = await fetch(`/api/addReportUpdate/`, {
+          const response = await fetch(`/api/reports/addReportUpdate/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({'title':title, 'details':details, 'action':action, 'reportId':selectedReport.id}),

@@ -95,7 +95,7 @@ export default function Adminlogin()
     else if (action === 'reset'){
       try {
         setIsResetWaiting(true);
-        const response = await fetch("/api/sendResetPasswordCode", {
+        const response = await fetch("/api/passwords/sendResetPasswordCode", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
@@ -120,7 +120,7 @@ export default function Adminlogin()
     } else if (action === 'code'){
       try {
         setIsVerifyWaiting(true);
-        const response = await fetch("/api/verifyResetPasswordCode", {
+        const response = await fetch("/api/passwords/verifyResetPasswordCode", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ resetCode, inputCode }),
@@ -144,7 +144,7 @@ export default function Adminlogin()
     } else if (action === 'save'){
       try {
         setIsSaveWaiting(true);
-        const response = await fetch("/api/setNewPassword", {
+        const response = await fetch("/api/passwords/setNewPassword", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ password, email }),

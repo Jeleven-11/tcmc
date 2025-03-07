@@ -111,7 +111,7 @@ export default function Profile()
       const userId = sessionData.user_id
       try
       {
-        const response = await fetch(`/api/deleteUser?userId=${userId}`, {
+        const response = await fetch(`/api/users/deleteUser?userId=${userId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: userId }),

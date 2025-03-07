@@ -204,7 +204,7 @@ const ReportForm = () =>
       
     try
     {
-      const response = await fetch('/api/reporthandler', {
+      const response = await fetch('/api/reports/reportHandler', {
         method: 'POST',
         body: JSON.stringify(formDataToSend),
       })
