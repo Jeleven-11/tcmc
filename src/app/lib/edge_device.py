@@ -208,8 +208,6 @@ async def cleanup_peer_connection(peer_id, peer_connections):
     print(f"peer is not found: {peer_id}")
     return
 def get_car(license_plate, track_ids):
-    print(f"License inside: {license_plate}")#License inside: (647, 323, 710, 349, 88, 0)
-    print(f"Track IDs: {track_ids}")#Track IDs
     x1, y1, x2, y2, score, class_id = license_plate
     foundIt = False
     car_indx = -1
@@ -245,36 +243,9 @@ class WebRTCConnection():
         self.iceServers = GetStunServers().iceServers
         self.videosToBeUploaded = []
         self.licensePlatesToBeUploaded = {}
-        
+        self.total_vehicles_tracked = 0 ## Counter of vehicles tracked
         self.rtc_config = RTCConfiguration(self.iceServers)
-            # iceServers=[
-                # RTCIceServer("stun:stun.l.google.com:19302"),
-                # RTCIceServer(
-                #     "turn:relay1.expressturn.com:3478",
-                #     username="efQSLPKFVR1ANJGAHL",
-                #     credential="p1CPPouohCkB1MO2"
-                # ),
-                # RTCIceServer("stun:stun.relay.metered.ca:80"),
-      
-                # RTCIceServer( "turn:global.relay.metered.ca:80",
-                #     username="0a3a9293f3f8dd410138e0fb",
-                #     credential="JAYpV4YyYPL7JwX+"
-                # ),
-                # RTCIceServer("turn:global.relay.metered.ca:80?transport=tcp",
-                #     username="0a3a9293f3f8dd410138e0fb",
-                #     credential="JAYpV4YyYPL7JwX+"
-                # ),
-                # RTCIceServer("turn:global.relay.metered.ca:443",
-                #     username="0a3a9293f3f8dd410138e0fb",
-                #     credential="JAYpV4YyYPL7JwX+"
-                # ),
-                # RTCIceServer( "turns:global.relay.metered.ca:443?transport=tcp",
-                #     username="0a3a9293f3f8dd410138e0fb",
-                #     credential="JAYpV4YyYPL7JwX+"
-                # ),
-                    #     # Append here RTCIceServer(stun)
-        #             ]#
-        # )
+            
         atexit.register(self.cleanup_on_exit)
     def cleanup_on_exit(self):
         ### Synchronous wrapper to run the async cleanup. ###
@@ -305,7 +276,7 @@ class WebRTCConnection():
             # self.saver_task_manager = AsyncTaskManager(self.save_video_task)
             self.frame_rate = 30
             self.frames_to_save = []
-            self.frame_buffer_size =  1 * 29 * self.frame_rate + 15 # 30 Seconds
+            self.frame_buffer_size =  1 * 27 * self.frame_rate + 90 # 30 Seconds
             # Initialize the video writer
             # self.fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for .mp4
             # self.out = cv2.VideoWriter(self.video_output, self.fourcc, 30, (self.width, self.height))
@@ -340,7 +311,7 @@ class WebRTCConnection():
             self.inference_client = InferenceHTTPClient(api_url="https://detect.roboflow.com", api_key="YdtoLOJufCKAjGZC1IkJ")
             # self.model = self.inference_client.get_model("local-vehicles-opjyd/10")
             self.model_id = "local-vehicles-opjyd/10"
-            self.motion_tracker = CentroidTracker()#Sort()#(max_age=20, min_hits=3, iou_threshold=0.3)
+            #Sort()#(max_age=20, min_hits=3, iou_threshold=0.3)
             self.license_plate_detector = InferenceHTTPClient(api_url="https://detect.roboflow.com", api_key="xi02obPcBC9MZU7iWSiz")#setup_model()
             self.plate_detector_model_id = "licenseplate-7tpdn/2"
             self.reader = easyocr.Reader(['en'], gpu=False)
@@ -357,8 +328,20 @@ class WebRTCConnection():
             self.isBufferFull = False
             self.isStarted = False
             self.isUploading = False
+            self.isUploadingLicensePlates = False
             # self.save_task = asyncio.create_task(self.save_video_task())
             self.vehiclesClass = [0,1,2,3,4,5]#0-Bus, 1-Car, 2-Motor, 3-Tricycle, 4-Truck, 5-Van
+            async def vehicle_removed_callback(object_id):
+                await self.handle_vehicle_exit(object_id)
+                
+            # Create a wrapper that can be called synchronously but executes the async function
+            def vehicle_removed_sync_callback(object_id):
+                asyncio.create_task(vehicle_removed_callback(object_id))
+
+            self.motion_tracker = CentroidTracker(max_disappeared=50, max_distance=50, on_object_removed=vehicle_removed_sync_callback)
+            
+            
+            
             print("Set frame count to 0")
             self.running = False
             self.start_time = time.time() 
@@ -426,6 +409,64 @@ class WebRTCConnection():
             # cv2.imwrite(image_path, license_plate_cropped_thresh)
             # print(f"Saved license plate image to {image_path}")
             return license_plate_cropped_thresh
+        
+        async def handle_vehicle_exit(self, car_id):
+            """Handle when a vehicle exits the frame and is no longer tracked"""
+            try:
+                current_time = datetime.now(pytz.timezone('Asia/Manila')).strftime("%Y-%m-%d %H:%M:%S")
+                
+                # Check if we have plate information for this vehicle
+                plate_info = None
+                plate_text = "Unknown"
+                plate_confidence = 0
+                license_plate_file_id = None
+                
+                # Get plate info from results if available
+                if hasattr(self, 'results') and self.frame_count in self.results and car_id in self.results[self.frame_count]:
+                    vehicle_data = self.results[self.frame_count][car_id]
+                    if 'license_plate' in vehicle_data:
+                        plate_info = vehicle_data['license_plate']
+                        plate_text = plate_info.get('text', "Unknown")
+                        plate_confidence = plate_info.get('text_score', 0)
+                
+                # Check if we have uploaded a plate image for this vehicle
+                license_plate_file_name = None
+                if car_id in self.parent.licensePlatesToBeUploaded:
+                    license_plate_file_name = self.parent.licensePlatesToBeUploaded[car_id]
+                    # Upload the license plate image if not already uploaded
+                    license_plate_file_id = self.video_uploader.upload(
+                        "license_plate_images", 
+                        license_plate_file_name, 
+                        'image/png', 
+                        self.google_drive_images_folder_id
+                    )
+                    
+                # Prepare the data payload
+                data_payload = {
+                    "vehicle_id": car_id,
+                    "plate_number": plate_text,
+                    "plate_confidence": plate_confidence,
+                    "detection_timestamp": current_time,
+                    "license_plate_file_id": license_plate_file_id,
+                    "vehicle_image_file_id": None  # To be implemented later
+                }
+                
+                # Send the data via Ably
+                print(f"Vehicle {car_id} has exited the frame. Plate: {plate_text}")
+                await self.parent.webRTCChannel.publish("WebRTC-client-register", {
+                    "role": "Raspberry Pi",
+                    "sessionID": self.raspberry_pi_id,
+                    "type": "VehicleExit",
+                    "data": data_payload
+                })
+                
+                # Remove the entry from licensePlatesToBeUploaded
+                if car_id in self.parent.licensePlatesToBeUploaded:
+                    del self.parent.licensePlatesToBeUploaded[car_id]
+                    
+            except Exception as e:
+                print(f"Error handling vehicle exit: {e}")
+
         async def process_prediction(self, result, frame):
             # return None for this variables if code doesn't reach the part where they are set
             score = None
@@ -467,8 +508,27 @@ class WebRTCConnection():
                 cv2.putText(frame, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
 
             # track vehicles
-            track_ids = self.motion_tracker.update(detections_)
-            
+            track_ids, removed_objects = self.motion_tracker.update(detections_)
+            # Update total vehicle count if new vehicles were detected
+            if len(track_ids) > 0:
+                # Get the highest ID from the tracker to determine if new vehicles were added
+                highest_id = max(track_ids.keys()) if track_ids else 0
+                if highest_id >= self.parent.total_vehicles_tracked:
+                    # Update the total count
+                    new_vehicles = highest_id - self.parent.total_vehicles_tracked + 1
+                    self.parent.total_vehicles_tracked = highest_id + 1
+                    
+                    # Send the updated count via Ably
+                    await self.parent.webRTCChannel.publish("WebRTC-client-register", {
+                        "role": "Raspberry Pi",
+                        "sessionID": self.raspberry_pi_id,
+                        "type": "VehicleCount",
+                        "data": {
+                            "total_vehicles_tracked": self.parent.total_vehicles_tracked,
+                            "current_vehicles": len(track_ids),
+                            "new_vehicles": new_vehicles
+                        }
+                    })
             license_plates_predictions = self.license_plate_detector.infer(frame, model_id = self.plate_detector_model_id)
             if 'predictions' in license_plates_predictions and license_plates_predictions['predictions']:
                 if isinstance(license_plates_predictions, list) and len(license_plates_predictions) > 0:
@@ -718,19 +778,19 @@ class WebRTCConnection():
             self.isUploading = False
 
         async def upload_license_plates_image_files(self):
-            self.isUploading = True
-            for car_id, file_name in self.parent.licensePlatesToBeUploaded:
+            self.isUploadingLicensePlates = True
+            for car_id, file_name in self.parent.licensePlatesToBeUploaded.items():
                 fileID = self.video_uploader.upload("license_plate_images", file_name, 'image/png', self.google_drive_images_folder_id)
                 await self.parent.webRTCChannel.publish("WebRTC-client-register", {
                     "role": "Raspberry Pi",
                     "sessionID": self.raspberry_pi_id,
-                    "message": "Saved uploaded image as " + file_name,
+                    "message": "Saved uploaded License Plate image as " + file_name,
                     "file_name": file_name,
                     "type": "Upload",
                     "fileID": fileID
                     })
             self.parent.licensePlatesToBeUploaded.clear()
-            # self.isUploading = False
+            self.isUploadingLicensePlates = False
 
             
         async def recv(self):
@@ -743,11 +803,11 @@ class WebRTCConnection():
                         print("End of video file")
                         exit()
                     frame = cv2.resize(temp_frame, (self.width, self.height))
-                    # frame = camera.capture_array()
                     # frame = self.resized_frame
-                # frame = self.camera.capture_array() # A Picamera2
+                # frame = self.camera.capture_array() # A Picamera2 object is a camera that supports the picamera2 API. It captures images and videos, performs image processing, and controls camera settings.
                     self.frame_count += 1
-                    
+                    if self.frame_count not in self.results:
+                        self.results[self.frame_count] = {}
                     if frame.shape[2] == 4:
                         frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
                     if self.frame_count % 30 != 0: # skip frames (This is OPTIONAL and can be removed)

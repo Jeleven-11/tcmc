@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 
 class CentroidTracker:
-    def __init__(self, max_disappeared=50, max_distance=50):
+    def __init__(self, max_disappeared=50, max_distance=50, on_object_removed=None):
         ###
         #   Initializes the CentroidTracker with parameters for managing object tracking.
         #
@@ -15,6 +15,7 @@ class CentroidTracker:
         self.disappeared = {}
         self.max_disappeared = max_disappeared
         self.max_distance = max_distance
+        self.on_object_removed = on_object_removed
 
     def update(self, detections):
         ###
@@ -64,8 +65,10 @@ class CentroidTracker:
             
             # Handle disappeared objects
             self._update_disappeared()
+            # Handle disappeared objects
+            removed_objects = self._update_disappeared()
             
-        return self.objects
+            return self.objects, removed_objects
 
     def _add_object(self, bbox, centroid):
         ###
@@ -82,6 +85,8 @@ class CentroidTracker:
     def _update_disappeared(self):
         ###
         #   Updates the disappeared count for each object and deregisters if necessary.
+        #   Returns:
+        #       list: List of object IDs that were removed in this update.
         ###
         to_delete = []
         for object_id in self.disappeared:
@@ -89,6 +94,17 @@ class CentroidTracker:
             if self.disappeared[object_id] > self.max_disappeared:
                 to_delete.append(object_id)
         
+        removed_objects = []
         for object_id in to_delete:
+            # Save object data before deletion for the callback
+            if object_id in self.objects:
+                removed_objects.append(object_id)
+            # Delete the object
             del self.objects[object_id]
             del self.disappeared[object_id]
+
+            # Call the callback if provided
+            if self.on_object_removed and object_id in removed_objects:
+                self.on_object_removed(object_id)
+
+        return removed_objects
