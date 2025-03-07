@@ -12,6 +12,10 @@ type RequestBody = {
   reportId: number;
 };
 
+interface RepStatus {
+  status: string
+}
+
 export async function POST( req: NextRequest) {
   if (req.method !== 'POST') {
     return NextResponse.json({ message: 'Method not allowed'}, { status:405 });
@@ -37,6 +41,7 @@ export async function POST( req: NextRequest) {
   try {
     connection = await pool.getConnection();
     await connection.beginTransaction();
+    let status = '';
     const currentDate = DateTime.now().setZone('Asia/Manila').toFormat('yyyy-MM-dd HH:mm:ss');
     // 1. Update report status if needed
     if (action !==  'save') {
@@ -47,6 +52,14 @@ export async function POST( req: NextRequest) {
           WHERE id = ?
         `;
         await connection.execute(updateStatusQuery, [action, currentDate, reportId]);
+        status = action;
+    }
+    else if (action ===  'save') {
+        const getStatusQuery = `
+        SELECT status FROM reports WHERE id = ?
+        `;
+        const [reportStatus]: [RepStatus[], FieldPacket[]] = await connection.execute(getStatusQuery, [reportId]) as [RepStatus[], FieldPacket[]];
+        status = reportStatus[0].status;
     }
       
     const insertUpdateQuery = `
@@ -60,7 +73,7 @@ export async function POST( req: NextRequest) {
       session.user_id,
       title,
       details,
-      action,
+      status,
       currentDate
     ]) as [ResultSetHeader, FieldPacket[]];
     

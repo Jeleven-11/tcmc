@@ -10,7 +10,7 @@ import Chip from '@mui/material/Chip';
 import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
 // import AlertDialog from './Dialog';
 // import Image from 'next/image';
-// import { DateTime } from 'luxon';
+import { DateTime } from 'luxon';
 
 import debounce from 'lodash.debounce';
 
@@ -36,6 +36,7 @@ type ResponseData = {
   title:string;
   details: string;
   created_at: string;
+  new_status: string;
   user_name: string;
 };
 
@@ -982,7 +983,12 @@ export default function DataTable() {
                       <h3 className='font-bold'>{update.title}</h3>
                       <p className='text-gray-700'>{update.details}</p>
                       <div className='mt-2 text-sm text-gray-500'>
-                        <span>{new Date(update.created_at).toLocaleDateString()}</span>
+                        {/* <span>{new Date(update.created_at).toLocaleDateString()}</span> */}
+                        <span>Status: {update.new_status}</span>
+                      </div>
+                      <div className='mt-2 text-sm text-gray-500'>
+                        {/* <span>{new Date(update.created_at).toLocaleDateString()}</span> */}
+                        <span>{DateTime.fromISO(update.created_at).toFormat('MM/dd/yyyy hh:mm:ss a')}</span>
                         <span className='mx-2'>-</span>
                         <span>Updated by: {update.user_name}</span>
                       </div>

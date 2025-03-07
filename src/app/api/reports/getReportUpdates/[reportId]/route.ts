@@ -8,6 +8,7 @@ type ResponseData = {
         title:string;
         details: string;
         created_at: string;
+        new_status: string;
         user_name: string;
     }>;
 };
@@ -24,6 +25,7 @@ export async function GET(req:NextRequest, {params}: {params: {reportId: string}
       ru.title,
       ru.details,
       ru.created_at,
+      ru.new_status,
       u.name AS user_name
       FROM report_updates AS ru
       JOIN users AS u ON ru.user_id = u.user_id
