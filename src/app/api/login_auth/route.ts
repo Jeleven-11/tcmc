@@ -71,8 +71,7 @@ export async function POST(req: NextRequest)
   {
     try
     {
-      const { username, password } = await req.json();
-      console.log("Password: ", password);
+      const { username, password } = await req.json()
       if (!username || !password)
         return NextResponse.json({ message: 'Invalid credentials' }, { status: 400 })
 
@@ -81,18 +80,17 @@ export async function POST(req: NextRequest)
 
       const queryValues = [username || "", password || ""].filter(Boolean)
       const rows: [User, FieldPacket[]] = await query(sqlQuery, queryValues) as [User, FieldPacket[]]
-      console.log('Rows: ', rows[0].password)
       if (!rows || !rows[0])
         return NextResponse.json({ message: 'User not found or invalid credentials' }, { status: 400 })
 
       //const data = JSON.parse(JSON.stringify(rows[0])) as User
       const data = rows[0]
-      console.log("Data:", data)
       const isPassValid = await bcrypt.compare(password, data.password)
       if (!isPassValid)
         return NextResponse.json({ message: 'Invalid credentials' }, { status: 400 })
-      const session = await getSession();
-      if(session)
+
+      const session = await getSession()
+      if (session)
       {
         const userData = {
           username: data.username,

@@ -143,7 +143,8 @@ const ReportForm = () =>
     if (formData.isOwner === 'Yes') {
       setNumberFiles(4);
       const uploadFiles = async () => {
-        if(!fileDL || !fileVR || !fileOR || !fileVehicleImg) return alert('Please upload ALL required files for verification purposes!');
+        if(!fileDL || !fileVR || !fileOR || !fileVehicleImg)
+          return alert('Please upload ALL required files for verification purposes!');
        
         const [res1, res2, res3, res4] = await Promise.all([
           edgestore.publicFiles.upload({
@@ -186,7 +187,12 @@ const ReportForm = () =>
       await uploadFiles()
       
     } else {
-      if(!fileVehicleImg) return alert('Please upload an image of the reported vehicle for verification purposes!');
+      if(!fileVehicleImg)
+      {
+        setIsProcessing(false)
+        return alert('Please upload an image of the reported vehicle for verification purposes!');
+      }
+
       const vehicleImageUpload = await edgestore.publicFiles.upload({
         file: fileVehicleImg,
         onProgressChange: async (progress) => {

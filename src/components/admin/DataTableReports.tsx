@@ -170,7 +170,7 @@ export default function DataTable() {
   }
   const fetchReportUpdate = async(id:string) => {
     try {
-      const response = await fetch(`/api/getReportUpdates/${id}`);
+      const response = await fetch(`/api/reports/getReportUpdates/${id}`);
       const data = await response.json()
       if (!response.ok){
         throw new Error(data.message || 'Failed to fetch updates');
