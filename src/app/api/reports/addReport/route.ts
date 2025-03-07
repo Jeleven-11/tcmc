@@ -1,6 +1,6 @@
 // pages/api/addReport.js
 import { FieldPacket } from 'mysql2';
-import pool from '../../lib/db';
+import pool from '../../../lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface ReportRequestBody {

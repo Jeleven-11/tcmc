@@ -1,4 +1,4 @@
-import pool from '../../lib/db';
+import pool from '../../../lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 import { DateTime } from 'luxon';
 import { Report } from '@/app/lib/interfaces';

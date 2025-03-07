@@ -20,7 +20,7 @@ export default function UserManagement() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/getUsers`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/getUsers`);
       if (!res.ok) throw new Error('Failed to fetch users');
 
       const data = await res.json();
@@ -78,7 +78,7 @@ export default function UserManagement() {
 
   const handleAddUserSubmit = async (newUser: User) => {
     try {
-      const response = await fetch(`/api/addUser`, {
+      const response = await fetch(`/api/users/addUser`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newUser),
@@ -118,7 +118,7 @@ export default function UserManagement() {
 
           if (confirm('Are you sure you want to delete this user?')) {
             try {
-              const response = await fetch(`/api/deleteUser?userId=${pendingUserId}`, {
+              const response = await fetch(`/api/users/deleteUser?userId=${pendingUserId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: pendingUserId }),
@@ -131,7 +131,7 @@ export default function UserManagement() {
             }
           }
           // try {
-          //   const response = await fetch(`/api/deleteUser?userId=${pendingUserId}`, { method: 'POST' });
+          //   const response = await fetch(`/api/users/deleteUser?userId=${pendingUserId}`, { method: 'POST' });
           //   if (response.ok) setUsers(users.filter((user: User) => user.user_id  !== pendingUserId));
           //   else throw new Error('Failed to delete user');
           // } catch (error) {

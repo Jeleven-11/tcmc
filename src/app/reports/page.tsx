@@ -46,7 +46,7 @@ const Reports = () =>
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await fetch('/api/getReports');
+        const response = await fetch('/api/reports/getReports');
         if (response.ok) {
           const data: Report[] = await response.json();
           setReportsData(data); // Set the fetched reports
@@ -107,7 +107,7 @@ const Reports = () =>
     e.preventDefault();
 
     try {
-      const response = await fetch('/api/addReport', {
+      const response = await fetch('/api/reports/addReport', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ const Reports = () =>
 
   const handleDeleteReport = async (reportId: number) => {
     try {
-      const response = await fetch(`/api/deleteReport/${reportId}`, {
+      const response = await fetch(`/api/reports/deleteReport/${reportId}`, {
         method: 'DELETE',
         body: JSON.stringify({ userId: loggedInUserId }), // Pass logged-in userId
         headers: { 'Content-Type': 'application/json' },
@@ -174,7 +174,7 @@ const Reports = () =>
     };
 
     try {
-      const response = await fetch(`/api/editReport/${report.report_id}`, {
+      const response = await fetch(`/api/reports/editReport/${report.report_id}`, {
         method: 'PUT',
         body: JSON.stringify(updatedReport),
         headers: { 'Content-Type': 'application/json' },

@@ -1,5 +1,5 @@
 // /pages/api/getReports.js
-import pool from '../../lib/db'; // Adjust path if needed
+import pool from '../../../lib/db'; // Adjust path if needed
 // import { FieldPacket, ResultSetHeader } from 'mysql2';
 import { NextResponse, NextRequest } from 'next/server';
 

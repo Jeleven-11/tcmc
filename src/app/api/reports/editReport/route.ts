@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { FieldPacket } from 'mysql2';
-import pool from '../../lib/db';
+import pool from '../../../lib/db';
 import { UpdateReportRequestBody } from '@/app/lib/interfaces';
 interface Report {
     report_id: number;

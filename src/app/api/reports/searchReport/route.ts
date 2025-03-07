@@ -1,4 +1,4 @@
-import pool from '../../lib/db';
+import pool from '../../../lib/db';
 import { FieldPacket } from 'mysql2';
 import { NextRequest, NextResponse } from 'next/server';
 import { Report } from '@/app/lib/interfaces';

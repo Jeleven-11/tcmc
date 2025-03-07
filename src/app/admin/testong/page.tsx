@@ -49,7 +49,7 @@ export default function DataTable()
     async function fetchReports() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/getReportsLazy?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}`);
+        const res = await fetch(`/api/reports/getReports/getReportsLazy?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}`);
         const { data, total } = await res.json();
         setReports(data);
         setTotalRows(total);

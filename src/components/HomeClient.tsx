@@ -41,7 +41,7 @@ const HomeClient = () => {
 
     const fetchReportCounts = async () => {
       try {
-        const res = await fetch('/api/reportcounter');
+        const res = await fetch('/api/reports/reportCounter');
         const data = await res.json();
         if (data.total) {
           setReportCount(data.total);  // Total report count

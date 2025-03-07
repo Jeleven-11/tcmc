@@ -64,7 +64,7 @@ const AdminDashboard = () => {
   const fetchReportCounts = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/reportcounter`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/reports/reportCounter`
       );
       const data = await response.json();
       setReportData(data);
@@ -90,10 +90,10 @@ const AdminDashboard = () => {
     try {
       let response;
       if (category === "Total Reports") {
-        response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/getReports`);
+        response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/getReports`);
       } else {
         response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/getReports?status=${formattedCategory}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/reports/getReports?status=${formattedCategory}`
         );
       }
 

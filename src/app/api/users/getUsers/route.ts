@@ -1,5 +1,5 @@
 // pages/api/getUsers.js
-import pool from '../../lib/db'; // Adjust this path as needed
+import pool from '../../../lib/db'; // Adjust this path as needed
 import { NextRequest, NextResponse } from 'next/server';
 export async function GET(req: NextRequest) {
   if (req.method === 'GET') {

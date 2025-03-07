@@ -1,5 +1,5 @@
 import { FieldPacket } from 'mysql2';
-import pool from '../../lib/db'; // Correct import for the pool
+import pool from '../../../lib/db'; // Correct import for the pool
 import { NextResponse } from 'next/server';
 
 interface ReportCount

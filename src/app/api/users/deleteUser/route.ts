@@ -1,5 +1,5 @@
 import { FieldPacket, ResultSetHeader } from 'mysql2';
-import pool from '../../lib/db'; // Adjust this path as needed
+import pool from '../../../lib/db'; // Adjust this path as needed
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {

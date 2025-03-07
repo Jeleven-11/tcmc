@@ -1,4 +1,4 @@
-import pool from '../../lib/db';
+import pool from '../../../lib/db';
 import bcrypt from 'bcryptjs';
 import { FieldPacket } from 'mysql2';
 import { NextRequest, NextResponse } from 'next/server';
