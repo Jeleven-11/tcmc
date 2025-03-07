@@ -752,56 +752,56 @@ export default function DataTable() {
                 {/* Renamed from complainant to Informant/Reporting Party */}
                 {/* Complainant Details */}
                 <Drawer
-            title="Report Update"
-            placement='right'
-            // size='large'
-            onClose={() => setIsUpdatingReport(false)}
-            open={isUpdatingReport}
-            >
-            {/* <div className="bg-white p-6 rounded-lg w-1/2"> */}
-            {/* <h2 className="text-lg font-semibold">Report Update</h2> */}
-                <form onSubmit={handleUpdateReport}>
-                  <label className="block mb-2">
-                    Update Title:
-                    <input
-                      type="text"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      className="border p-2 w-full"
-                      required
-                    />
-                  </label>
+                title="Report Update"
+                placement='right'
+                // size='large'
+                onClose={() => setIsUpdatingReport(false)}
+                open={isUpdatingReport}
+                >
+                {/* <div className="bg-white p-6 rounded-lg w-1/2"> */}
+                {/* <h2 className="text-lg font-semibold">Report Update</h2> */}
+                    <form onSubmit={handleUpdateReport}>
+                      <label className="block mb-2">
+                        Update Title:
+                        <input
+                          type="text"
+                          value={title}
+                          onChange={(e) => setTitle(e.target.value)}
+                          className="border p-2 w-full"
+                          required
+                        />
+                      </label>
 
-                  <label className="block mb-2">
-                    Update details:
-                    <textarea
-                      value={details}
-                      onChange={(e) => setDetails(e.target.value)}
-                      className="border p-2 w-full h-32"
-                      required
-                    />
-                  </label>
-                  
-                  
-                  {/* <div className="flex justify-center mt-4"> */}
-                  <Flex wrap vertical gap={8}>
-                    <Button loading={isProcessingReport} type="submit" name="action" value="solved" className="bg-blue-500 text-white px-4 py-2 rounded">
-                      Save and mark as solved
-                    </Button>
-                    <Button loading={isProcessingReport} type="submit" name="action" value="dropped" className="bg-blue-500 text-white px-4 py-2 rounded">
-                      Save and mark as dropped
-                    </Button>
-                    <Button loading={isProcessingReport} type="submit" name="action" value="save" className="bg-blue-500 text-white px-4 py-2 rounded">
-                      Just save
-                    </Button>
-                    <Button loading={isProcessingReport} type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setIsUpdatingReport(false)}>
-                      Cancel
-                    </Button>
-                  </Flex>
-                  {/* </div> */}
-                </form>
-            {/* </div> */}
-            </Drawer>
+                      <label className="block mb-2">
+                        Update details:
+                        <textarea
+                          value={details}
+                          onChange={(e) => setDetails(e.target.value)}
+                          className="border p-2 w-full h-32"
+                          required
+                        />
+                      </label>
+                      
+                      
+                      {/* <div className="flex justify-center mt-4"> */}
+                      <Flex wrap vertical gap={8}>
+                        <Button loading={isProcessingReport} type="submit" name="action" value="solved" className="bg-blue-500 text-white px-4 py-2 rounded">
+                          Save and mark as solved
+                        </Button>
+                        <Button loading={isProcessingReport} type="submit" name="action" value="dropped" className="bg-blue-500 text-white px-4 py-2 rounded">
+                          Save and mark as dropped
+                        </Button>
+                        <Button loading={isProcessingReport} type="submit" name="action" value="save" className="bg-blue-500 text-white px-4 py-2 rounded">
+                          Just save
+                        </Button>
+                        <Button loading={isProcessingReport} type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setIsUpdatingReport(false)}>
+                          Cancel
+                        </Button>
+                      </Flex>
+                      {/* </div> */}
+                    </form>
+                {/* </div> */}
+                </Drawer>
                 <div className="flex justify-between items-center w-full">
                   <h2 className="text-2xl font-bold">Informant / Reporting Party Details</h2>
                   {/* <p className="text-sm font-bold">Report ID: {selectedReport.reportID}</p> */}
@@ -996,7 +996,57 @@ export default function DataTable() {
               </>
             )}
         </Drawer>)}
+        <Drawer
+          title="Report Update"
+          placement='right'
+          // size='large'
+          onClose={() => setIsUpdatingReport(false)}
+          open={isUpdatingReport && !isModalOpen}
+          >
+          {/* <div className="bg-white p-6 rounded-lg w-1/2"> */}
+          {/* <h2 className="text-lg font-semibold">Report Update</h2> */}
+              <form onSubmit={handleUpdateReport}>
+                <label className="block mb-2">
+                  Update Title:
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="border p-2 w-full"
+                    required
+                  />
+                </label>
 
+                <label className="block mb-2">
+                  Update details:
+                  <textarea
+                    value={details}
+                    onChange={(e) => setDetails(e.target.value)}
+                    className="border p-2 w-full h-32"
+                    required
+                  />
+                </label>
+                
+                
+                {/* <div className="flex justify-center mt-4"> */}
+                <Flex wrap vertical gap={8}>
+                  <Button loading={isProcessingReport} type="submit" name="action" value="solved" className="bg-blue-500 text-white px-4 py-2 rounded">
+                    Save and mark as solved
+                  </Button>
+                  <Button loading={isProcessingReport} type="submit" name="action" value="dropped" className="bg-blue-500 text-white px-4 py-2 rounded">
+                    Save and mark as dropped
+                  </Button>
+                  <Button loading={isProcessingReport} type="submit" name="action" value="save" className="bg-blue-500 text-white px-4 py-2 rounded">
+                    Just save
+                  </Button>
+                  <Button loading={isProcessingReport} type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setIsUpdatingReport(false)}>
+                    Cancel
+                  </Button>
+                </Flex>
+                {/* </div> */}
+              </form>
+          {/* </div> */}
+          </Drawer>
         {/* Add Report Update Modal */}
         { // a boolean will be set to true when Add update is clicked
           // <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
