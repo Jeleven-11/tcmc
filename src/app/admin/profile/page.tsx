@@ -1,10 +1,14 @@
 'use client'
 
-import { UserCircleIcon } from '@heroicons/react/24/outline';
+// import { UserCircleIcon } from '@heroicons/react/24/outline';
 import { getSession, logout } from '@/app/lib/actions';
 import { useState, useEffect } from 'react';
 import { Paper } from '@mui/material';
 import { useRouter } from 'next/navigation';
+import { Avatar } from 'antd';
+import AvatarUpload from '../../../components/AvatarUpload';
+import { UserOutlined } from '@ant-design/icons';
+import { EdgeStoreProvider } from '@/app/lib/edgestore';
 
 type SessionData =
 {
@@ -158,6 +162,7 @@ export default function Profile()
 
   return (
     <>
+    <EdgeStoreProvider>
     <Paper sx={{ height: 'auto', width: '100%', padding: 3, marginBottom: 2 }}>
         <header className="bg-blue-600 text-white p-4 mb-3 rounded-lg shadow-md">
           <h1 className="text-xl font-semibold">Manage Profile</h1>
@@ -165,7 +170,9 @@ export default function Profile()
       <div className="flex flex-col items-center p-8 bg-blue-50">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full text-center">
           <div className="mb-6 flex justify-center">
-            <UserCircleIcon className="w-20 h-20 text-gray-300" />
+            {/* <UserCircleIcon className="w-20 h-20 text-gray-300" /> */}
+            <Avatar size={156} icon={<UserOutlined />} />
+            <AvatarUpload />
           </div>
           {sessionData && (
             <>
@@ -282,6 +289,7 @@ export default function Profile()
         </div>
       )}
       </Paper>
+      </EdgeStoreProvider>
     </>
   )
 }

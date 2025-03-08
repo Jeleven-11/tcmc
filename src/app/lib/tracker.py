@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 
 class CentroidTracker:
-    def __init__(self, max_disappeared=50, max_distance=50, on_object_removed=None):
+    def __init__(self, max_disappeared=100, max_distance=100):
         ###
         #   Initializes the CentroidTracker with parameters for managing object tracking.
         #
@@ -15,7 +15,12 @@ class CentroidTracker:
         self.disappeared = {}
         self.max_disappeared = max_disappeared
         self.max_distance = max_distance
-        self.on_object_removed = on_object_removed
+        # self.on_object_removed = on_object_removed
+        self.on_object_removed = None
+
+    def set_removal_callback(self, callback_function):
+        """Set the callback function to be called when objects are removed from tracking"""
+        self.on_object_removed = callback_function
 
     def update(self, detections):
         ###
@@ -64,11 +69,11 @@ class CentroidTracker:
                 self._add_object(detections[row], centroids[row])
             
             # Handle disappeared objects
+            # removed_objects = self._update_disappeared()
             self._update_disappeared()
-            # Handle disappeared objects
-            removed_objects = self._update_disappeared()
-            
-            return self.objects, removed_objects
+            # print(" 11Removed objects: ", removed_objects)
+            # return self.objects, removed_objects
+        return self.objects
 
     def _add_object(self, bbox, centroid):
         ###
@@ -107,4 +112,5 @@ class CentroidTracker:
             if self.on_object_removed and object_id in removed_objects:
                 self.on_object_removed(object_id)
 
+        print("Removed objects:", removed_objects)
         return removed_objects

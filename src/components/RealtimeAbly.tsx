@@ -82,6 +82,14 @@ const AblyConnectionComponent = () => {
           await channel.current.publish('WebRTC-client-register', registrationMessage);
           console.log('Sent registration message:', registrationMessage);
         }
+        if(type === 'Vehicle Log'){
+          // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+          message.data.data.forEach((vehicle: any) => {
+            console.log(vehicle);
+            console.log(vehicle['type']);
+            console.log(vehicle['license_plate'].text);
+          })
+        }
         
         if (type === 'Data'){
           /*
