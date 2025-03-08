@@ -90,11 +90,25 @@ Below are some actions we can do:
   > ```
   > This will get the `edge_device.py` from the Raspberry Pi to the Local machine (will be placed on the current location) see above, [---LOCATION---]
 - Get a folder from Raspberry Pi
-- Remove a file from Raspberry Pi (Needs caution)
+  ```bash
+  get -r [foldername]
+  ```
+  > example:
+  > ```bash
+  > get -r Recordings
+  > ```
+  > This will get the `Recordings` folder and also recursively get the files within that folder from the Raspberry Pi to the Local machine (will be placed on the current location) see above, [---LOCATION---]
 - Put a file to Raspberry Pi
-- See all files and folders in the current working directory
-- Navigate
-### Manual Control of Raspberry Pi (via SSH)
+  ```bash
+  PUT [filename.extension]
+  ```
+  > example:
+  > ```bash
+  > PUT edge_device.py
+  > ```
+  > This will put the `edge_device.py` from the Local machine to the Raspberry Pi (Remote device) located at the working directory of the SFTP session (`mctc/YOLOv11`)
+
+### Manual Control or Troubleshooting of Raspberry Pi (via SSH)
 1. **Establishing Connection:**
 Run this command the terminal:
 ```bash
@@ -155,6 +169,68 @@ cd ../../
 python ups.py
 ```
 > Note: You can exit by Pressing `Ctrl + C`.
+
 > IMPORTANT: DO NOT OVERCHARGE, average charging time if empty: 1-2h (or depends on indicated from ups.py)
+
 > Proper Charging techinique: Connect the Official Raspberry Pi Charger (33 Watts) then wait for atleast 10 to 30 seconds then switch on (Doesn't require to SSH or SFTP, just switch on).
+
 > UNKNOWN BUG/ISSUE: WON'T CHARGE BATTERIES IF NOT SWITCHED ON.
+
+### EXTRA:
+THESE ARE BASIC LINUX COMMANDS, CAN BE USED IN SSH OR SFTP AND OTHERS:
+1. Command for navigating or changing working directories:
+```bash
+cd [target working directory]
+```
+Example:
+```bash
+cd mctc/YOLOv11
+```
+or
+```bash
+cd mctc
+```
+```bash
+cd YOLOv11
+```
+> Target working directory can be relative path or absolute path.
+2. Command for listing all files and folders on current working directory
+```bash
+ls
+```
+> ls refers to the command to list files and folders
+3. Command to display the hierarchical structure of directories within a file system
+```bash
+tree
+```
+or
+```bash
+tree /path/to/directory
+```
+> When executed without any arguments, it displays the directory structure of the current directory, showing all subdirectories and files within it in a hierarchical format.
+4. Command for removing or deleting a file:
+```bash
+rm [filename.extension]
+```
+Example:
+```bash
+cd file_to_delete.txt
+```
+> The file must be in the current working directory
+5. Command for creating a folder:
+```bash
+mkdir [FolderName]
+```
+Example:
+```bash
+mkdir My_Folder
+```
+or
+```bash
+mkdir 'My Folder'
+```
+> The folder name must be enclosed with `'` or `"` if there's a whitespace.
+> AVOID whitespace if possible for convenience.
+
+> For more information and commands: (https://mally.stanford.edu/~sr/computing/basic-unix.html)
+
