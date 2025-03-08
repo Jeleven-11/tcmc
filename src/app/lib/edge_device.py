@@ -253,6 +253,7 @@ class WebRTCConnection():
             asyncio.run(self.cleanup_peer_connection('all'))
         except Exception as e:
             print(f"Error during cleanup on exit: {e}")
+    
     class CameraStreamTrack(VideoStreamTrack):
         def __init__(self, parent):
             super().__init__()
@@ -399,7 +400,7 @@ class WebRTCConnection():
             license_crop = os.path.join(output_dir, file_name)
             
             # Save the image
-            cv2.imwrite(license_crop, license_plate_cropped_thresh)
+            cv2.imwrite(license_crop, license_plate_cropped)
             print(f"License plates to be uploaded: {self.parent.licensePlatesToBeUploaded}")
             if car_id not in self.parent.licensePlatesToBeUploaded:
                 print("Adding license plate to be uploaded...")
@@ -576,6 +577,7 @@ class WebRTCConnection():
                             "type": "Vehicle Log",
                             "data": self.results[self.frame_count]
                             })
+                        
                         if license_plate_text is not None:
                             
                             
@@ -585,14 +587,14 @@ class WebRTCConnection():
                     
                     # # Prepare label text
                     #     label_license = f"{prediction['class']} {prediction['confidence']:.2f}"
-                        
+                            cv2.rectangle(frame, (x1_, y1_), (x2_, y2_), (255, 0, 0), 2)
                         # Draw label background
-                            (label_width_, label_height_), _ = cv2.getTextSize(license_plate_text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+                            (label_width_, label_height_), _ = cv2.getTextSize(license_plate_text, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 1)
                             cv2.rectangle(frame, (x1_, y1_ - label_height_ - 10), (x1_ + label_width_, y1_), (255, 0, 0), -1)
                         
                             # Draw label text
-                            cv2.putText(frame, license_plate_text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
-                        cv2.rectangle(frame, (x1_, y1_), (x2_, y2_), (255, 0, 0), 2)
+                            cv2.putText(frame, license_plate_text, (x1_, y1_ - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
+                        
             
             for prediction in predictions:
                 # Extract bounding box coordinates
@@ -611,11 +613,11 @@ class WebRTCConnection():
                     label = f"{prediction['class']} {score:.2f}"
                     
                     # Draw label background
-                    (label_width, label_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+                    (label_width, label_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
                     cv2.rectangle(frame, (x1, y1 - label_height - 10), (x1 + label_width, y1), (0, 255, 0), -1)
                     
                     # Draw label text
-                    cv2.putText(frame, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+                    cv2.putText(frame, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
 
             return frame, score, license_plate_text_confidence, license_plate_text
 
@@ -837,14 +839,14 @@ class WebRTCConnection():
             global now_live
             try:
                 frame = None
-                # # Comment from this to use the camera attached instead
+                # Comment from this to use the camera attached instead
                 if self.video_capture and self.video_capture.isOpened():
                     ret, temp_frame = self.video_capture.read()
                     if not ret:
                         print("End of video file")
                         exit()
                     frame = cv2.resize(temp_frame, (self.width, self.height))
-                # # Comment up to this to use the camera attached instead
+                # Comment up to this to use the camera attached instead
                     
                 # # Uncomment this line below to use the camera attached instead    
                 # frame = self.camera.capture_array() # A Picamera2 object is a camera that supports the picamera2 API. It captures images and videos, performs image processing, and controls camera settings.
@@ -855,12 +857,12 @@ class WebRTCConnection():
                     frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
 
                 # # Comment from this point to disable frame skipping
-                if self.frame_count % 10 != 0: # skip frames (This is OPTIONAL and can be removed)
-                    if self.parent.isRecording and not self.isBufferFull:
-                        await self.add_frame(frame)
-                    video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
-                    video_frame.pts, video_frame.time_base = await self.next_timestamp()
-                    return video_frame
+                # if self.frame_count % 10 != 0: # skip frames (This is OPTIONAL and can be removed)
+                #     if self.parent.isRecording and not self.isBufferFull:
+                #         await self.add_frame(frame)
+                #     video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
+                #     video_frame.pts, video_frame.time_base = await self.next_timestamp()
+                #     return video_frame
                 # # Comment up to this point
                 if self.parent.isAI_On:
                     result = self.inference_client.infer(frame, model_id = self.model_id)#self.license_plate_detector
