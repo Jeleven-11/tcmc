@@ -116,6 +116,7 @@ cd mctc/YOLOv11
 ```bash
 source mctc_env/bin/activate
 ```
+> Note: You should now see `(mctc_env) myboardhub@rmv:~/mctc/YOLOv11 $`
 5. **Disable Service File:**
 This service file ensures/automates this commands on boot up of device. You need to disable to if you will manually control or troubleshoot the device.
 ```bash
@@ -133,7 +134,27 @@ Instead of running all commands, just transfer the updated file via sftp then re
 ```bash
 sudo reboot
 ```
-8.**Proper Shutdown:**
+8. **Proper Shutdown:**
 ```bash
 sudo shutdown
 ```
+9. **See Battery:**
+If you are in `(mctc_env) myboardhub@rmv:~/mctc/YOLOv11 $` you need to change working directory to access the `UPS_HAT_E` folder.
+run first:
+```bash
+cd ../../
+```
+next:
+```bash
+cd UPS_HAT_E
+```
+lastly:
+
+```bash
+cd ../../
+python ups.py
+```
+> Note: You can exit by Pressing `Ctrl + C`.
+> IMPORTANT: DO NOT OVERCHARGE, average charging time if empty: 1-2h (or depends on indicated from ups.py)
+> Proper Charging techinique: Connect the Official Raspberry Pi Charger (33 Watts) then wait for atleast 10 to 30 seconds then switch on (Doesn't require to SSH or SFTP, just switch on).
+> UNKNOWN BUG/ISSUE: WON'T CHARGE BATTERIES IF NOT SWITCHED ON.
