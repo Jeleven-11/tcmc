@@ -840,16 +840,16 @@ class WebRTCConnection():
             try:
                 frame = None
                 # Comment from this to use the camera attached instead
-                if self.video_capture and self.video_capture.isOpened():
-                    ret, temp_frame = self.video_capture.read()
-                    if not ret:
-                        print("End of video file")
-                        exit()
-                    frame = cv2.resize(temp_frame, (self.width, self.height))
+                #if self.video_capture and self.video_capture.isOpened():
+                    #ret, temp_frame = self.video_capture.read()
+                    #if not ret:
+                     #   print("End of video file")
+                     #   exit()
+                   # frame = cv2.resize(temp_frame, (self.width, self.height))
                 # Comment up to this to use the camera attached instead
                     
                 # # Uncomment this line below to use the camera attached instead    
-                # frame = self.camera.capture_array() # A Picamera2 object is a camera that supports the picamera2 API. It captures images and videos, performs image processing, and controls camera settings.
+                 frame = self.camera.capture_array() # A Picamera2 object is a camera that supports the picamera2 API. It captures images and videos, performs image processing, and controls camera settings.
                 self.frame_count += 1
                 if self.frame_count not in self.results:
                     self.results[self.frame_count] = {}
