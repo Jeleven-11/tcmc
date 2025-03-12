@@ -96,7 +96,7 @@ const App: React.FC = () => {
                 onChange={handleChange}
                 onPreview={onPreview}
             >
-                {imageUrl ? <Avatar size={156} src={imageUrl} alt="avatar" style={{cover: 'contain'}}> : uploadButton}
+                {imageUrl ? <Avatar size={156} src={imageUrl} alt="avatar" style={{objectFit: 'contain'}}></Avatar> : uploadButton}
             </Upload>
         </ImgCrop>
     </Flex>
