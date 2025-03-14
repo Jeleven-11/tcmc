@@ -1,14 +1,13 @@
-'use client';
+'use client'; 
 
 import React, { useState, useEffect } from 'react';
-import { Input, Button, Pagination } from 'antd';
+import { Input, Pagination } from 'antd';  // Removed unused Button import
 import ReportCard from './fetchedReportCard';
 import { Report } from '@/app/lib/interfaces';
 
 const { Search } = Input;
 
 const CheckUpdates = () => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [filteredReports, setFilteredReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
