@@ -1,14 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Input, Pagination, Image } from 'antd';
+import { Input, Pagination } from 'antd';
 import ReportCard from './fetchedReportCard';
 import { Report } from '@/app/lib/interfaces';
 
 const { Search } = Input;
 
 const CheckUpdates = () => {
-  const [reports, setReports] = useState<Report[]>([]);
   const [filteredReports, setFilteredReports] = useState<Report[]>([]);
   const [searchedReports, setSearchedReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +31,6 @@ const CheckUpdates = () => {
               createdAt: report.createdAt.replace('T', ' ').replace('.000Z', ''),
             }));
 
-          setReports(onInvestigationReports);
           setFilteredReports(onInvestigationReports);
         } else {
           setError('Error fetching reports.');
@@ -80,7 +78,7 @@ const CheckUpdates = () => {
     setLoading(false);
   };
 
-  // Clear search field
+  // Clear search field and restore "on_investigation" reports
   const handleClearSearch = () => {
     setSearchQuery('');
     setSearchedReports([]);
