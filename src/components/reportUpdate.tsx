@@ -119,22 +119,10 @@ const CheckUpdates = () => {
       {loading && <p>Loading...</p>}
       {error && <p className="text-red-500">{error}</p>}
 
-      {/* Active Reports */}
-      <h2 className="text-xl font-bold mb-3">Active Reports</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {currentReports.length > 0 ? (
-          currentReports.map((report) => (
-            <ReportCard key={report.reportID} report={report} />
-          ))
-        ) : (
-          <p>No active reports available.</p>
-        )}
-      </div>
-
-      {/* Search Results (If Any) */}
+      {/* Search Results (Now Before Active Reports) */}
       {searchQuery && (
         <>
-          <h2 className="text-xl font-bold mt-6 mb-3">Search Results</h2>
+          <h2 className="text-xl font-bold mb-3">Search Results</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {searchedReports.length > 0 ? (
               searchedReports.map((report) => (
@@ -146,6 +134,18 @@ const CheckUpdates = () => {
           </div>
         </>
       )}
+
+      {/* Active Reports */}
+      <h2 className="text-xl font-bold mt-6 mb-3">Active Reports</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {currentReports.length > 0 ? (
+          currentReports.map((report) => (
+            <ReportCard key={report.reportID} report={report} />
+          ))
+        ) : (
+          <p>No active reports available.</p>
+        )}
+      </div>
 
       {/* Pagination */}
       {filteredReports.length > reportsPerPage && (
