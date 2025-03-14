@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Input, Pagination } from 'antd';
+import { Input, Pagination, Image } from 'antd';
 import ReportCard from './fetchedReportCard';
 import { Report } from '@/app/lib/interfaces';
 
@@ -10,13 +10,14 @@ const { Search } = Input;
 const CheckUpdates = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [filteredReports, setFilteredReports] = useState<Report[]>([]);
+  const [searchedReports, setSearchedReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const reportsPerPage = 5;
 
-  // Fetch only "on_investigation" reports
+  // Fetch only "on_investigation" reports initially
   useEffect(() => {
     const fetchReports = async () => {
       try {
@@ -25,7 +26,7 @@ const CheckUpdates = () => {
 
         if (response.ok) {
           const onInvestigationReports: Report[] = data.reports
-            .filter((report: Report) => report.status === 'on_investigation') // Filter reports
+            .filter((report: Report) => report.status === 'on_investigation')
             .map((report: Report) => ({
               ...report,
               createdAt: report.createdAt.replace('T', ' ').replace('.000Z', ''),
@@ -46,11 +47,11 @@ const CheckUpdates = () => {
     fetchReports();
   }, []);
 
-  // Handle search within "on_investigation" reports
+  // Handle search (fetches matching reports, does not override active ones)
   const handleSearch = async (value: string) => {
     setSearchQuery(value);
     if (!value.trim()) {
-      setFilteredReports(reports); // Restore filtered reports if search is cleared
+      setSearchedReports([]); // Clear search results when input is empty
       return;
     }
 
@@ -62,16 +63,14 @@ const CheckUpdates = () => {
       const data = await response.json();
 
       if (response.ok) {
-        const onInvestigationReports: Report[] = data.reports
-          .filter((report: Report) => report.status === 'on_investigation') // Filter search results
-          .map((report: Report) => ({
-            ...report,
-            createdAt: report.createdAt.replace('T', ' ').replace('.000Z', ''),
-          }));
+        const matchingReports: Report[] = data.reports.map((report: Report) => ({
+          ...report,
+          createdAt: report.createdAt.replace('T', ' ').replace('.000Z', ''),
+        }));
 
-        setFilteredReports(onInvestigationReports);
+        setSearchedReports(matchingReports);
       } else {
-        setFilteredReports(reports); // Restore original filtered reports if search fails
+        setSearchedReports([]);
         setError('No reports found.');
       }
     } catch (err) {
@@ -81,10 +80,10 @@ const CheckUpdates = () => {
     setLoading(false);
   };
 
-  // Clear search field and restore filtered reports
+  // Clear search field
   const handleClearSearch = () => {
     setSearchQuery('');
-    setFilteredReports(reports);
+    setSearchedReports([]);
   };
 
   // Pagination logic
@@ -111,7 +110,7 @@ const CheckUpdates = () => {
         {searchQuery && (
           <button
             onClick={handleClearSearch}
-            className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600"
+            className="bg-red-500 text-white px-3 py-[5px] rounded-md hover:bg-red-600"
           >
             Clear
           </button>
@@ -122,15 +121,33 @@ const CheckUpdates = () => {
       {loading && <p>Loading...</p>}
       {error && <p className="text-red-500">{error}</p>}
 
-      {/* Reports Feed using ReportCard */}
+      {/* Active Reports */}
       <h2 className="text-xl font-bold mb-3">Active Reports</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {currentReports.length > 0 ? (
-          currentReports.map((report) => <ReportCard key={report.reportID} report={report} />)
+          currentReports.map((report) => (
+            <ReportCard key={report.reportID} report={report} />
+          ))
         ) : (
-          <p>No reports available.</p>
+          <p>No active reports available.</p>
         )}
       </div>
+
+      {/* Search Results (If Any) */}
+      {searchQuery && (
+        <>
+          <h2 className="text-xl font-bold mt-6 mb-3">Search Results</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {searchedReports.length > 0 ? (
+              searchedReports.map((report) => (
+                <ReportCard key={report.reportID} report={report} />
+              ))
+            ) : (
+              <p>No matching reports found.</p>
+            )}
+          </div>
+        </>
+      )}
 
       {/* Pagination */}
       {filteredReports.length > reportsPerPage && (
