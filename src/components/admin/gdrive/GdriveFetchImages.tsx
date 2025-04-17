@@ -89,7 +89,7 @@ const GdriveFetchImages: React.FC = () => {
       {files.map((file) => (
         <div key={file.id} className="w-40 flex flex-col items-center">
           <img
-            src={`https://drive.google.com/uc?export=view&id=${file.id}`}
+            src={`https://drive.google.com/thumbnail?id=${file.id}&sz=w400`}
             alt={file.name}
             className="w-full h-auto rounded shadow-md"
           />
