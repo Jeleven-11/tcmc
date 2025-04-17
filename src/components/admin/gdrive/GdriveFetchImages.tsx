@@ -22,7 +22,7 @@ const GdriveFetchImages: React.FC = () => {
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const res = await fetch('/api/drive/fetchImages');
+        const res = await fetch('/api/drive/fetchImg');
         const data: ImageFile[] = await res.json();
         setImages(data);
       } catch (err) {
