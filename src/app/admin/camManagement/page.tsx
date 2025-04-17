@@ -1,7 +1,9 @@
 "use client";
 
 import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
+import NoCrashIcon from '@mui/icons-material/NoCrash';
 import { useState } from "react";
+import ImageGalleryDrawer from "@/components/PlateNumImg";
 
 // Import modals
 import { MockAddCam } from "@/components/mockAddCam";
@@ -28,6 +30,7 @@ const CamManagement = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedCamera, setSelectedCamera] = useState<{ id: number; name: string; location: string } | null>(null);
   const [currentFPS, setCurrentFPS] = useState<string>('0');
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const handleAdd = (name: string, location: string) => {
     setCameras([...cameras, { id: Date.now(), name, location, feed: "/mock.png" }]);
   };
@@ -72,6 +75,14 @@ const CamManagement = () => {
           <div className="flex justify-end mb-6">
             <button onClick={() => setIsAddOpen(true)} className="flex items-center bg-blue-600 text-white py-3 px-8 rounded-lg hover:bg-blue-700">
               <PlusIcon className="h-6 w-6 text-white mr-2" /> Add Camera
+            </button>
+          </div>
+          <div className="flex justify-end mb-6">
+            <button
+              onClick={() => setIsGalleryOpen(true)} // <- Toggle drawer
+              className="flex items-center bg-blue-600 text-white py-3 px-8 rounded-lg hover:bg-blue-700"
+            >
+              <NoCrashIcon className="h-6 w-6 text-white mr-2" /> View License Plate Captures
             </button>
           </div>
           
@@ -127,6 +138,9 @@ const CamManagement = () => {
           {selectedCamera && (
               <MockDelCam isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} camera={selectedCamera} onDelete={handleDelete} />
           )}
+
+<ImageGalleryDrawer open={isGalleryOpen} onClose={() => setIsGalleryOpen(false)} />
+        
         </div>
         <GdriveFetchVideos />
       </Paper>
