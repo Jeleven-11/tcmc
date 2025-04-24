@@ -12,6 +12,7 @@ const ReportCard: React.FC<Props> = ({ report }) => {
       
 <p><strong>Status:</strong> {report.status}</p>
 <p><strong>Vehicle Type:</strong> {report.vehicleType}</p>
+<p><strong>Plate Number:</strong> {report.platenumber}</p>
 <p><strong>Color:</strong> {report.color}</p>
 <p><strong>Reason:</strong> {report.reason}</p>
 

@@ -25,11 +25,13 @@ const CheckUpdates = () => {
 
         if (response.ok) {
           const onInvestigationReports: Report[] = data.reports
-            .filter((report: Report) => report.status === 'on_investigation')
-            .map((report: Report) => ({
-              ...report,
-              createdAt: report.createdAt.replace('T', ' ').replace('.000Z', ''),
-            }));
+  .filter((report: Report) => report.status === 'on_investigation')
+  .map((report: Report) => ({
+    ...report,
+    createdAt: report.createdAt.replace('T', ' ').replace('.000Z', ''),
+  }))
+  .sort((a: Report, b: Report) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
 
           setFilteredReports(onInvestigationReports);
         } else {
