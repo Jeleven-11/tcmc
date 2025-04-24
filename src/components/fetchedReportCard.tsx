@@ -11,6 +11,7 @@ const ReportCard: React.FC<Props> = ({ report }) => {
     <Card title={`Report ID: ${report.reportID}`} className="shadow-md rounded-lg">
       
 <p><strong>Status:</strong> {report.status}</p>
+<p><strong>Reported On:</strong> {report.createdAt}</p>
 <p><strong>Vehicle Type:</strong> {report.vehicleType}</p>
 <p><strong>Plate Number:</strong> {report.platenumber}</p>
 <p><strong>Color:</strong> {report.color}</p>
