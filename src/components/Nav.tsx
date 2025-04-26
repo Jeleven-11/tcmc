@@ -71,9 +71,14 @@ export default function Navbar() {
     <nav className="bg-white shadow-md mb-4">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
         {/* Logo */}
-        <Link href="/" className="text-2xl font-semibold">
-          TCMC
-        </Link>
+<Link href="/" className="flex items-center space-x-2">
+  <img 
+    src="/vsrlogo.jpeg" 
+    alt="Logo" 
+    className="w-10 h-10 rounded-full object-cover"
+  />
+</Link>
+
 
         {/* Mobile Menu Button */}
         <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-2 text-gray-900 rounded-lg hover:bg-gray-100 focus:ring-2 focus:ring-gray-200 dark:text-gray-900">
