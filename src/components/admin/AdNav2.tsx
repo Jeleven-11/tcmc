@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
@@ -9,7 +9,9 @@ import { logout } from '@/app/lib/actions';
 import LogoutModal from '../LogoutModal';
 import PushNotifSubscribe from './PushNotifSubscribe';
 import { Button } from '@mui/material';
-import { AccountBox, Logout /*Update*/ } from '@mui/icons-material';
+import { AccountBox, Logout, DarkMode, LightMode /*Update*/ } from '@mui/icons-material';
+import { IconButton, Tooltip } from '@mui/material';
+import {motion, AnimatePresence} from 'framer-motion';
 
 
 interface SessionData {
@@ -35,6 +37,23 @@ export default function Navbar({ session }: SessionData)
     await logout();
     setIsLogoutModalOpen(false);
   };
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  //load set theme on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    }
+  }, []);
+
+  //toggle theme func
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+  }
 
   return (
     <nav className="bg-white border-gray-200 bg-white-900 px-4 shadow-md mb-4">
@@ -53,6 +72,47 @@ export default function Navbar({ session }: SessionData)
         {/* Right-side Icons: Notification, User Avatar, and Mobile Menu */}
         <div className="flex items-center md:order-2 space-x-4 md:space-x-3 rtl:space-x-reverse">
           <PushNotifSubscribe />
+
+          {/* d/l mode button */}
+          <Tooltip title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}>
+  <IconButton
+    onClick={toggleTheme}
+    size="small"
+    sx={{
+      bgcolor: 'background.paper',
+      '&:hover': {
+        bgcolor: 'grey.300',
+      },
+      color: 'text.primary',
+      borderRadius: '50%',
+    }}
+  >
+    <AnimatePresence mode="wait">
+      {theme === 'light' ? (
+        <motion.div
+          key="moon"
+          initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
+          animate={{ rotate: 0, opacity: 1, scale: 1 }}
+          exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
+          transition={{ duration: 0.3 }}
+        >
+          <DarkMode fontSize="small" />
+        </motion.div>
+      ) : (
+        <motion.div
+          key="sun"
+          initial={{ rotate: 90, opacity: 0, scale: 0.5 }}
+          animate={{ rotate: 0, opacity: 1, scale: 1 }}
+          exit={{ rotate: -90, opacity: 0, scale: 0.5 }}
+          transition={{ duration: 0.3 }}
+        >
+          <LightMode fontSize="small" />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </IconButton>
+</Tooltip>
+
 
           {/* User Avatar */}
           <button
