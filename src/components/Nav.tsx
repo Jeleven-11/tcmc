@@ -77,6 +77,7 @@ export default function Navbar() {
     alt="Logo" 
     className="w-10 h-10 rounded-full object-cover"
   />
+  <span className="text-2xl font-semibold text-gray-900">VSR</span>
 </Link>
 
 

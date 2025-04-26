@@ -849,7 +849,7 @@ class WebRTCConnection():
                 # Comment up to this to use the camera attached instead
                     
                 # # Uncomment this line below to use the camera attached instead    
-                 frame = self.camera.capture_array() # A Picamera2 object is a camera that supports the picamera2 API. It captures images and videos, performs image processing, and controls camera settings.
+                frame = self.camera.capture_array() # A Picamera2 object is a camera that supports the picamera2 API. It captures images and videos, performs image processing, and controls camera settings.
                 self.frame_count += 1
                 if self.frame_count not in self.results:
                     self.results[self.frame_count] = {}

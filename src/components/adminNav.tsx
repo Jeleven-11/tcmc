@@ -25,9 +25,16 @@ function MobileNav({ open, setOpen, pathname, onLogoutClick }: { open: boolean; 
   style={{ visibility: open ? "visible" : "hidden" }}
 >
       <div className="flex items-center justify-center h-20 bg-transparent">
-        <Link href="/admin" className="text-xl font-semibold text-black">
-          TCMC
-        </Link>
+        {/* Logo */}
+      <Link href="/" className="flex items-center space-x-2">
+  <img 
+    src="/vsrlogo.jpeg" 
+    alt="Logo" 
+    className="w-10 h-10 rounded-full object-cover"
+  />
+  <span className="text-2xl font-semibold text-gray-900">VSR</span>
+</Link>
+
       </div>
       <div className="flex flex-col">
         <Link href="/admin" className={`text-xl font-medium my-4 ${getActiveClass("/admin")}`} onClick={() => setTimeout(() => setOpen(false), 100)}>
@@ -76,9 +83,16 @@ export default function Navbar() {
   <MobileNav open={open} setOpen={setOpen} pathname={pathname} onLogoutClick={() => setIsLogoutModalOpen(true)} />
 </div>
  <div className="w-3/12 flex ml-2 items-center">
-          <Link href="/" className="text-2xl font-semibold">
-            TCMC
-          </Link>
+ {/* Logo */}
+ <Link href="/" className="flex items-center space-x-2">
+  <img 
+    src="/vsrlogo.jpeg" 
+    alt="Logo" 
+    className="w-10 h-10 rounded-full object-cover"
+  />
+  <span className="text-2xl font-semibold text-gray-900">VSR</span>
+</Link>
+
         </div>
         <div className="w-9/12 flex justify-end items-center space-x-2">
         <div className="md:hidden relative flex-shrink-0">
