@@ -41,8 +41,13 @@ export default function Navbar({ session }: SessionData)
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-3">
         {/* Logo */}
         <Link href="/admin" className="flex items-center space-x-3 rtl:space-x-reverse">
-          <Image src="/tangubpnplogo.jpeg" alt="Logo" width={32} height={32} />
-          <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">TCMC</span>
+          <Image src="/vsrlogo.jpeg" alt="Logo" width={32} height={32} />
+          <span 
+          className="
+          self-center text-2xl
+           font-semibold 
+           whitespace-nowrap 
+           dark:text-white">VSR</span>
         </Link>
 
         {/* Right-side Icons: Notification, User Avatar, and Mobile Menu */}
