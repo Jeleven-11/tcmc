@@ -7,7 +7,43 @@ import { getSession } from '@/app/lib/actions';
 type SessionData = {
   sessionID: string;
 } | null;
+interface reportData {
+  reportId: string;
+  status: string;
+  vehicleType: string;
+  color: string;
+  plateNumber: string;
+}
 
+const sendNotif = async (data: reportData, license_plate_text: string) =>
+  {
+    const title = "🚨 License Plate Match!"
+    const desc = "Reported vehicle with license plate " + license_plate_text + " has passed to Street 1."
+    
+    await fetch('/api/notifications/sendNotification',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ title: title, desc: desc })
+    }).then(response => response.json()).then(msg =>
+    {
+      console.log(msg)
+    })
+  }
+  const fetchPlateNumberMatch = async(plate_number:string) => {
+  try{
+    const response = await fetch(`/api/reports/plateNumber/${plate_number}`);
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    sendNotif(data.data, plate_number);
+  } catch(error){
+    console.error(error);
+  }
+};
 const AblyConnectionComponent = () => {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const realtime = useRef<Ably.Realtime | null>(null);
@@ -60,7 +96,7 @@ const AblyConnectionComponent = () => {
       };
 
       const handleSignalingMessage = async (message: Ably.Message) => {
-        const { type, from, target, payload, role, sessionID } = message.data;
+        const { type, from, target, payload, role, sessionID, data } = message.data;
         
         if (role !== 'Raspberry Pi' && target !== myID.current && from !== myID.current) return;
 
@@ -92,6 +128,15 @@ const AblyConnectionComponent = () => {
         }
         
         if (type === 'Data'){
+          const license_plate_text = data['License Plate Text'];
+          const license_plate_text_confidence = data['License Plate Text Confidence']
+          const car_confidence = data['Car Confidence'];
+          console.log('Check for a match: ',{
+            "License Plate Text": license_plate_text,
+            "License Plate Text Confidence": license_plate_text_confidence,
+            "Car Confidence": car_confidence,
+          })
+          fetchPlateNumberMatch(license_plate_text);
           /*
           TO BE UPDATED...
           Data from Raspberry Pi: {
@@ -99,17 +144,11 @@ const AblyConnectionComponent = () => {
             "sessionID": self.raspberry_pi_id,
             "type": "Data",
             "data": {
-              "predictions": [
-                {
-                  "id": "1",
-                  "label": "Car",}
-                },
-                {
-                  "id": "2",
-                  "label": "Truck",}
-                }
-              ]
-          }
+              "Car Confidence": score,
+              "License Plate Text Confidence": license_plate_text_confidence,
+              "License Plate Text":license_plate_text
+            }
+        }
           */
         }
         if (type === 'offer' && from !== myID.current && target === myID.current) {
