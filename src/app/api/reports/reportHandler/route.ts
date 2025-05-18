@@ -7,28 +7,9 @@ export async function POST(request: NextRequest)
 {
   const records = await request.json();
   console.log("Records: ", records)
+  let connection = null;
   try
   {
-//     fullName: '',
-//     age: '',
-//     sex: '',
-//     address: '',
-// //test
-//       region: "",
-//       province: "",
-//       city: "",
-//       barangay: "",
-//     contactNumber: "",
-//     isOwner: 'No',
-//     driversLicense: "",
-//     vehicleRegistration: "",
-//     orCr: "",
-//     reason: 'Stolen? Involved in an incident/accident?',
-//     vehicleType: 'Motorcycle',
-//     reportedVehicleImage:'',
-//     platenumber: '',
-//     color: '',
-//     description: '',
     const {
       fullName,
       age,
@@ -51,6 +32,7 @@ export async function POST(request: NextRequest)
       description,
       reportID,
     }: Report = records;
+    connection = await pool.getConnection();
 
     const query = `
       INSERT INTO reports (
@@ -81,7 +63,7 @@ export async function POST(request: NextRequest)
       DateTime.now().setZone('Asia/Manila').toFormat('yyyy-MM-dd HH:mm:ss'),
     ]
     // Get connection to the database pool
-    const connection = await pool.getConnection();
+    
     const [result] = await connection.query(query, values);
     connection.release();
     console.log('Report submitted successfully:', result)
@@ -94,5 +76,7 @@ export async function POST(request: NextRequest)
   } catch (error) {
     console.error('Error submitting report:', error)
     return NextResponse.json({ error: 'Internal Server Error' })
+  } finally {
+    if(connection) connection.release();
   }
 }
