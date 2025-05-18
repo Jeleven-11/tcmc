@@ -320,6 +320,7 @@ class WebRTCConnection():
             self.reader = easyocr.Reader(['en'], gpu=False)
             # start the pipeline
             # self.pipeline.start()
+            self.cam = None
             self.raspberry_pi_id = get_cpu_serial()
             self.latest_frame = None
             self.latest_predictions = []
@@ -630,9 +631,13 @@ class WebRTCConnection():
                 # if self.camera is None and camera is None:
                 if self.camera is None:
                     try:
-                        print("Setting camera to Picamera2")
-                        self.camera = get_camera(self.width, self.height)
-                        self.camera.start()
+                        # print("Setting camera to Picamera2")
+                        # self.camera = get_camera(self.width, self.height)
+                        # self.camera.start()
+                        print("Setting camera to CV2 cam")
+                        self.cam = cv2.VideoCapture(0)
+                        self.cam.set(3, self.width)
+                        self.cam.set(4, self.height)
                         print("Started camera")
                         isCameraConfigured = True
                         break
@@ -848,8 +853,9 @@ class WebRTCConnection():
                    # frame = cv2.resize(temp_frame, (self.width, self.height))
                 # Comment up to this to use the camera attached instead
                     
-                # # Uncomment this line below to use the camera attached instead    
-                frame = self.camera.capture_array() # A Picamera2 object is a camera that supports the picamera2 API. It captures images and videos, performs image processing, and controls camera settings.
+                # # Uncomment this line below to use the camera attached instead 
+                ret, frame = self.cam.read()   
+                # frame = self.camera.capture_array() # A Picamera2 object is a camera that supports the picamera2 API. It captures images and videos, performs image processing, and controls camera settings.
                 self.frame_count += 1
                 if self.frame_count not in self.results:
                     self.results[self.frame_count] = {}
