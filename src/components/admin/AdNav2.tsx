@@ -9,7 +9,7 @@ import { logout } from '@/app/lib/actions';
 import LogoutModal from '../LogoutModal';
 import PushNotifSubscribe from './PushNotifSubscribe';
 import { Button } from '@mui/material';
-import { AccountBox, Logout, DarkMode, LightMode, AssignmentLate /*Update*/ } from '@mui/icons-material';
+import { AccountBox, Logout, DarkMode, LightMode, /*AssignmentLate*/ /*Update*/ } from '@mui/icons-material';
 import { IconButton, Tooltip} from '@mui/material';
 import {motion, AnimatePresence} from 'framer-motion';
 
