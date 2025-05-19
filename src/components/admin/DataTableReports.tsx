@@ -393,7 +393,7 @@ export default function DataTable() {
     }
 
   // const loadCarousel = (reportId: string) => setLoadedImages((prev) => ({ ...prev, [reportId]: true }))
-
+    
   const columns: GridColDef[] = [
     { field: 'id', headerName: '#', width:75 },
     { field: 'status', headerName: 'Status', flex: 1,
@@ -437,89 +437,7 @@ export default function DataTable() {
           )
       )}
      },
-    // {
-    //   field: "status",
-    //   headerName: "Status",
-    //   flex: 2, // ✅ Auto-width based on content
-    //   minWidth: 190,
-    //   maxWidth: 250,
-    //   renderCell: (params) => {
-    //     const { value } = params;
-    //     const textColor = statusColors[value] || "#374151";
-
-    //     return (
-    //       value
-    //       // <Select
-    //       //   value={value}
-    //       //   // onChange={(event) => updateStatus(params.row.reportID, event.target.value)}
-    //       //   variant="outlined"
-    //       //   size="small"
-    //       //   sx={{
-    //       //     height: "32px",
-    //       //     minWidth: "100px",
-    //       //     fontSize: "14px",
-    //       //     padding: "0",
-    //       //     color: textColor,
-    //       //     fontWeight: "bold",
-    //       //   }}
-    //       // >
-    //       //   {Object.keys(statusColors).map((option) => (
-    //       //     <MenuItem
-    //       //       key={option}
-    //       //       value={option}
-    //       //       sx={{
-    //       //         color: statusColors[option],
-    //       //         fontWeight: "bold",
-    //       //       }}
-    //       //     >
-    //       //       {option.charAt(0).toUpperCase() + option.substring(1)}
-    //       //     </MenuItem>
-    //       //   ))}
-    //       // </Select>
-    //     );
-    //   }
-    // },
-    // {
-    //   field: "users_team",
-    //   headerName: "Assginee",
-    //   flex: 2, // ✅ Auto-width based on content
-    //   minWidth: 190,
-    //   maxWidth: 250,
-    //   renderCell: (params) =>
-    //   {
-    //     const handleTeamChange = (event: SelectChangeEvent<number>) => handleChange(event, params)
-
-    //     return (
-    //       <Select
-    //         value={selectedValue} // Bind state
-    //         onChange={handleTeamChange}
-    //         variant="outlined"
-    //         size="small"
-    //         sx={{
-    //           height: "32px",
-    //           minWidth: "100px",
-    //           fontSize: "14px",
-    //           padding: "0",
-    //           color: statusTeam[Number(selectedValue)] || "#374151",
-    //           fontWeight: "bold",
-    //         }}
-    //       >
-    //         {Object.keys(statusTeam).map((option) => (
-    //           <MenuItem
-    //             key={option}
-    //             value={Number(option)}
-    //             sx={{
-    //               color: statusTeam[Number(option)],
-    //               fontWeight: "bold",
-    //             }}
-    //           >
-    //             {Number(option) === 1 ? "Task Force" : "Help Desk"}
-    //           </MenuItem>
-    //         ))}
-    //       </Select>
-    //     );
-    //   }
-    // },
+    
     { field: 'contactNumber', headerName: 'Contact Number', flex:1 },
     { field: 'isOwner', headerName: 'Owner', width:70 },
     { field: 'vehicleType', headerName: 'Vehicle Type', flex: 1 },
@@ -725,7 +643,21 @@ export default function DataTable() {
           pageSizeOptions={[10, 20, 50, 100]}
           checkboxSelection
           disableRowSelectionOnClick
-          sx={{ border: 0 }}
+          sx={{
+            border: 0, 
+            "& .MuiDataGrid-row": {
+              transition: "background-color 0.3s ease-in-out",
+            },
+            "& .highlighted-row": {
+              backgroundColor: "rgba(255, 0, 0, 0.15)", // Light red highlight for flagged rows
+              "&:hover": { backgroundColor: "rgba(255, 0, 0, 0.2)" }, // Darker on hover
+            },
+          }}
+          getRowClassName={(params) =>
+            isMultiple_.some(report => report.platenumber === params.row.platenumber && report.isMultiple === 1)
+              ? "highlighted-row"
+              : ""
+          }
           slots={{
             pagination: () => (
               <CustomPagination
