@@ -7,9 +7,10 @@ interface Counter {
 }
 export async function GET(req: NextRequest)
 {
+    let connection = null;
     try
     {
-        const connection = await pool.getConnection();
+        connection = await pool.getConnection();
         const { searchParams } = new URL(req.url)
         const page = parseInt(searchParams.get('page') || '1', 10)
         const pageSize = parseInt(searchParams.get('pageSize') || '10', 10)
@@ -46,18 +47,16 @@ export async function GET(req: NextRequest)
             queryParams
         );
         const isMultipleReported = await connection.query(`
-            SELECT DISTINCT t1.reportID, t1.platenumber,
+            SELECT t1.reportID, t1.platenumber,
                 CASE 
-                    WHEN EXISTS (
-                        SELECT 1 FROM reports t2 
-                        WHERE t2.platenumber = t1.platenumber 
-                        AND t2.id <> t1.id
-                    ) THEN 1
+                    WHEN COUNT(t2.id) > 0 THEN 1
                     ELSE 0
                 END AS isMultiple
             FROM reports t1
-            WHERE t1.status = 'unread';
-            `)
+            LEFT JOIN reports t2 ON t1.platenumber = t2.platenumber AND t1.id <> t2.id
+            WHERE t1.status = 'unread'
+            GROUP BY t1.reportID, t1.platenumber;
+        `);
         
         const countParams = queryParams.slice(0, -2); // Exclude pagination for COUNT query
         const total: [Counter[], FieldPacket[]] = await connection.query(
@@ -65,7 +64,6 @@ export async function GET(req: NextRequest)
             countParams
         ) as [Counter[], FieldPacket[]];
         
-        connection.release();
         
         // const reports = await query(`SELECT * FROM reports ORDER BY createdAt DESC LIMIT ? OFFSET ?`, [pageSize, offset])
         // const total = await query(`SELECT COUNT(*) as count FROM reports`, []) as { count: number }[]
@@ -75,5 +73,7 @@ export async function GET(req: NextRequest)
     } catch (error) {
         console.error('Error fetching reports:', error);
         return NextResponse.json({ error: 'Failed to fetch reports' }, { status: 500 });
+    } finally {
+        if(connection) connection.release();
     }
 }
