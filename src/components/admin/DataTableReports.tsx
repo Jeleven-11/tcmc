@@ -2,14 +2,10 @@
 
 import React, { useState, useEffect, useCallback, SetStateAction } from 'react';
 import type { FormEvent } from 'react';
+import WarningIcon from '@mui/icons-material/Warning';
 import { DataGrid, GridColDef, GridPaginationModel} from '@mui/x-data-grid';
-import Paper from '@mui/material/Paper';
-// import Modal from '@mui/material/Modal';
-import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
 import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
 // import AlertDialog from './Dialog';
-// import Image from 'next/image';
 import { DateTime } from 'luxon';
 
 import debounce from 'lodash.debounce';
@@ -19,7 +15,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 // import { Swiper, SwiperSlide } from 'swiper/react';
 // import { Navigation, Pagination as Pagination1 } from 'swiper/modules';
-import { Button, MenuItem, Select, TextField, Tooltip } from '@mui/material';
+import { Button, MenuItem, Select, TextField, Tooltip, IconButton, Paper, Box, Chip } from '@mui/material';
 import CustomPagination from './CustomPagination';
 import { getSession } from '@/app/lib/actions';
 import axios from 'axios';
@@ -68,6 +64,11 @@ interface Report {
   createdAt: string;
   updatedAt: string;
 }
+interface IsMultiple {
+  isMultiple: number;
+  platenumber: string;
+  reportID: string;
+}
 type ReportActionType = 'solved' | 'dropped' | 'save';
 const statusColors: Record<string, string> =
 { // FROM MUI MATERIAL UI DEFAULT THEME:
@@ -108,6 +109,7 @@ const getStatusColor = (status: string) => {
 };
 export default function DataTable() {
   const [reports, setReports] = useState<Report[]>([]);
+  const [isMultiple_, setIsMultiple_] = useState<IsMultiple[]>([]);
   const [openSnack, setOpenSnack] = React.useState<boolean>(false);
   const [snackMessage, setSnackMessage] = React.useState<string>('')
   const [loading, setLoading] = useState(false);
@@ -154,14 +156,16 @@ export default function DataTable() {
         setLoading(isLoad)
 
         const res = await fetch(`/api/reports/getReports/getReportsLazy?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}&search=${encodeURIComponent(searchQuery)}`)
-        const { data, total } = await res.json()
+        const { data, total, isMultiple } = await res.json()
         if (res.ok)
         {
           setReports(data)
           setTotalRows(total)
+          setIsMultiple_(isMultiple)
         } else {
           setReports([])
           setTotalRows(0)
+          setIsMultiple_([]);
         }
     } catch (error) {
       console.error('Failed to fetch reports:', error)
@@ -519,7 +523,25 @@ export default function DataTable() {
     { field: 'contactNumber', headerName: 'Contact Number', flex:1 },
     { field: 'isOwner', headerName: 'Owner', width:70 },
     { field: 'vehicleType', headerName: 'Vehicle Type', flex: 1 },
-    { field: 'platenumber', headerName: 'Plate Number', flex: 1 },
+    { field: 'platenumber', headerName: 'Plate Number', flex: 1,
+      renderCell: (params) => {
+        const { value, row } = params;
+        const isReportedMultiple = isMultiple_.some(report => report.platenumber === row.platenumber && report.isMultiple === 1);
+
+        return isReportedMultiple ? (
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <Tooltip title="Reported plate number already exists, please review the report." arrow>
+              <IconButton size="small">
+                <WarningIcon color="warning" />
+              </IconButton>
+            </Tooltip>
+            <span>{value}</span>
+          </div>
+        ) : (
+          <span>{value}</span> // Render only the platenumber if it's not in isMultiple_
+        );
+      }
+    },
     { 
       field: 'fullName', 
       headerName: 'Full Name', 

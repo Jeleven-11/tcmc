@@ -45,6 +45,19 @@ export async function GET(req: NextRequest)
             `SELECT * FROM reports ${whereClause} ORDER BY createdAt DESC LIMIT ? OFFSET ?`,
             queryParams
         );
+        const isMultipleReported = await connection.query(`
+            SELECT DISTINCT t1.reportID, t1.platenumber,
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 FROM reports t2 
+                        WHERE t2.platenumber = t1.platenumber 
+                        AND t2.id <> t1.id
+                    ) THEN 1
+                    ELSE 0
+                END AS isMultiple
+            FROM reports t1
+            WHERE t1.status = 'unread';
+            `)
         
         const countParams = queryParams.slice(0, -2); // Exclude pagination for COUNT query
         const total: [Counter[], FieldPacket[]] = await connection.query(
@@ -58,7 +71,7 @@ export async function GET(req: NextRequest)
         // const total = await query(`SELECT COUNT(*) as count FROM reports`, []) as { count: number }[]
         if (!total)
             return new Response('No reports found', { status: 404 })
-        return NextResponse.json({ data: reports[0], total: total[0][0].count })
+        return NextResponse.json({ data: reports[0], total: total[0][0].count, isMultiple: isMultipleReported[0] }, { status: 200 })
     } catch (error) {
         console.error('Error fetching reports:', error);
         return NextResponse.json({ error: 'Failed to fetch reports' }, { status: 500 });
