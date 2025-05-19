@@ -9,9 +9,10 @@ import { logout } from '@/app/lib/actions';
 import LogoutModal from '../LogoutModal';
 import PushNotifSubscribe from './PushNotifSubscribe';
 import { Button } from '@mui/material';
-import { AccountBox, Logout, DarkMode, LightMode /*Update*/ } from '@mui/icons-material';
-import { IconButton, Tooltip } from '@mui/material';
+import { AccountBox, Logout, DarkMode, LightMode, AssignmentLate /*Update*/ } from '@mui/icons-material';
+import { IconButton, Tooltip} from '@mui/material';
 import {motion, AnimatePresence} from 'framer-motion';
+
 
 
 interface SessionData {
@@ -187,6 +188,8 @@ export default function Navbar({ session }: SessionData)
             <li><Link href="/admin/watchlist" className={`block py-2 px-3 text-lg ${getActiveClass('/admin/watchlist')}`}>Report Management</Link></li>
             <li><Link href="/admin/camManagement" className={`block py-2 px-3 text-lg ${getActiveClass('/admin/camManagement')}`}>Camera Management</Link></li>
             <li><Link href="/admin/profile" className={`block py-2 px-3 text-lg ${getActiveClass('/admin/profile')}`}>My Profile</Link></li>
+            <li><Link href="/admin/SystemLogs" className={`block py-2 px-3 text-lg ${getActiveClass('/admin/SystemLogs')}`}>Logs</Link></li>
+         
           </ul>
         </div>
       </div>
