@@ -188,7 +188,7 @@ export default function Navbar({ session }: SessionData)
             <li><Link href="/admin/watchlist" className={`block py-2 px-3 text-lg ${getActiveClass('/admin/watchlist')}`}>Report Management</Link></li>
             <li><Link href="/admin/camManagement" className={`block py-2 px-3 text-lg ${getActiveClass('/admin/camManagement')}`}>Camera Management</Link></li>
             <li><Link href="/admin/profile" className={`block py-2 px-3 text-lg ${getActiveClass('/admin/profile')}`}>My Profile</Link></li>
-            <li><Link href="/admin/SystemLogs" className={`block py-2 px-3 text-lg ${getActiveClass('/admin/SystemLogs')}`}>Logs</Link></li>
+            <li><Link href="/admin/logs" className={`block py-2 px-3 text-lg ${getActiveClass('/admin/logs')}`}>Logs</Link></li>
          
           </ul>
         </div>
