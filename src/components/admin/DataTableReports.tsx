@@ -527,8 +527,8 @@ export default function DataTable() {
       renderCell: (params) => {
         const { value, row } = params;
         const isReportedMultiple = isMultiple_.some(report => report.platenumber === row.platenumber && report.isMultiple === 1);
-
-        return isReportedMultiple ? (
+        const isHelpDesk = (userTeam===0);
+        return isReportedMultiple && isHelpDesk ? (
           <div style={{ display: "flex", alignItems: "center" }}>
             <Tooltip title="Reported plate number already exists, please review the report." arrow>
               <IconButton size="small">
