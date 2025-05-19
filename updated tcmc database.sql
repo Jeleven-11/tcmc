@@ -42,6 +42,15 @@ CREATE TABLE IF NOT EXISTS `subscriptions` (
 CHARSET=utf8mb4
 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE IF NOT EXISTS `notifications_record` (
+	`notif_id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    `notif_timestamp` DATETIME NOT NULL,
+    `notif_title` VARCHAR(100),
+    `notif_description` VARCHAR(255)
+) ENGINE=InnoDB DEFAULT
+CHARSET=utf8mb4
+COLLATE=utf8mb4_general_ci;
+
 -- ALTER TABLE `reports` ADD CONSTRAINT `users_team` FOREIGN KEY (team) REFERENCES `users` (team) ON DELETE CASCADE ON UPDATE CASCADE;
 
 

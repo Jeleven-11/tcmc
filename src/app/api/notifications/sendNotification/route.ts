@@ -57,6 +57,14 @@ export async function POST(res: Request)
                     console.error(err)
                 }
             }))
+            try {
+                await conn.query(
+                    "INSERT INTO notifications_record (notif_timestamp, notif_title, notif_description) VALUES (NOW(), ?, ?)",
+                    [title, desc]
+                );
+            } catch (dbError) {
+                console.error("Failed to insert notification into DB:", dbError);
+            }
 
             // subscribers.forEach(async (sub) =>
             // {
