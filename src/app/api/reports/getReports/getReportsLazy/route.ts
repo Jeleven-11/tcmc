@@ -52,11 +52,17 @@ export async function GET(req: NextRequest)
                     WHEN COUNT(t2.id) > 0 THEN 1
                     ELSE 0
                 END AS isMultiple
-            FROM reports t1
-            LEFT JOIN reports t2 ON t1.platenumber = t2.platenumber AND t1.id <> t2.id
-            WHERE t1.status = 'unread'
+            FROM (
+                SELECT reportID, platenumber 
+                FROM reports 
+                ${whereClause} 
+                ORDER BY createdAt DESC 
+                LIMIT ? OFFSET ?
+            ) AS t1
+            LEFT JOIN reports t2 ON t1.platenumber = t2.platenumber AND t1.reportID <> t2.reportID
             GROUP BY t1.reportID, t1.platenumber;
-        `);
+        `, queryParams);
+
         
         const countParams = queryParams.slice(0, -2); // Exclude pagination for COUNT query
         const total: [Counter[], FieldPacket[]] = await connection.query(
