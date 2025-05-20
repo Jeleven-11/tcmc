@@ -15,10 +15,11 @@ export default function DynamicTitlePage()
       '/report-updates': 'Report Updates',
       '/adminlogin': 'Administrator Login',
       '/admin': 'Admin Dashboard',
-      '/admin/userManagement': 'Users Management',
+      '/admin/userManagement': 'Manage Users',
       '/admin/watchlist': 'Reports Watchlist',
       '/admin/camManagement': 'Camera Management',
       '/admin/profile': 'Profile',
+      'admin/logs': 'Notification Logs',
     //   '/admin/[id]/test': 'Tinapaklay',
     }
 
