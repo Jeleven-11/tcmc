@@ -19,7 +19,7 @@ export default function DynamicTitlePage()
       '/admin/watchlist': 'Reports Watchlist',
       '/admin/camManagement': 'Camera Management',
       '/admin/profile': 'Profile',
-      'admin/logs': 'Notification Logs',
+      '/admin/logs': 'Notification Logs',
     //   '/admin/[id]/test': 'Tinapaklay',
     }
 
