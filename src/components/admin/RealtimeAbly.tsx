@@ -7,12 +7,44 @@ import { getSession } from '@/app/lib/actions';
 type SessionData = {
   sessionID: string;
 } | null;
-interface AblyComponentProps {
-  onMessage: (type:string, message: string, file_id?:string, file_name?:string) => void;
-  isRecording: boolean
+interface reportData {
+  reportId: string;
+  status: string;
+  vehicleType: string;
+  color: string;
+  plateNumber: string;
 }
 
-const AblyConnectionComponent:React.FC<AblyComponentProps> = ({onMessage, isRecording}) => {
+const sendNotif = async (data: reportData, license_plate_text: string) =>
+  {
+    const title = "🚨 License Plate Match!"
+    const desc = "Reported vehicle with license plate " + license_plate_text + " has passed to Street 1."
+    
+    await fetch('/api/notifications/sendNotification',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ title: title, desc: desc })
+    }).then(response => response.json()).then(msg =>
+    {
+      console.log(msg)
+    })
+  }
+  const fetchPlateNumberMatch = async(plate_number:string) => {
+  try{
+    const response = await fetch(`/api/reports/plateNumber/${plate_number}`);
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    sendNotif(data.data, plate_number);
+  } catch(error){
+    console.error(error);
+  }
+};
+const AblyConnectionComponent = () => {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const realtime = useRef<Ably.Realtime | null>(null);
   const channel = useRef<Ably.RealtimeChannel | null>(null);
@@ -43,7 +75,7 @@ const AblyConnectionComponent:React.FC<AblyComponentProps> = ({onMessage, isReco
     // Initialize Ably instance
     realtime.current = new Ably.Realtime({
       key: process.env.NEXT_PUBLIC_ABLY_API_KEY,
-      transportParams: { heartbeatInterval: 15000 },
+      transportParams: { heartbeatInterval: 25000 },
     });
 
     channel.current = realtime.current.channels.get('webrtc-signaling-channel');
@@ -64,85 +96,47 @@ const AblyConnectionComponent:React.FC<AblyComponentProps> = ({onMessage, isReco
       };
 
       const handleSignalingMessage = async (message: Ably.Message) => {
-        const { type, from, target, payload, role, sessionID } = message.data;
+        const { type, from, target, payload, role, sessionID, data } = message.data;
         
-        if (role !== 'Raspberry Pi' && target !== myID.current && from === myID.current) return;
+        if (role !== 'Raspberry Pi' && target !== myID.current && from !== myID.current) return;
 
         console.log('Received message from Raspberry Pi:', message.data);
-
-        // if (!peerConnection.current) {
-        //   peerConnection.current = new RTCPeerConnection({
-        //     iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-        //   });
-
-          
-
-        //   peerConnection.current.ontrack = (event) => {
-        //     event.streams[0].getTracks().forEach((track) => {
-        //       remoteStream.current?.addTrack(track);
-        //     });
-        //   };
-
-        //   peerConnection.current.onicecandidate = async (event) => {
-        //     if (event.candidate) {
-        //       await channel.current?.publish('WebRTC-client-register', {
-        //         type: 'ice-candidate',
-        //         payload: event.candidate,
-        //         from: myID.current,
-        //         target: piID.current,
-        //       });
-        //     }
-        //   };
-        // }
-        if (type === 'Connect' && sessionID !== myID.current){
+        if (role==='Raspberry Pi' && type === 'Connect'){
           if (!channel.current){
             console.log('channel.current is null in icecandidate');
             return;
           };
           const registrationMessage = {
-            role: 'Admin',
-            id: myID.current,
             type: 'Connect',
             from: myID.current,
+            target:piID.current,
             camera_stream: true,
+            id: myID.current,
+            role: 'Admin',
           };
     
           await channel.current.publish('WebRTC-client-register', registrationMessage);
           console.log('Sent registration message:', registrationMessage);
         }
-        if (isRecording){
-          if (!channel.current){
-            console.log('channel.current is null in icecandidate');
-            return;
-          };
-          await channel.current.publish('WebRTC-client-register', {
-            role: 'Admin',
-            id: myID.current,
-            type: 'Record Start',
-            from: myID.current,
-            camera_stream: true,
-          });
+        if(type === 'Vehicle Log'){
+          // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+          message.data.data.forEach((vehicle: any) => {
+            console.log(vehicle);
+            console.log(vehicle['type']);
+            console.log(vehicle['license_plate'].text);
+          })
         }
-        if (!isRecording){
-          if (!channel.current){
-            console.log('channel.current is null in icecandidate');
-            return;
-          };
-          await channel.current.publish('WebRTC-client-register', {
-            role: 'Admin',
-            id: myID.current,
-            type: 'Record Stop',
-            from: myID.current,
-            camera_stream: true,
-          });
-        }
-        if (type === 'FPS' || type === 'Upload'){
-          onMessage(type, message.data.data)
-        }
-        if (type === 'Upload'){
-          onMessage(type, message.data.message, message.data.file_id, message.data.file_name)
-        }
+        
         if (type === 'Data'){
+          const license_plate_text = data['License Plate Text'];
+          const license_plate_text_confidence = data['License Plate Text Confidence']
+          const car_confidence = data['Car Confidence'];
+          console.log('Check for a match: ',{
+            "License Plate Text": license_plate_text,
+            "License Plate Text Confidence": license_plate_text_confidence,
+            "Car Confidence": car_confidence,
+          })
+          fetchPlateNumberMatch(license_plate_text);
           /*
           TO BE UPDATED...
           Data from Raspberry Pi: {
@@ -150,17 +144,11 @@ const AblyConnectionComponent:React.FC<AblyComponentProps> = ({onMessage, isReco
             "sessionID": self.raspberry_pi_id,
             "type": "Data",
             "data": {
-              "predictions": [
-                {
-                  "id": "1",
-                  "label": "Car",}
-                },
-                {
-                  "id": "2",
-                  "label": "Truck",}
-                }
-              ]
-          }
+              "Car Confidence": score,
+              "License Plate Text Confidence": license_plate_text_confidence,
+              "License Plate Text":license_plate_text
+            }
+        }
           */
         }
         if (type === 'offer' && from !== myID.current && target === myID.current) {
@@ -364,7 +352,6 @@ const AblyConnectionComponent:React.FC<AblyComponentProps> = ({onMessage, isReco
   return (
     <div>
       {isClient ? (
-        
         <video ref={videoRef} className="w-full max-h-80 lg:max-h-96 rounded-lg"//w-full
         style={{ objectFit: 'contain' }}autoPlay playsInline muted //style={{ width: "100%", height: "auto"}} 
         />
