@@ -42,6 +42,7 @@ const sendNotif = async (data: reportData, license_plate_text: string) =>
   const fetchPlateNumberMatch = async(plate_number:string) => {
   try{
     const response = await fetch(`/api/reports/plateNumber/${plate_number}`);
+    console.log(response);
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }
