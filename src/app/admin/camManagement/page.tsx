@@ -16,7 +16,7 @@ import GdriveFetchVideos from "@/components/admin/gdrive/GdriveFetchVideos";
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import StopIcon from '@mui/icons-material/Stop';
 const mockCameras = [
-  { id: 1, name: "Camera 1", location: "1st Street", feed: "/mock.png" },
+  { id: 1, name: "Camera 1", location: "1st Street", feed: "/mock.png" , IP: "89.0.142.86"},
   // { id: 2, name: "Camera 2", location: "Street A", feed: "/mock.png" },
   // { id: 3, name: "Camera 3", location: "Straight Street", feed: "/mock.png" },
   // { id: 4, name: "Camera 4", location: "Strait Street", feed: "/mock.png" },
@@ -31,8 +31,8 @@ const CamManagement = () => {
   const [selectedCamera, setSelectedCamera] = useState<{ id: number; name: string; location: string } | null>(null);
   const [currentFPS, setCurrentFPS] = useState<string>('0');
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-  const handleAdd = (name: string, location: string) => {
-    setCameras([...cameras, { id: Date.now(), name, location, feed: "/mock.png" }]);
+  const handleAdd = (name: string, location: string, IP: string) => {
+    setCameras([...cameras, { id: Date.now(), name, location, IP, feed: "/mock.png" }]);
   };
 
   const handleEdit = (id: number, name: string, location: string) => {

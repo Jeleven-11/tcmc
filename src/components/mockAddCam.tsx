@@ -6,18 +6,20 @@ import { motion } from "framer-motion";
 interface mockAddCamProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (name: string, location: string) => void;
+  onAdd: (name: string, location: string, Ip: string) => void;
 }
 
 export const MockAddCam = ({ isOpen, onClose, onAdd }: mockAddCamProps) => {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
+  const [ip, setIp] = useState("");
 
   const handleSubmit = () => {
     if (name.trim() && location.trim()) {
-      onAdd(name, location);
+      onAdd(name, location, ip);
       setName("");
       setLocation("");
+      setIp("");
       onClose();
     }
   };
@@ -30,6 +32,7 @@ export const MockAddCam = ({ isOpen, onClose, onAdd }: mockAddCamProps) => {
         <h2 className="text-lg font-semibold mb-4">Add Camera</h2>
         <input className="border p-2 w-full mb-2" type="text" placeholder="Camera Name" value={name} onChange={(e) => setName(e.target.value)} />
         <input className="border p-2 w-full mb-4" type="text" placeholder="Location" value={location} onChange={(e) => setLocation(e.target.value)} />
+        <input className="border p-2 w-full mb-4" type="text" placeholder="IP Address" value={ip} onChange={(e) => setIp(e.target.value)} />
         <div className="flex justify-end space-x-2">
           <button onClick={onClose} className="bg-gray-300 px-4 py-2 rounded">Cancel</button>
           <button onClick={handleSubmit} className="bg-blue-600 text-white px-4 py-2 rounded">Add</button>
